@@ -478,6 +478,38 @@
 
 
         /* =========================================================
+           Route markers on map
+           ========================================================= */
+
+        .route-map-marker {
+
+            width: 26px;
+
+            height: 26px;
+
+            border-radius: 50%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            color: white;
+
+            font-size: 12px;
+
+            font-weight: bold;
+
+            border: 2px solid white;
+
+            box-shadow:
+                0 1px 5px
+                rgba(0, 0, 0, 0.45);
+        }
+
+
+        /* =========================================================
            فقط برای Dark Mode نقشه
            ========================================================= */
 
@@ -1212,9 +1244,6 @@
                 );
 
             }
-
-
-            updateMapTiles();
 
 
             if (
@@ -2241,7 +2270,7 @@
                 );
 
 
-            updateMapTiles();
+            initializeMapLayers();
 
 
             map.setView(
@@ -2255,44 +2284,97 @@
         }
 
 
-        function updateMapTiles() {
+        /* =========================================================
+           Map base layers
+           ========================================================= */
 
-            if (!map) {
+        function initializeMapLayers() {
 
-                return;
-
-            }
-
-
-            if (map._routeTileLayer) {
-
-                map.removeLayer(
-                    map._routeTileLayer
-                );
-
-            }
-
-
-            const tileUrl =
-                "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
-
-
-            map._routeTileLayer =
+            const osmLayer =
                 L.tileLayer(
-
-                    tileUrl,
-
+                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                     {
-
                         maxZoom:
                             19,
 
                         attribution:
                             '&copy; OpenStreetMap contributors'
-
                     }
+                );
 
-                ).addTo(map);
+
+            const topoLayer =
+                L.tileLayer(
+                    "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+                    {
+                        maxZoom:
+                            17,
+
+                        attribution:
+                            'Map data &copy; OpenStreetMap contributors, SRTM | Map style &copy; OpenTopoMap'
+                    }
+                );
+
+
+            const satelliteLayer =
+                L.tileLayer(
+                    "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+                    {
+                        maxZoom:
+                            19,
+
+                        attribution:
+                            'Tiles &copy; Esri'
+                    }
+                );
+
+
+            osmLayer.addTo(
+                map
+            );
+
+
+            const baseMaps = {
+
+                "خیابانی":
+                    osmLayer,
+
+                "توپوگرافی":
+                    topoLayer,
+
+                "ماهواره‌ای":
+                    satelliteLayer
+
+            };
+
+
+            L.control.layers(
+                baseMaps,
+                null,
+                {
+                    position:
+                        "topright",
+
+                    collapsed:
+                        false
+                }
+            ).addTo(
+                map
+            );
+
+
+            map._baseLayers = {
+
+                osm:
+                    osmLayer,
+
+                topo:
+                    topoLayer,
+
+                satellite:
+                    satelliteLayer
+
+            };
 
         }
 
@@ -2435,6 +2517,70 @@
 
                     mapLayers.push(
                         line
+                    );
+
+
+                    /* =================================================
+                       Route start marker
+                       ================================================= */
+
+                    const routeIcon =
+                        L.divIcon(
+                            {
+
+                                className:
+                                    "",
+
+                                html:
+                                    `<div
+                                        class="route-map-marker"
+                                        style="background:${color};"
+                                    >
+                                        ${index + 1}
+                                    </div>`,
+
+                                iconSize:
+                                    [26, 26],
+
+                                iconAnchor:
+                                    [13, 13],
+
+                                popupAnchor:
+                                    [0, -13]
+
+                            }
+                        );
+
+
+                    const startMarker =
+                        L.marker(
+                            latLngs[0],
+                            {
+                                icon:
+                                    routeIcon
+                            }
+                        ).addTo(map);
+
+
+                    startMarker.bindTooltip(
+
+                        `${index + 1}. ${escapeHtml(result.route)}`,
+
+                        {
+
+                            direction:
+                                "top",
+
+                            offset:
+                                [0, -10]
+
+                        }
+
+                    );
+
+
+                    mapLayers.push(
+                        startMarker
                     );
 
 
