@@ -420,7 +420,7 @@
 
 
         /* =========================
-           Four bar charts
+           Bar charts
            ========================= */
 
         .bar-charts-grid {
@@ -744,10 +744,6 @@
         </button>
 
 
-        <!-- =========================
-             Default routes
-             ========================= -->
-
         <div class="section-title">
             مسیرهای پیش‌فرض
         </div>
@@ -878,10 +874,6 @@
         </div>
 
 
-        <!-- =========================
-             Add GPX files
-             ========================= -->
-
         <div class="section-title">
             افزودن فایل GPX
         </div>
@@ -900,10 +892,6 @@
             یک یا چند فایل GPX را از کامپیوتر خود انتخاب کنید.
         </div>
 
-
-        <!-- =========================
-             Selected routes
-             ========================= -->
 
         <div class="section-title">
             مسیرهای انتخاب‌شده
@@ -1024,6 +1012,8 @@
             style="display:none;"
         >
 
+            <!-- حداکثر ارتفاع‌گیری -->
+
             <div
                 id="max-elevation-gain-container"
                 class="chart-container"
@@ -1037,6 +1027,8 @@
 
             </div>
 
+
+            <!-- حداکثر ارتفاع -->
 
             <div
                 id="max-elevation-container"
@@ -1052,19 +1044,23 @@
             </div>
 
 
+            <!-- زمان صعود -->
+
             <div
                 id="estimated-ascent-time-container"
                 class="chart-container"
             >
 
                 <div class="chart-title">
-                    زمان تقریبی صعود
+                    زمان صعود
                 </div>
 
                 <div id="estimated-ascent-time-chart"></div>
 
             </div>
 
+
+            <!-- امتیاز سختی -->
 
             <div
                 id="difficulty-score-container"
@@ -1221,11 +1217,6 @@
             updateMapTiles();
 
 
-            /*
-             * اگر نمودارها قبلاً رسم شده باشند،
-             * با تغییر تم دوباره رسم می‌شوند.
-             */
-
             if (
                 analysisResults.length > 0
             ) {
@@ -1315,10 +1306,6 @@
                 "bar-charts-grid"
             ).style.display = "grid";
 
-
-            /*
-             * نقشه نیز همراه نمودارها نمایش داده می‌شود.
-             */
 
             document.getElementById(
                 "map-container"
@@ -1432,7 +1419,12 @@
             );
 
 
-            drawEstimatedAscentTimeChart(
+            /*
+             * زمان تقریبی و زمان واقعی صعود
+             * روی یک نمودار
+             */
+
+            drawAscentTimeComparisonChart(
                 analysisResults
             );
 
@@ -1441,10 +1433,6 @@
                 analysisResults
             );
 
-
-            /*
-             * رسم مسیرهای انتخاب‌شده روی نقشه
-             */
 
             drawRoutesOnMap(
                 analysisResults
@@ -1495,10 +1483,6 @@
             }
 
 
-            /*
-             * امکان انتخاب دوباره همان فایل
-             */
-
             event.target.value = "";
 
         }
@@ -1523,11 +1507,6 @@
             }
 
 
-            /*
-             * اگر مسیر قبلاً انتخاب شده،
-             * دوباره اضافه نشود.
-             */
-
             const alreadyExists =
                 selectedFiles.some(
                     existingFile =>
@@ -1545,10 +1524,6 @@
             }
 
 
-            /*
-             * اضافه کردن فایل به مسیرهای انتخاب‌شده
-             */
-
             selectedFiles.push(
                 file
             );
@@ -1560,10 +1535,6 @@
 
 
             try {
-
-                /*
-                 * خواندن GPX
-                 */
 
                 const route =
                     await loadGpxFile(
@@ -1578,21 +1549,12 @@
                     );
 
 
-                /*
-                 * تحلیل مسیر
-                 */
-
                 const result =
                     analyzeRoute(
                         route,
                         routeName
                     );
 
-
-                /*
-                 * اطلاعات خام مسیر
-                 * برای رسم روی نقشه
-                 */
 
                 result.routeData =
                     route;
@@ -1616,20 +1578,10 @@
                 );
 
 
-                /*
-                 * نتیجه تحلیل مسیر
-                 * در آرایه قرار می‌گیرد.
-                 */
-
                 analysisResults.push(
                     result
                 );
 
-
-                /*
-                 * نمودارها همیشه با
-                 * کل آرایه رسم می‌شوند.
-                 */
 
                 redrawAllCharts();
 
@@ -1642,21 +1594,12 @@
                 );
 
 
-                /*
-                 * اگر تحلیل شکست خورد،
-                 * فایل از selectedFiles حذف شود.
-                 */
-
                 selectedFiles =
                     selectedFiles.filter(
                         existingFile =>
                             existingFile !== file
                     );
 
-
-                /*
-                 * حذف مسیر از Sidebar
-                 */
 
                 const item =
                     Array.from(
@@ -1675,11 +1618,6 @@
 
                 }
 
-
-                /*
-                 * اگر فایل پیش‌فرض بوده،
-                 * checkbox آن هم برداشته شود.
-                 */
 
                 const failedRouteName =
                     file.name.replace(
@@ -1710,11 +1648,6 @@
 
                 updateRouteNumbers();
 
-
-                /*
-                 * وضعیت نمودارها را
-                 * با نتایج باقی‌مانده هماهنگ می‌کنیم.
-                 */
 
                 redrawAllCharts();
 
@@ -1854,10 +1787,6 @@
             item.draggable = true;
 
 
-            /*
-             * فایل واقعی در خود عنصر ذخیره می‌شود.
-             */
-
             item.file = file;
 
 
@@ -1897,10 +1826,6 @@
             `;
 
 
-            /*
-             * حذف مسیر
-             */
-
             item
                 .querySelector(
                     ".remove-route"
@@ -1918,10 +1843,6 @@
                     }
                 );
 
-
-            /*
-             * Drag & Drop
-             */
 
             item.addEventListener(
                 "dragstart",
@@ -1993,20 +1914,12 @@
             route
         ) {
 
-            /*
-             * حذف از آرایه فایل‌ها
-             */
-
             selectedFiles =
                 selectedFiles.filter(
                     file =>
                         file.name !== route
                 );
 
-
-            /*
-             * نام مسیر بدون پسوند
-             */
 
             const routeName =
                 route.replace(
@@ -2015,10 +1928,6 @@
                 );
 
 
-            /*
-             * حذف نتیجه تحلیل همان مسیر
-             */
-
             analysisResults =
                 analysisResults.filter(
                     result =>
@@ -2026,11 +1935,6 @@
                         routeName
                 );
 
-
-            /*
-             * اگر مسیر پیش‌فرض است،
-             * checkbox آن را نیز بردار.
-             */
 
             const defaultCheckbox =
                 Array.from(
@@ -2051,10 +1955,6 @@
 
             }
 
-
-            /*
-             * حذف از Sidebar
-             */
 
             const item =
                 Array.from(
@@ -2103,11 +2003,6 @@
 
             updateRouteNumbers();
 
-
-            /*
-             * نمودارها و نقشه را با
-             * نتایج باقی‌مانده دوباره رسم می‌کنیم.
-             */
 
             redrawAllCharts();
 
@@ -2266,11 +2161,6 @@
 
             updateRouteNumbers();
 
-
-            /*
-             * ترتیب جدید Sidebar باید
-             * در نمودارها و نقشه هم اعمال شود.
-             */
 
             syncAnalysisOrder();
 
@@ -2450,10 +2340,6 @@
                 L.latLngBounds([]);
 
 
-            /*
-             * رنگ‌های مختلف برای مسیرها
-             */
-
             const routeColors = [
 
                 "#e53935",
@@ -2530,11 +2416,6 @@
                         ).addTo(map);
 
 
-                    /*
-                     * نام مسیر هنگام قرار گرفتن
-                     * ماوس روی مسیر نمایش داده می‌شود.
-                     */
-
                     line.bindTooltip(
 
                         `${index + 1}. ${escapeHtml(result.route)}`,
@@ -2552,20 +2433,10 @@
                     );
 
 
-                    /*
-                     * مسیر را برای حذف بعدی
-                     * در mapLayers نگه می‌داریم.
-                     */
-
                     mapLayers.push(
                         line
                     );
 
-
-                    /*
-                     * محدوده نقشه را با تمام نقاط
-                     * مسیر تنظیم می‌کنیم.
-                     */
 
                     latLngs.forEach(
                         point => {
@@ -2581,11 +2452,6 @@
             );
 
 
-            /*
-             * اگر حداقل یک مسیر معتبر داریم،
-             * نقشه روی تمام مسیرها Fit می‌شود.
-             */
-
             if (
                 bounds.isValid()
             ) {
@@ -2600,12 +2466,6 @@
 
             }
 
-
-            /*
-             * چون نقشه ممکن است تازه از حالت
-             * display:none خارج شده باشد،
-             * اندازه آن را دوباره محاسبه می‌کنیم.
-             */
 
             setTimeout(
                 () => {

@@ -647,27 +647,158 @@ function drawMaxElevationChart(
 
 
 // --------------------------------------------------
-// زمان تقریبی صعود
+// مقایسه زمان صعود و زمان کل مسیر
 // --------------------------------------------------
 
-function drawEstimatedAscentTimeChart(
+function drawAscentTimeComparisonChart(results) {
+
+    const names = results.map(
+        result => result.route
+    );
+
+    const estimatedValues = results.map(
+        result =>
+            result.difficulty[
+                "Estimated Ascent Time (h)"
+            ]
+    );
+
+    const actualValues = results.map(
+        result =>
+            result.metrics[
+                "Ascent Time (h)"
+            ]
+    );
+
+    const totalTimeValues = results.map(
+        result =>
+            result.metrics[
+                "Total Time (h)"
+            ]
+    );
+
+    const traces = [
+
+        {
+            x: names,
+
+            y: estimatedValues,
+
+            type: "bar",
+
+            name: "زمان تقریبی صعود",
+
+            hovertemplate:
+                "مسیر: %{x}" +
+                "<br>زمان تقریبی صعود: %{y:.2f} ساعت" +
+                "<extra></extra>"
+        },
+
+        {
+            x: names,
+
+            y: actualValues,
+
+            type: "bar",
+
+            name: "زمان واقعی صعود",
+
+            hovertemplate:
+                "مسیر: %{x}" +
+                "<br>زمان واقعی صعود: %{y:.2f} ساعت" +
+                "<extra></extra>"
+        },
+
+        {
+            x: names,
+
+            y: totalTimeValues,
+
+            type: "bar",
+
+            name: "زمان کل مسیر",
+
+            hovertemplate:
+                "مسیر: %{x}" +
+                "<br>زمان کل مسیر: %{y:.2f} ساعت" +
+                "<extra></extra>"
+        }
+
+    ];
+
+    const layout = buildPlotLayout(
+        "",
+        "زمان (ساعت)"
+    );
+
+    layout.barmode = "group";
+
+    layout.xaxis = {
+        ...layout.xaxis,
+        type: "category"
+    };
+
+    layout.legend = {
+        ...layout.legend,
+        orientation: "h",
+        x: 0.5,
+        xanchor: "center",
+        y: 1.05
+    };
+
+    Plotly.react(
+        "estimated-ascent-time-chart",
+        traces,
+        layout,
+        {
+            responsive: true,
+            displaylogo: false
+        }
+    );
+}
+
+// --------------------------------------------------
+// زمان واقعی صعود
+// --------------------------------------------------
+
+function drawAscentTimeChart(
     results
 ) {
     drawRouteBarChart(
         results,
 
         result =>
-            result.difficulty[
-                "Estimated Ascent Time (h)"
+            result.metrics[
+                "Ascent Time (h)"
             ],
 
-        "estimated-ascent-time-chart",
+        "ascent-time-chart",
 
-        "زمان تقریبی (ساعت)"
+        "زمان صعود (ساعت)"
     );
 }
 
 
+// --------------------------------------------------
+// زمان کل مسیر
+// --------------------------------------------------
+
+function drawTotalTimeChart(
+    results
+) {
+    drawRouteBarChart(
+        results,
+
+        result =>
+            result.metrics[
+                "Total Time (h)"
+            ],
+
+        "total-time-chart",
+
+        "زمان کل مسیر (ساعت)"
+    );
+}
 // --------------------------------------------------
 // امتیاز سختی
 // --------------------------------------------------

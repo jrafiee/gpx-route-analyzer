@@ -1,3 +1,4 @@
+
 /**
  * Read and parse a GPX File in the browser.
  *
@@ -47,6 +48,8 @@ async function readGpxFile(file) {
  *
  * Only points with elevation are returned.
  *
+ * Time is extracted when available.
+ *
  * @param {Document} xml
  * @returns {Array}
  */
@@ -77,6 +80,21 @@ function extractRoutePoints(xml) {
                 elevationElement.textContent
             );
 
+            // Extract timestamp if available
+            const timeElement = point.querySelector("time");
+
+            let time = null;
+
+            if (timeElement) {
+                const parsedTime = new Date(
+                    timeElement.textContent.trim()
+                );
+
+                if (!Number.isNaN(parsedTime.getTime())) {
+                    time = parsedTime;
+                }
+            }
+
             if (
                 !Number.isFinite(latitude) ||
                 !Number.isFinite(longitude) ||
@@ -88,7 +106,8 @@ function extractRoutePoints(xml) {
             points.push({
                 latitude,
                 longitude,
-                elevation
+                elevation,
+                time
             });
         });
     });
@@ -159,6 +178,7 @@ function extractRouteProfile(route) {
     };
 }
 
+
 function distance2D(point1, point2) {
     const lat1 = point1.latitude;
     const lon1 = point1.longitude;
@@ -201,6 +221,7 @@ function distance2D(point1, point2) {
     return earthRadius * c;
 }
 
+
 function distance3D(point1, point2) {
     const horizontalDistance =
         distance2D(point1, point2);
@@ -221,3 +242,4 @@ function distance3D(point1, point2) {
         elevationDifference ** 2
     );
 }
+

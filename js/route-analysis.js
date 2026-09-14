@@ -241,6 +241,107 @@ function calculateAscentDistance3D(route) {
 }
 
 
+
+function calculateRouteTimes(route) {
+    const points = route.points;
+
+    if (!points || points.length < 2) {
+        return {
+            ascentTimeHours: null,
+            totalTimeHours: null
+        };
+    }
+
+    // --------------------------------------------------
+    // Start point
+    // --------------------------------------------------
+
+    const startPoint = points[0];
+
+    if (!(startPoint.time instanceof Date) ||
+        Number.isNaN(startPoint.time.getTime())) {
+        return {
+            ascentTimeHours: null,
+            totalTimeHours: null
+        };
+    }
+
+    // --------------------------------------------------
+    // Find summit (highest elevation)
+    // --------------------------------------------------
+
+    let summitIndex = 0;
+
+    for (let i = 1; i < points.length; i++) {
+        if (
+            Number.isFinite(points[i].elevation) &&
+            points[i].elevation >
+            points[summitIndex].elevation
+        ) {
+            summitIndex = i;
+        }
+    }
+
+    // --------------------------------------------------
+    // End point
+    // --------------------------------------------------
+
+    const endPoint = points[points.length - 1];
+
+    if (!(endPoint.time instanceof Date) ||
+        Number.isNaN(endPoint.time.getTime())) {
+        return {
+            ascentTimeHours: null,
+            totalTimeHours: null
+        };
+    }
+
+    // --------------------------------------------------
+    // Summit time
+    // --------------------------------------------------
+
+    const summitPoint = points[summitIndex];
+
+    if (!(summitPoint.time instanceof Date) ||
+        Number.isNaN(summitPoint.time.getTime())) {
+        return {
+            ascentTimeHours: null,
+            totalTimeHours: null
+        };
+    }
+
+    // --------------------------------------------------
+    // Calculate elapsed times
+    // --------------------------------------------------
+
+    const ascentTimeMs =
+        summitPoint.time.getTime() -
+        startPoint.time.getTime();
+
+    const totalTimeMs =
+        endPoint.time.getTime() -
+        startPoint.time.getTime();
+
+    // --------------------------------------------------
+    // Validate
+    // --------------------------------------------------
+
+    if (ascentTimeMs < 0 || totalTimeMs < 0) {
+        return {
+            ascentTimeHours: null,
+            totalTimeHours: null
+        };
+    }
+
+    return {
+        ascentTimeHours:
+            ascentTimeMs / (1000 * 60 * 60),
+
+        totalTimeHours:
+            totalTimeMs / (1000 * 60 * 60)
+    };
+}
+
 function calculateSlopeDistribution(
     route,
     resampleDistance = 20,
@@ -909,12 +1010,14 @@ function analyzeRoute(route, routeName = null) {
     // 1. General route metrics
     // ========================================================
 
-    const routeMetrics =
-        calculateRouteMetrics(route);
-	
-	const ascentDistance3D =
-		calculateAscentDistance3D(route);
+const routeMetrics =
+    calculateRouteMetrics(route);
 
+const ascentDistance3D =
+    calculateAscentDistance3D(route);
+
+const routeTimes =
+    calculateRouteTimes(route);
     // ========================================================
     // 2. Slope analysis
     // ========================================================
@@ -940,10 +1043,16 @@ function analyzeRoute(route, routeName = null) {
 const combinedMetrics = {
     ...routeMetrics,
     ...slopeMetricsForMerge,
-    "Ascent Distance 3D (km)":
-        ascentDistance3D
-};
 
+    "Ascent Distance 3D (km)":
+        ascentDistance3D,
+
+    "Ascent Time (h)":
+        routeTimes.ascentTimeHours,
+
+    "Total Time (h)":
+        routeTimes.totalTimeHours
+};
     if (routeName !== null) {
         combinedMetrics.route = routeName;
     }
