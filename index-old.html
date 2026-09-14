@@ -1,0 +1,334 @@
+function buildPlotLayout(title, yTitle, xTitle = "") {
+    const theme = getPlotTheme();
+
+    return {
+        title: {
+            text: title,
+            font: {
+                color: theme.textColor
+            }
+        },
+
+        paper_bgcolor: theme.paperBg,
+        plot_bgcolor: theme.plotBg,
+
+        font: {
+            color: theme.textColor
+        },
+
+        xaxis: {
+            title: {
+                text: xTitle,
+                font: {
+                    color: theme.textColor
+                }
+            },
+            color: theme.textColor,
+            gridcolor: theme.gridColor
+        },
+
+        yaxis: {
+            title: {
+                text: yTitle,
+                font: {
+                    color: theme.textColor
+                }
+            },
+            color: theme.textColor,
+            gridcolor: theme.gridColor
+        },
+
+        margin: {
+            t: 60,
+            r: 30,
+            b: 70,
+            l: 70
+        },
+
+        hovermode: "x unified",
+
+        legend: {
+            font: {
+                color: theme.textColor
+            }
+        }
+    };
+}
+
+
+function drawElevationProfile(
+    profile,
+    containerId = "elevation-chart"
+) {
+    const trace = {
+        x: profile.distance_km,
+        y: profile.elevation_m,
+        type: "scatter",
+        mode: "lines",
+        name: "ارتفاع",
+        line: {
+            width: 2
+        }
+    };
+
+    const layout = buildPlotLayout(
+        "پروفایل ارتفاعی مسیر",
+        "ارتفاع (m)",
+        "مسافت (km)"
+    );
+
+    Plotly.react(
+        containerId,
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displaylogo: false
+        }
+    );
+}
+
+
+function drawElevationGainProfile(
+    profile,
+    containerId = "elevation-gain-chart"
+) {
+    const trace = {
+        x: profile.distance_km,
+        y: profile.elevation_gain_m,
+        type: "scatter",
+        mode: "lines",
+        name: "ارتفاع‌گیری",
+        line: {
+            width: 2
+        }
+    };
+
+    const layout = buildPlotLayout(
+        "پروفایل ارتفاع‌گیری",
+        "ارتفاع‌گیری نسبت به نقطه شروع (m)",
+        "مسافت (km)"
+    );
+
+    Plotly.react(
+        containerId,
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displaylogo: false
+        }
+    );
+}
+
+
+function drawOrderedElevationProfile(
+    profile,
+    containerId = "ordered-elevation-chart"
+) {
+    const trace = {
+        x: profile.distance.map(value => value * 100),
+        y: profile.elevation_m,
+        type: "scatter",
+        mode: "lines",
+        name: "ارتفاع",
+        line: {
+            width: 2
+        }
+    };
+
+    const layout = buildPlotLayout(
+        "پروفایل ارتفاعی نرمال‌شده",
+        "ارتفاع (m)",
+        "درصد مسیر"
+    );
+
+    Plotly.react(
+        containerId,
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displaylogo: false
+        }
+    );
+}
+
+
+function drawSlopeDistribution(
+    slope,
+    routeName = "مسیر",
+    containerId = "slope-chart"
+) {
+    const categories = [
+        "Descent (<0%)",
+        "Very Easy (0–5%)",
+        "Easy (5–10%)",
+        "Moderate (10–15%)",
+        "Steep (15–20%)",
+        "Very Steep (20–25%)",
+        "Extreme (>25%)"
+    ];
+
+    const labels = [
+        "نزولی",
+        "خیلی آسان",
+        "آسان",
+        "متوسط",
+        "شیب‌دار",
+        "خیلی شیب‌دار",
+        "بسیار شدید"
+    ];
+
+    const traces = categories.map(
+        (category, index) => ({
+            x: [routeName],
+
+            y: [
+                slope[
+                    `${category} - km`
+                ] || 0
+            ],
+
+            type: "bar",
+
+            name: labels[index]
+        })
+    );
+
+    const layout = buildPlotLayout(
+        "توزیع شیب مسیر",
+        "مسافت (km)"
+    );
+
+    layout.barmode = "stack";
+
+    layout.xaxis = {
+        ...layout.xaxis,
+        type: "category"
+    };
+
+    Plotly.react(
+        containerId,
+        traces,
+        layout,
+        {
+            responsive: true,
+            displaylogo: false
+        }
+    );
+}
+
+
+function drawRouteBarChart(
+    results,
+    valueGetter,
+    containerId,
+    yTitle
+) {
+    const names = results.map(
+        result => result.route
+    );
+
+    const values = results.map(
+        result => valueGetter(result)
+    );
+
+    const trace = {
+        x: names,
+        y: values,
+        type: "bar"
+    };
+
+    const layout = buildPlotLayout(
+        "",
+        yTitle
+    );
+
+    layout.xaxis = {
+        ...layout.xaxis,
+        type: "category"
+    };
+
+    Plotly.react(
+        containerId,
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displaylogo: false
+        }
+    );
+}
+
+
+function drawMaxElevationGainChart(
+    results
+) {
+    drawRouteBarChart(
+        results,
+
+        result =>
+            result.metrics[
+                "Total Ascent (m)"
+            ],
+
+        "max-elevation-gain-chart",
+
+        "ارتفاع‌گیری کل (m)"
+    );
+}
+
+
+function drawMaxElevationChart(
+    results
+) {
+    drawRouteBarChart(
+        results,
+
+        result =>
+            result.metrics[
+                "Maximum Elevation (m)"
+            ],
+
+        "max-elevation-chart",
+
+        "حداکثر ارتفاع (m)"
+    );
+}
+
+
+function drawEstimatedAscentTimeChart(
+    results
+) {
+    drawRouteBarChart(
+        results,
+
+        result =>
+            result.difficulty[
+                "Estimated Ascent Time (h)"
+            ],
+
+        "estimated-ascent-time-chart",
+
+        "زمان تقریبی (ساعت)"
+    );
+}
+
+
+function drawDifficultyScoreChart(
+    results
+) {
+    drawRouteBarChart(
+        results,
+
+        result =>
+            result.difficulty[
+                "Difficulty Score"
+            ],
+
+        "difficulty-score-chart",
+
+        "امتیاز سختی"
+    );
+}
