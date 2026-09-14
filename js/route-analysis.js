@@ -100,10 +100,14 @@ function getNormalizedElevationGainProfile(route) {
 }
 
 function calculateRouteMetrics(route) {
-    // Extract cumulative distance and elevation
-    const { distance, elevation } = extractRouteProfile(route);
+    // Extract cumulative distance and raw elevation
+    const { distance, elevation } =
+        extractRouteProfile(route);
 
+    // --------------------------------------------------
     // Elevation changes
+    // --------------------------------------------------
+
     const elevationDiff = [];
 
     for (let i = 1; i < elevation.length; i++) {
@@ -112,7 +116,10 @@ function calculateRouteMetrics(route) {
         );
     }
 
+    // --------------------------------------------------
     // Total ascent
+    // --------------------------------------------------
+
     let totalAscent = 0;
 
     for (const diff of elevationDiff) {
@@ -121,7 +128,10 @@ function calculateRouteMetrics(route) {
         }
     }
 
+    // --------------------------------------------------
     // Total descent
+    // --------------------------------------------------
+
     let totalDescent = 0;
 
     for (const diff of elevationDiff) {
@@ -130,36 +140,111 @@ function calculateRouteMetrics(route) {
         }
     }
 
+    // --------------------------------------------------
     // Mean elevation
+    // --------------------------------------------------
+
     const meanElevation =
         elevation.reduce(
             (sum, value) => sum + value,
             0
         ) / elevation.length;
 
+    // --------------------------------------------------
+    // Minimum elevation
+    // --------------------------------------------------
+
+    const minimumElevation =
+        Math.min(...elevation);
+
+    // --------------------------------------------------
     // Maximum elevation
+    // --------------------------------------------------
+
     const maximumElevation =
         Math.max(...elevation);
 
+    // --------------------------------------------------
+    // Maximum elevation gain
+    // Difference between maximum and minimum elevation
+    // --------------------------------------------------
+
+    const maximumElevationGain =
+        maximumElevation - minimumElevation;
+
+    // --------------------------------------------------
+    // Return metrics
+    // --------------------------------------------------
+
     return {
-        "Distance (km)": distance[distance.length - 1] / 1000,
+        "Distance (km)":
+            distance[distance.length - 1] / 1000,
 
-        "Start Elevation (m)": elevation[0],
+        "Start Elevation (m)":
+            elevation[0],
 
-        "Maximum Elevation (m)": maximumElevation,
+        "Minimum Elevation (m)":
+            minimumElevation,
 
-        "Mean Elevation (m)": meanElevation,
+        "Maximum Elevation (m)":
+            maximumElevation,
 
-        "Total Ascent (m)": totalAscent,
+        "Maximum Elevation Gain (m)":
+            maximumElevationGain,
 
-        "Total Descent (m)": totalDescent
+        "Mean Elevation (m)":
+            meanElevation,
+
+        "Total Ascent (m)":
+            totalAscent,
+
+        "Total Descent (m)":
+            totalDescent
     };
 }
+
+function calculateAscentDistance3D(route) {
+    const points = route.points;
+
+    if (!points || points.length < 2) {
+        return 0;
+    }
+
+    // Find summit (highest point)
+    let summitIndex = 0;
+
+    for (let i = 1; i < points.length; i++) {
+        if (
+            Number.isFinite(points[i].elevation) &&
+            points[i].elevation >
+            points[summitIndex].elevation
+        ) {
+            summitIndex = i;
+        }
+    }
+
+    // Sum 3D distance from start to summit
+    let ascentDistance3D = 0;
+
+    for (let i = 0; i < summitIndex; i++) {
+        const d = distance3D(
+            points[i],
+            points[i + 1]
+        );
+
+        if (d !== null) {
+            ascentDistance3D += d;
+        }
+    }
+
+    return ascentDistance3D / 1000;
+}
+
 
 function calculateSlopeDistribution(
     route,
     resampleDistance = 20,
-    smoothingWindow = 5
+    smoothingWindow = 2
 ) {
     // ========================================================
     // 1. Extract route profile
@@ -740,19 +825,16 @@ function calculateDifficulty(metrics) {
     // 7. Estimated ascent time
     // ========================================================
 
-    result["Estimated Ascent Time (h)"] =
-        (
-            (
-                result["Uphill Distance (km)"] /
-                4
-            )
-            +
-            (
-                result["Total Ascent (m)"] /
-                600
-            )
-        ) *
-        result["Slope Factor"];
+  result["Estimated Ascent Time (h)"] =
+    (
+        result["Ascent Distance 3D (km)"] /
+        5
+    )
+    +
+    (
+        result["Maximum Elevation Gain (m)"] /
+        600
+    );
 
     // ========================================================
     // 8. Maximum altitude score
@@ -829,6 +911,9 @@ function analyzeRoute(route, routeName = null) {
 
     const routeMetrics =
         calculateRouteMetrics(route);
+	
+	const ascentDistance3D =
+		calculateAscentDistance3D(route);
 
     // ========================================================
     // 2. Slope analysis
@@ -852,10 +937,12 @@ function analyzeRoute(route, routeName = null) {
     delete slopeMetricsForMerge["Total Ascent (m)"];
     delete slopeMetricsForMerge["Total Descent (m)"];
 
-    const combinedMetrics = {
-        ...routeMetrics,
-        ...slopeMetricsForMerge
-    };
+const combinedMetrics = {
+    ...routeMetrics,
+    ...slopeMetricsForMerge,
+    "Ascent Distance 3D (km)":
+        ascentDistance3D
+};
 
     if (routeName !== null) {
         combinedMetrics.route = routeName;

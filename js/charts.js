@@ -614,7 +614,7 @@ function drawMaxElevationGainChart(
 
         result =>
             result.metrics[
-                "Total Ascent (m)"
+                "Maximum Elevation Gain (m)"
             ],
 
         "max-elevation-gain-chart",

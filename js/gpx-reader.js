@@ -200,3 +200,24 @@ function distance2D(point1, point2) {
 
     return earthRadius * c;
 }
+
+function distance3D(point1, point2) {
+    const horizontalDistance =
+        distance2D(point1, point2);
+
+    if (
+        horizontalDistance === null ||
+        !Number.isFinite(point1.elevation) ||
+        !Number.isFinite(point2.elevation)
+    ) {
+        return null;
+    }
+
+    const elevationDifference =
+        point2.elevation - point1.elevation;
+
+    return Math.sqrt(
+        horizontalDistance ** 2 +
+        elevationDifference ** 2
+    );
+}
