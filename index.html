@@ -30,6 +30,20 @@
     ></script>
 
 
+    <!-- MapLibre GL JS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/maplibre-gl@6.9.0/dist/maplibre-gl.css"
+    >
+
+    <script type="module">
+        import * as maplibregl
+            from "https://unpkg.com/maplibre-gl@6.9.0/dist/maplibre-gl.mjs";
+
+        window.maplibregl = maplibregl;
+    </script>
+
+
     <!-- GPX reader -->
     <script src="js/gpx-reader.js"></script>
 
@@ -478,6 +492,82 @@
 
 
         /* =========================================================
+           2D / 3D map buttons
+           ========================================================= */
+
+        .map-view-buttons {
+
+            display: flex;
+
+            gap: 8px;
+
+            padding:
+                8px 10px 10px;
+        }
+
+
+        .map-view-button {
+
+            border:
+                1px solid #ccc;
+
+            border-radius: 7px;
+
+            background: #f3f3f3;
+
+            color: #333;
+
+            padding:
+                7px 12px;
+
+            font-family: inherit;
+
+            font-size: 13px;
+
+            cursor: pointer;
+        }
+
+
+        .map-view-button:hover {
+
+            background: #e7e7e7;
+        }
+
+
+        .map-view-button.active {
+
+            background: #4d8bc9;
+
+            color: white;
+
+            border-color:
+                #4d8bc9;
+        }
+
+
+        /* =========================================================
+           3D Map
+           ========================================================= */
+
+        #map-3d-container {
+
+            display: none;
+        }
+
+
+        #map-3d {
+
+            width: 100%;
+
+            height: 600px;
+
+            border-radius: 8px;
+
+            overflow: hidden;
+        }
+
+
+        /* =========================================================
            Route markers on map
            ========================================================= */
 
@@ -647,6 +737,34 @@
         }
 
 
+        body.dark-mode .map-view-button {
+
+            background: #2b2e30;
+
+            border-color:
+                #484b4d;
+
+            color: #eee;
+        }
+
+
+        body.dark-mode .map-view-button:hover {
+
+            background: #35383a;
+        }
+
+
+        body.dark-mode .map-view-button.active {
+
+            background: #4d8bc9;
+
+            border-color:
+                #4d8bc9;
+
+            color: white;
+        }
+
+
         /* =========================
            Mobile
            ========================= */
@@ -718,6 +836,12 @@
 
 
             #map {
+
+                height: 450px;
+            }
+
+
+            #map-3d {
 
                 height: 450px;
             }
@@ -1123,7 +1247,43 @@
                 نقشه مسیرها
             </div>
 
+
+            <!-- 2D / 3D buttons -->
+
+            <div class="map-view-buttons">
+
+                <button
+                    id="map-2d-button"
+                    class="map-view-button active"
+                    onclick="show2DMap()"
+                >
+                    🗺️ نقشه دوبعدی
+                </button>
+
+
+                <button
+                    id="map-3d-button"
+                    class="map-view-button"
+                    onclick="show3DMap()"
+                >
+                    🏔️ نمایش سه‌بعدی
+                </button>
+
+            </div>
+
+
+            <!-- 2D -->
+
             <div id="map"></div>
+
+
+            <!-- 3D -->
+
+            <div id="map-3d-container">
+
+                <div id="map-3d"></div>
+
+            </div>
 
         </div>
 
@@ -1355,6 +1515,13 @@
 
                     }
 
+
+                    if (map3d) {
+
+                        map3d.resize();
+
+                    }
+
                 },
                 50
             );
@@ -1409,6 +1576,8 @@
                 hideAnalysisCharts();
 
                 clearMap();
+
+                clear3DMap();
 
                 return;
 
@@ -1466,6 +1635,23 @@
             drawRoutesOnMap(
                 analysisResults
             );
+
+
+            /*
+             * اگر حالت 3D فعال باشد،
+             * مسیرها را در آن نیز به‌روزرسانی کن.
+             */
+
+            if (
+                currentMapMode === "3d" &&
+                map3d
+            ) {
+
+                drawRoutesOn3DMap(
+                    analysisResults
+                );
+
+            }
 
         }
 
@@ -2243,7 +2429,7 @@
 
 
         /* =========================================================
-           Map
+           2D Map
            ========================================================= */
 
         let map = null;
@@ -2405,7 +2591,7 @@
 
 
         /* =========================================================
-           Draw selected routes on map
+           Draw selected routes on 2D map
            ========================================================= */
 
         function drawRoutesOnMap(
@@ -2624,6 +2810,678 @@
 
                 },
                 100
+            );
+
+        }
+
+
+        /* =========================================================
+           3D Map
+           ========================================================= */
+
+        let map3d = null;
+
+        let currentMapMode = "2d";
+
+        let map3dInitialized = false;
+
+
+        function initialize3DMap() {
+
+            if (
+                map3dInitialized
+            ) {
+
+                return;
+
+            }
+
+
+            if (
+                !window.maplibregl
+            ) {
+
+                console.error(
+                    "MapLibre GL JS is not loaded."
+                );
+
+                return;
+
+            }
+
+
+            map3d =
+                new window.maplibregl.Map({
+
+                    container:
+                        "map-3d",
+
+                    center:
+                        [51.5, 32.0],
+
+                    zoom:
+                        7,
+
+                    pitch:
+                        55,
+
+                    bearing:
+                        0,
+
+                    maxPitch:
+                        85,
+
+                    style: {
+
+                        version:
+                            8,
+
+                        sources: {
+
+                            osm: {
+
+                                type:
+                                    "raster",
+
+                                tiles: [
+                                    "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                ],
+
+                                tileSize:
+                                    256,
+
+                                maxzoom:
+                                    19,
+
+                                attribution:
+                                    "&copy; OpenStreetMap contributors"
+
+                            },
+
+
+                            terrainSource: {
+
+                                type:
+                                    "raster-dem",
+
+                                url:
+                                    "https://tiles.mapterhorn.com/tilejson.json",
+
+                                tileSize:
+                                    256
+
+                            },
+
+
+                            hillshadeSource: {
+
+                                type:
+                                    "raster-dem",
+
+                                url:
+                                    "https://tiles.mapterhorn.com/tilejson.json",
+
+                                tileSize:
+                                    256
+
+                            }
+
+                        },
+
+
+                        layers: [
+
+                            {
+
+                                id:
+                                    "osm",
+
+                                type:
+                                    "raster",
+
+                                source:
+                                    "osm"
+
+                            },
+
+
+                            {
+
+                                id:
+                                    "hillshade",
+
+                                type:
+                                    "hillshade",
+
+                                source:
+                                    "hillshadeSource",
+
+                                paint: {
+
+                                    "hillshade-exaggeration":
+                                        0.35
+
+                                }
+
+                            }
+
+                        ]
+
+                    }
+
+                });
+
+
+            map3d.on(
+                "load",
+                function() {
+
+                    map3d.setTerrain({
+
+                        source:
+                            "terrainSource",
+
+                        exaggeration:
+                            1.4
+
+                    });
+
+
+                    map3dInitialized =
+                        true;
+
+
+                    drawRoutesOn3DMap(
+                        analysisResults
+                    );
+
+                }
+            );
+
+
+            map3d.on(
+                "error",
+                function(event) {
+
+                    console.error(
+                        "3D map error:",
+                        event
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* =========================================================
+           Convert GPX route to GeoJSON
+           ========================================================= */
+
+        function routeToGeoJSON(
+            result
+        ) {
+
+            const points =
+                result.routeData?.points;
+
+
+            if (
+                !points ||
+                points.length < 2
+            ) {
+
+                return null;
+
+            }
+
+
+            return {
+
+                type:
+                    "Feature",
+
+                properties: {
+
+                    name:
+                        result.route
+
+                },
+
+                geometry: {
+
+                    type:
+                        "LineString",
+
+                    coordinates:
+                        points.map(
+                            point => [
+
+                                point.longitude,
+
+                                point.latitude,
+
+                                Number.isFinite(
+                                    point.elevation
+                                )
+                                    ? point.elevation
+                                    : 0
+
+                            ]
+                        )
+
+                }
+
+            };
+
+        }
+
+
+        /* =========================================================
+           Draw routes on 3D map
+           ========================================================= */
+
+        function drawRoutesOn3DMap(
+            results
+        ) {
+
+            if (
+                !map3d ||
+                !map3dInitialized
+            ) {
+
+                return;
+
+            }
+
+
+            const routeColors = [
+
+                "#e53935",
+                "#1e88e5",
+                "#43a047",
+                "#fb8c00",
+                "#8e24aa",
+                "#00acc1",
+                "#6d4c41",
+                "#3949ab",
+                "#f4511e",
+                "#00897b"
+
+            ];
+
+
+            const features =
+                results
+                    .map(
+                        result =>
+                            routeToGeoJSON(
+                                result
+                            )
+                    )
+                    .filter(
+                        feature =>
+                            feature !== null
+                    );
+
+
+            const geojson = {
+
+                type:
+                    "FeatureCollection",
+
+                features:
+                    features
+
+            };
+
+
+            if (
+                map3d.getSource(
+                    "routes-3d"
+                )
+            ) {
+
+                map3d
+                    .getSource(
+                        "routes-3d"
+                    )
+                    .setData(
+                        geojson
+                    );
+
+            } else {
+
+                map3d.addSource(
+                    "routes-3d",
+                    {
+
+                        type:
+                            "geojson",
+
+                        data:
+                            geojson
+
+                    }
+                );
+
+
+                map3d.addLayer({
+
+                    id:
+                        "routes-3d",
+
+                    type:
+                        "line",
+
+                    source:
+                        "routes-3d",
+
+                    paint: {
+
+                        "line-color":
+                            [
+                                "match",
+
+                                [
+                                    "get",
+                                    "name"
+                                ],
+
+                                ...results.flatMap(
+                                    (
+                                        result,
+                                        index
+                                    ) => [
+
+                                        result.route,
+
+                                        routeColors[
+                                            index %
+                                            routeColors.length
+                                        ]
+
+                                    ]
+                                ),
+
+                                "#e53935"
+                            ],
+
+                        "line-width":
+                            5,
+
+                        "line-opacity":
+                            0.95
+
+                    }
+
+                });
+
+            }
+
+
+            fit3DMapToRoutes(
+                results
+            );
+
+        }
+
+
+        /* =========================================================
+           Fit 3D map to selected routes
+           ========================================================= */
+
+        function fit3DMapToRoutes(
+            results
+        ) {
+
+            if (
+                !map3d ||
+                !map3dInitialized
+            ) {
+
+                return;
+
+            }
+
+
+            const bounds =
+                new window.maplibregl.LngLatBounds();
+
+
+            let hasPoints =
+                false;
+
+
+            results.forEach(
+                result => {
+
+                    const points =
+                        result.routeData?.points;
+
+
+                    if (
+                        !points ||
+                        points.length === 0
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    points.forEach(
+                        point => {
+
+                            if (
+                                Number.isFinite(
+                                    point.latitude
+                                ) &&
+                                Number.isFinite(
+                                    point.longitude
+                                )
+                            ) {
+
+                                bounds.extend(
+                                    [
+                                        point.longitude,
+                                        point.latitude
+                                    ]
+                                );
+
+                                hasPoints =
+                                    true;
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+
+            if (!hasPoints) {
+
+                return;
+
+            }
+
+
+            map3d.fitBounds(
+                bounds,
+                {
+
+                    padding:
+                        50,
+
+                    pitch:
+                        55,
+
+                    bearing:
+                        0,
+
+                    duration:
+                        800
+
+                }
+            );
+
+        }
+
+
+        /* =========================================================
+           Clear 3D map
+           ========================================================= */
+
+        function clear3DMap() {
+
+            if (
+                !map3d
+            ) {
+
+                return;
+
+            }
+
+
+            if (
+                map3d.getLayer(
+                    "routes-3d"
+                )
+            ) {
+
+                map3d.removeLayer(
+                    "routes-3d"
+                );
+
+            }
+
+
+            if (
+                map3d.getSource(
+                    "routes-3d"
+                )
+            ) {
+
+                map3d.removeSource(
+                    "routes-3d"
+                );
+
+            }
+
+        }
+
+
+        /* =========================================================
+           Show 2D map
+           ========================================================= */
+
+        function show2DMap() {
+
+            currentMapMode =
+                "2d";
+
+
+            document.getElementById(
+                "map"
+            ).style.display =
+                "block";
+
+
+            document.getElementById(
+                "map-3d-container"
+            ).style.display =
+                "none";
+
+
+            document.getElementById(
+                "map-2d-button"
+            ).classList.add(
+                "active"
+            );
+
+
+            document.getElementById(
+                "map-3d-button"
+            ).classList.remove(
+                "active"
+            );
+
+
+            initializeMap();
+
+
+            setTimeout(
+                () => {
+
+                    if (map) {
+
+                        map.invalidateSize();
+
+                    }
+
+                },
+                100
+            );
+
+        }
+
+
+        /* =========================================================
+           Show 3D map
+           ========================================================= */
+
+        function show3DMap() {
+
+            currentMapMode =
+                "3d";
+
+
+            document.getElementById(
+                "map"
+            ).style.display =
+                "none";
+
+
+            document.getElementById(
+                "map-3d-container"
+            ).style.display =
+                "block";
+
+
+            document.getElementById(
+                "map-2d-button"
+            ).classList.remove(
+                "active"
+            );
+
+
+            document.getElementById(
+                "map-3d-button"
+            ).classList.add(
+                "active"
+            );
+
+
+            initialize3DMap();
+
+
+            setTimeout(
+                () => {
+
+                    if (map3d) {
+
+                        map3d.resize();
+
+                        drawRoutesOn3DMap(
+                            analysisResults
+                        );
+
+                    }
+
+                },
+                150
             );
 
         }
