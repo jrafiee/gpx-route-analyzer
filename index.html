@@ -29,6 +29,7 @@
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
     ></script>
 
+
     <!-- GPX reader -->
     <script src="js/gpx-reader.js"></script>
 
@@ -141,6 +142,42 @@
         .theme-toggle:hover {
 
             background: #e8e8e8;
+        }
+
+
+        /* =========================
+           Default routes
+           ========================= */
+
+        #default-routes {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 8px;
+
+            margin-bottom: 20px;
+        }
+
+
+        #default-routes label {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 7px;
+
+            font-size: 13px;
+
+            cursor: pointer;
+        }
+
+
+        #default-routes input {
+
+            cursor: pointer;
         }
 
 
@@ -708,6 +745,140 @@
 
 
         <!-- =========================
+             Default routes
+             ========================= -->
+
+        <div class="section-title">
+            مسیرهای پیش‌فرض
+        </div>
+
+
+        <div id="default-routes">
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="default-route"
+                    data-name="صفه"
+                    data-file="data/sample/صفه.gpx"
+                >
+                صفه
+            </label>
+
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="default-route"
+                    data-name="کرکس"
+                    data-file="data/sample/کرکس.gpx"
+                >
+                کرکس
+            </label>
+
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="default-route"
+                    data-name="دالان کوه"
+                    data-file="data/sample/دالان کوه.gpx"
+                >
+                دالان کوه
+            </label>
+
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="default-route"
+                    data-name="کلار چیرو"
+                    data-file="data/sample/کلار چیرو.gpx"
+                >
+                کلار چیرو
+            </label>
+
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="default-route"
+                    data-name="شاهانکوه"
+                    data-file="data/sample/شاهانکوه.gpx"
+                >
+                شاهانکوه
+            </label>
+
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="default-route"
+                    data-name="شاه کوه"
+                    data-file="data/sample/شاه کوه.gpx"
+                >
+                شاه کوه
+            </label>
+
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="default-route"
+                    data-name="حوض دال دنا"
+                    data-file="data/sample/حوض دال دنا.gpx"
+                >
+                حوض دال دنا
+            </label>
+
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="default-route"
+                    data-name="دماوند"
+                    data-file="data/sample/دماوند.gpx"
+                >
+                دماوند
+            </label>
+
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="default-route"
+                    data-name="سبلان"
+                    data-file="data/sample/سبلان.gpx"
+                >
+                سبلان
+            </label>
+
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="default-route"
+                    data-name="سنبران"
+                    data-file="data/sample/سنبران.gpx"
+                >
+                سنبران
+            </label>
+
+
+            <label>
+                <input
+                    type="checkbox"
+                    class="default-route"
+                    data-name="علم کوه"
+                    data-file="data/sample/علم کوه.gpx"
+                >
+                علم کوه
+            </label>
+
+        </div>
+
+
+        <!-- =========================
              Add GPX files
              ========================= -->
 
@@ -1202,11 +1373,6 @@
             ).style.display = "none";
 
 
-            /*
-             * اگر مسیری باقی نمانده باشد،
-             * نقشه نیز مخفی می‌شود.
-             */
-
             document.getElementById(
                 "map-container"
             ).style.display = "none";
@@ -1311,10 +1477,6 @@
                 const file of files
             ) {
 
-                /*
-                 * فقط فایل‌های GPX
-                 */
-
                 if (
                     !file.name
                         .toLowerCase()
@@ -1326,129 +1488,332 @@
                 }
 
 
-                /*
-                 * اگر قبلاً همین فایل
-                 * انتخاب شده باشد دوباره اضافه نشود.
-                 */
-
-                const alreadyExists =
-                    selectedFiles.some(
-                        existingFile =>
-                            existingFile.name ===
-                            file.name
-                    );
-
-
-                if (
-                    alreadyExists
-                ) {
-
-                    continue;
-
-                }
-
-
-                selectedFiles.push(
+                await addGpxFile(
                     file
                 );
-
-
-                addSelectedRoute(
-                    file
-                );
-
-
-                /*
-                 * خواندن و تحلیل GPX
-                 */
-
-                try {
-
-                    const route =
-                        await loadGpxFile(
-                            file
-                        );
-
-
-                    const routeName =
-                        file.name.replace(
-                            /\.gpx$/i,
-                            ""
-                        );
-
-
-                    const result =
-                        analyzeRoute(
-                            route,
-                            routeName
-                        );
-
-
-                    /*
-                     * اطلاعات خام مسیر را
-                     * برای رسم روی نقشه نگه می‌داریم.
-                     */
-
-                    result.routeData =
-                        route;
-
-
-                    console.log(
-                        "ANALYSIS RESULT:",
-                        result
-                    );
-
-
-                    console.log(
-                        "METRICS:",
-                        result.metrics
-                    );
-
-
-                    console.log(
-                        "DIFFICULTY:",
-                        result.difficulty
-                    );
-
-
-                    /*
-                     * نتیجه تحلیل مسیر را
-                     * در آرایه نگه می‌داریم.
-                     */
-
-                    analysisResults.push(
-                        result
-                    );
-
-
-                } catch (error) {
-
-                    console.error(
-                        "GPX analysis error:",
-                        error
-                    );
-
-                }
 
             }
 
 
             /*
-             * بعد از پردازش تمام فایل‌ها،
-             * همه نمودارها و نقشه را رسم می‌کنیم.
-             */
-
-            redrawAllCharts();
-
-
-            /*
-             * input را خالی می‌کنیم تا
-             * انتخاب دوباره فایل ممکن باشد.
+             * امکان انتخاب دوباره همان فایل
              */
 
             event.target.value = "";
 
         }
+
+
+        /* =========================================================
+           Add GPX file
+           ========================================================= */
+
+        async function addGpxFile(file) {
+
+            if (
+                !file ||
+                !file.name ||
+                !file.name
+                    .toLowerCase()
+                    .endsWith(".gpx")
+            ) {
+
+                return;
+
+            }
+
+
+            /*
+             * اگر مسیر قبلاً انتخاب شده،
+             * دوباره اضافه نشود.
+             */
+
+            const alreadyExists =
+                selectedFiles.some(
+                    existingFile =>
+                        existingFile.name ===
+                        file.name
+                );
+
+
+            if (
+                alreadyExists
+            ) {
+
+                return;
+
+            }
+
+
+            /*
+             * اضافه کردن فایل به مسیرهای انتخاب‌شده
+             */
+
+            selectedFiles.push(
+                file
+            );
+
+
+            addSelectedRoute(
+                file
+            );
+
+
+            try {
+
+                /*
+                 * خواندن GPX
+                 */
+
+                const route =
+                    await loadGpxFile(
+                        file
+                    );
+
+
+                const routeName =
+                    file.name.replace(
+                        /\.gpx$/i,
+                        ""
+                    );
+
+
+                /*
+                 * تحلیل مسیر
+                 */
+
+                const result =
+                    analyzeRoute(
+                        route,
+                        routeName
+                    );
+
+
+                /*
+                 * اطلاعات خام مسیر
+                 * برای رسم روی نقشه
+                 */
+
+                result.routeData =
+                    route;
+
+
+                console.log(
+                    "ANALYSIS RESULT:",
+                    result
+                );
+
+
+                console.log(
+                    "METRICS:",
+                    result.metrics
+                );
+
+
+                console.log(
+                    "DIFFICULTY:",
+                    result.difficulty
+                );
+
+
+                /*
+                 * نتیجه تحلیل مسیر
+                 * در آرایه قرار می‌گیرد.
+                 */
+
+                analysisResults.push(
+                    result
+                );
+
+
+                /*
+                 * نمودارها همیشه با
+                 * کل آرایه رسم می‌شوند.
+                 */
+
+                redrawAllCharts();
+
+
+            } catch (error) {
+
+                console.error(
+                    "GPX analysis error:",
+                    error
+                );
+
+
+                /*
+                 * اگر تحلیل شکست خورد،
+                 * فایل از selectedFiles حذف شود.
+                 */
+
+                selectedFiles =
+                    selectedFiles.filter(
+                        existingFile =>
+                            existingFile !== file
+                    );
+
+
+                /*
+                 * حذف مسیر از Sidebar
+                 */
+
+                const item =
+                    Array.from(
+                        document.querySelectorAll(
+                            ".selected-route"
+                        )
+                    ).find(
+                        element =>
+                            element.file === file
+                    );
+
+
+                if (item) {
+
+                    item.remove();
+
+                }
+
+
+                /*
+                 * اگر فایل پیش‌فرض بوده،
+                 * checkbox آن هم برداشته شود.
+                 */
+
+                const failedRouteName =
+                    file.name.replace(
+                        /\.gpx$/i,
+                        ""
+                    );
+
+
+                const failedCheckbox =
+                    Array.from(
+                        document.querySelectorAll(
+                            ".default-route"
+                        )
+                    ).find(
+                        checkbox =>
+                            checkbox.dataset.name ===
+                            failedRouteName
+                    );
+
+
+                if (failedCheckbox) {
+
+                    failedCheckbox.checked =
+                        false;
+
+                }
+
+
+                updateRouteNumbers();
+
+
+                /*
+                 * وضعیت نمودارها را
+                 * با نتایج باقی‌مانده هماهنگ می‌کنیم.
+                 */
+
+                redrawAllCharts();
+
+            }
+
+        }
+
+
+        /* =========================================================
+           Default routes
+           ========================================================= */
+
+        document
+            .querySelectorAll(".default-route")
+            .forEach(
+                checkbox => {
+
+                    checkbox.addEventListener(
+                        "change",
+                        async function() {
+
+                            if (
+                                !this.checked
+                            ) {
+
+                                removeSelectedRoute(
+                                    this.dataset.name +
+                                    ".gpx"
+                                );
+
+                                return;
+
+                            }
+
+
+                            try {
+
+                                const response =
+                                    await fetch(
+                                        encodeURI(
+                                            this.dataset.file
+                                        ),
+                                        {
+                                            cache:
+                                                "no-cache"
+                                        }
+                                    );
+
+
+                                if (
+                                    !response.ok
+                                ) {
+
+                                    throw new Error(
+                                        `Cannot load GPX: ${this.dataset.file}`
+                                    );
+
+                                }
+
+
+                                const blob =
+                                    await response.blob();
+
+
+                                const file =
+                                    new File(
+                                        [blob],
+                                        this.dataset.name +
+                                        ".gpx",
+                                        {
+                                            type:
+                                                "application/gpx+xml"
+                                        }
+                                    );
+
+
+                                await addGpxFile(
+                                    file
+                                );
+
+
+                            } catch (error) {
+
+                                console.error(
+                                    "Default GPX loading error:",
+                                    error
+                                );
+
+
+                                this.checked =
+                                    false;
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
 
 
         /* =========================================================
@@ -1663,6 +2028,31 @@
 
 
             /*
+             * اگر مسیر پیش‌فرض است،
+             * checkbox آن را نیز بردار.
+             */
+
+            const defaultCheckbox =
+                Array.from(
+                    document.querySelectorAll(
+                        ".default-route"
+                    )
+                ).find(
+                    checkbox =>
+                        checkbox.dataset.name ===
+                        routeName
+                );
+
+
+            if (defaultCheckbox) {
+
+                defaultCheckbox.checked =
+                    false;
+
+            }
+
+
+            /*
              * حذف از Sidebar
              */
 
@@ -1759,8 +2149,12 @@
                         );
 
 
-                    number.textContent =
-                        index + 1;
+                    if (number) {
+
+                        number.textContent =
+                            index + 1;
+
+                    }
 
                 }
             );
@@ -2146,6 +2540,7 @@
                         `${index + 1}. ${escapeHtml(result.route)}`,
 
                         {
+
                             sticky:
                                 true,
 
