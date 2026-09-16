@@ -1,0 +1,2025 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+    راهنمای محاسبات Mountain Route Compare
+</title>
+
+<style>
+
+    :root {
+        --bg: #f6f7f9;
+        --card: #ffffff;
+        --text: #20242a;
+        --muted: #68707a;
+        --border: #e1e5ea;
+        --accent: #315f8c;
+        --accent-soft: #edf4fa;
+        --code: #f1f3f5;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+        line-height: 1.9;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 32px 20px 60px;
+    }
+
+    header {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 30px;
+        margin-bottom: 24px;
+    }
+
+    h1,
+    h2,
+    h3 {
+        line-height: 1.5;
+    }
+
+    h1 {
+        margin: 0 0 10px;
+        font-size: 30px;
+    }
+
+    h2 {
+        margin-top: 42px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--border);
+        font-size: 23px;
+        scroll-margin-top: 20px;
+    }
+
+    h3 {
+        font-size: 18px;
+        margin-top: 28px;
+    }
+
+    p {
+        margin: 10px 0;
+    }
+
+    /* =========================
+       بازگشت به صفحه اصلی
+    ========================= */
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+
+        margin-bottom: 20px;
+
+        padding: 9px 14px;
+
+        background: var(--accent-soft);
+        color: var(--accent);
+
+        border: 1px solid #d4e2ef;
+        border-radius: 8px;
+
+        text-decoration: none;
+        font-weight: bold;
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .back-link:hover {
+        background: #e2eef8;
+        transform: translateX(2px);
+    }
+
+    /* =========================
+       Note
+    ========================= */
+
+    .note {
+        background: var(--accent-soft);
+        border-right: 4px solid var(--accent);
+        padding: 14px 16px;
+        border-radius: 8px;
+        margin: 18px 0;
+    }
+
+    /* =========================
+       Formula
+    ========================= */
+
+    .formula {
+        direction: ltr;
+        text-align: center;
+
+        background: var(--code);
+
+        border: 1px solid var(--border);
+        border-radius: 10px;
+
+        padding: 15px;
+        margin: 14px 0;
+
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 16px;
+
+        white-space: pre-wrap;
+    }
+
+    code {
+        direction: ltr;
+        unicode-bidi: embed;
+
+        background: var(--code);
+
+        padding: 2px 5px;
+        border-radius: 4px;
+
+        font-family: Consolas, monospace;
+    }
+
+    /* =========================
+       Tables
+    ========================= */
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+
+        background: var(--card);
+
+        margin: 16px 0 24px;
+
+        font-size: 14px;
+    }
+
+    th,
+    td {
+        border: 1px solid var(--border);
+
+        padding: 9px 10px;
+
+        text-align: right;
+        vertical-align: top;
+    }
+
+    th {
+        background: #f0f2f4;
+    }
+
+    .small {
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    /* =========================
+       Section Cards
+    ========================= */
+
+    .section-card {
+        background: var(--card);
+
+        border: 1px solid var(--border);
+        border-radius: 14px;
+
+        padding: 22px;
+        margin-top: 18px;
+
+        scroll-margin-top: 20px;
+    }
+
+    /* =========================
+       Section Title
+    ========================= */
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        margin-top: 42px;
+        padding-bottom: 10px;
+
+        border-bottom: 2px solid var(--border);
+
+        font-size: 23px;
+    }
+
+    .section-title .back-to-toc {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        width: 30px;
+        height: 30px;
+
+        flex-shrink: 0;
+
+        background: var(--accent-soft);
+        color: var(--accent);
+
+        border: 1px solid #d4e2ef;
+        border-radius: 7px;
+
+        text-decoration: none;
+
+        font-size: 17px;
+        font-weight: bold;
+
+        line-height: 1;
+
+        transition:
+            background 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .section-title .back-to-toc:hover {
+        background: #e2eef8;
+        transform: translateY(-2px);
+    }
+
+    /* =========================
+       Table of Contents
+    ========================= */
+
+    .toc-card {
+        scroll-margin-top: 20px;
+    }
+
+    .toc {
+        columns: 2;
+        padding-right: 20px;
+    }
+
+    .toc li {
+        margin: 6px 0;
+    }
+
+    .toc a {
+        color: var(--accent);
+        text-decoration: none;
+    }
+
+    .toc a:hover {
+        text-decoration: underline;
+    }
+
+    /* =========================
+       Slope Legend
+    ========================= */
+
+    .legend {
+        display: grid;
+
+        grid-template-columns:
+            repeat(
+                auto-fit,
+                minmax(210px, 1fr)
+            );
+
+        gap: 10px;
+    }
+
+    .legend div {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+
+        padding: 10px;
+
+        background: #fafbfc;
+    }
+
+    /* =========================
+       Footer
+    ========================= */
+
+    footer {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        gap: 28px;
+
+        margin-top: 45px;
+
+        border-top: 1px solid var(--border);
+
+        padding-top: 18px;
+
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    .contact-link {
+        display: inline-flex;
+        align-items: center;
+
+        gap: 8px;
+
+        color: var(--muted);
+
+        text-decoration: none;
+
+        transition:
+            color 0.2s ease;
+    }
+
+    .contact-link:hover {
+        color: var(--accent);
+    }
+
+    .contact-icon {
+        width: 20px;
+        height: 20px;
+
+        flex-shrink: 0;
+
+        fill: currentColor;
+    }
+
+    /* =========================
+       Mobile
+    ========================= */
+
+    @media (max-width: 700px) {
+
+        .container {
+            padding: 18px 12px 40px;
+        }
+
+        header,
+        .section-card {
+            padding: 16px;
+        }
+
+        .toc {
+            columns: 1;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+
+        table {
+            font-size: 12px;
+        }
+
+        .formula {
+            font-size: 13px;
+            overflow-x: auto;
+        }
+
+        .back-link {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .section-title {
+            font-size: 20px;
+        }
+
+        .section-title .back-to-toc {
+            width: 28px;
+            height: 28px;
+            font-size: 15px;
+        }
+
+        footer {
+            flex-direction: column;
+            gap: 12px;
+        }
+    }
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- =========================
+         بازگشت به صفحه اصلی
+    ========================== -->
+
+    <a
+        href="index.html"
+        class="back-link"
+    >
+        ← بازگشت به صفحه اصلی
+    </a>
+
+
+    <!-- =========================
+         Header
+    ========================== -->
+
+    <header>
+
+        <h1>
+            راهنمای محاسبات Mountain Route Compare
+        </h1>
+
+        <div class="note">
+
+            <p>
+                <strong>معرفی پروژه:</strong>
+            </p>
+
+            <p>
+                Mountain Route Compare ابزاری برای تحلیل و مقایسه مسیرهای
+                کوهستانی بر اساس فایل‌های GPX است. این پروژه اطلاعات مسیر،
+                پروفایل ارتفاعی، فاصله، میزان ارتفاع‌گیری و فرود، الگوی شیب،
+                سختی مسیر و زمان تخمینی صعود را از روی داده‌های مسیر استخراج
+                و به شاخص‌های قابل مقایسه تبدیل می‌کند.
+            </p>
+
+            <p>
+                هدف این سند، توضیح شفاف منطق محاسباتی مورد استفاده در پروژه است
+                تا مشخص باشد هر شاخص چگونه از داده‌های خام GPX به دست می‌آید
+                و چگونه در محاسبه شاخص‌های بعدی مورد استفاده قرار می‌گیرد.
+            </p>
+
+        </div>
+
+    </header>
+
+
+    <!-- =========================
+         Table of Contents
+    ========================== -->
+
+    <div
+        class="section-card toc-card"
+        id="toc"
+    >
+
+        <h2 style="margin-top:0">
+            فهرست مطالب
+        </h2>
+
+        <ol class="toc">
+
+            <li>
+                <a href="#section-1">
+                    داده‌های پایه مسیر
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-2">
+                    فاصله و پروفایل ارتفاعی
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-3">
+                    حداقل، حداکثر و میانگین ارتفاع
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-4">
+                    مجموع ارتفاع‌گیری و فرود
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-5">
+                    Maximum Elevation Gain
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-6">
+                    فاصله سه‌بعدی تا قله
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-7">
+                    تحلیل شیب و Resampling
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-8">
+                    دسته‌بندی شیب
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-9">
+                    Slope Load
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-10">
+                    Slope Difficulty
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-11">
+                    Slope Factor
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-12">
+                    فرمول نای‌اسمیت اصلاح‌شده
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-13">
+                    امتیاز فاصله
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-14">
+                    امتیاز ارتفاع‌گیری
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-15">
+                    Climb Load
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-16">
+                    امتیاز ارتفاع
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-17">
+                    امتیاز فرود
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-18">
+                    Difficulty Score
+                </a>
+            </li>
+
+            <li>
+                <a href="#section-19">
+                    زمان واقعی ثبت‌شده در GPX
+                </a>
+            </li>
+
+        </ol>
+
+    </div>
+
+
+    <!-- =========================
+         1
+    ========================== -->
+
+    <div class="section-card" id="section-1">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۱. داده‌های پایه مسیر
+            </span>
+
+        </h2>
+
+        <p>
+            هر مسیر از مجموعه‌ای از نقاط GPX تشکیل شده است.
+            برای هر نقطه، موقعیت جغرافیایی، ارتفاع و در صورت وجود زمان ثبت می‌شود.
+            تحلیل‌ها بر اساس توالی این نقاط انجام می‌شوند.
+        </p>
+
+        <p>
+            فاصله تجمعی مسیر برای تبدیل به کیلومتر استفاده می‌شود
+            و ارتفاع نقاط برای ساخت پروفایل ارتفاعی و محاسبه صعود و فرود
+            به کار می‌رود.
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         2
+    ========================== -->
+
+    <div class="section-card" id="section-2">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۲. فاصله و پروفایل ارتفاعی
+            </span>
+
+        </h2>
+
+        <h3>
+            Distance (km)
+        </h3>
+
+        <p>
+            فاصله نهایی مسیر از آخرین مقدار فاصله تجمعی به دست می‌آید
+            و از متر به کیلومتر تبدیل می‌شود.
+        </p>
+
+        <div class="formula">
+            Distance (km) = Final Cumulative Distance / 1000
+        </div>
+
+        <h3>
+            Elevation Profile
+        </h3>
+
+        <p>
+            پروفایل ارتفاعی، ارتفاع هر نقطه را در مقابل فاصله آن نقطه
+            از ابتدای مسیر نمایش می‌دهد.
+            برای نمودار نرمال‌شده، فاصله مسیر به بازه صفر تا یک تبدیل می‌شود:
+        </p>
+
+        <div class="formula">
+            Normalized Distance = Distance / Total Distance
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         3
+    ========================== -->
+
+    <div class="section-card" id="section-3">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۳. حداقل، حداکثر و میانگین ارتفاع
+            </span>
+
+        </h2>
+
+        <h3>
+            Minimum Elevation
+        </h3>
+
+        <div class="formula">
+            Minimum Elevation = min(elevation₁, elevation₂, ..., elevationₙ)
+        </div>
+
+        <h3>
+            Maximum Elevation
+        </h3>
+
+        <div class="formula">
+            Maximum Elevation = max(elevation₁, elevation₂, ..., elevationₙ)
+        </div>
+
+        <h3>
+            Mean Elevation
+        </h3>
+
+        <div class="formula">
+            Mean Elevation = Σ elevationᵢ / N
+        </div>
+
+        <p class="small">
+            میانگین ارتفاع در کد فعلی میانگین ساده ارتفاع تمام نقاط GPX است
+            و وزن‌دهی بر اساس فاصله ندارد.
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         4
+    ========================== -->
+
+    <div class="section-card" id="section-4">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۴. مجموع ارتفاع‌گیری و فرود
+            </span>
+
+        </h2>
+
+        <p>
+            برای هر دو نقطه متوالی، اختلاف ارتفاع محاسبه می‌شود:
+        </p>
+
+        <div class="formula">
+            Δhᵢ = elevationᵢ − elevationᵢ₋₁
+        </div>
+
+        <h3>
+            Total Ascent
+        </h3>
+
+        <p>
+            فقط تغییرات مثبت جمع می‌شوند:
+        </p>
+
+        <div class="formula">
+            Total Ascent = Σ max(Δhᵢ, 0)
+        </div>
+
+        <h3>
+            Total Descent
+        </h3>
+
+        <p>
+            قدر مطلق تغییرات منفی جمع می‌شود:
+        </p>
+
+        <div class="formula">
+            Total Descent = Σ max(−Δhᵢ, 0)
+        </div>
+
+        <div class="note">
+
+            <strong>نکته:</strong>
+
+            Total Ascent با اختلاف بین کمترین و بیشترین ارتفاع یکی نیست.
+            در مسیری که چند بار بالا و پایین می‌رود،
+            Total Ascent می‌تواند بسیار بزرگ‌تر باشد.
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         5
+    ========================== -->
+
+    <div class="section-card" id="section-5">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۵. Maximum Elevation Gain
+            </span>
+
+        </h2>
+
+        <p>
+            این شاخص فقط اختلاف ارتفاع بین پایین‌ترین و بالاترین نقطه مسیر است:
+        </p>
+
+        <div class="formula">
+            Maximum Elevation Gain = Maximum Elevation − Minimum Elevation
+        </div>
+
+        <p>
+            این مقدار برای توصیف دامنه ارتفاعی مسیر مفید است،
+            اما در فرمول فعلی زمان صعود از آن استفاده نمی‌شود.
+            برای زمان صعود، <strong>Total Ascent</strong> استفاده می‌شود.
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         6
+    ========================== -->
+
+    <div class="section-card" id="section-6">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۶. فاصله سه‌بعدی تا قله
+            </span>
+
+        </h2>
+
+        <p>
+            ابتدا بالاترین نقطه مسیر به عنوان قله/نقطه اوج شناسایی می‌شود.
+            سپس فاصله سه‌بعدی تمام قطعات مسیر از نقطه شروع تا آن نقطه جمع می‌شود.
+        </p>
+
+        <div class="formula">
+            Ascent Distance 3D = Σ distance3D(pointᵢ, pointᵢ₊₁)
+        </div>
+
+        <p>
+            فاصله سه‌بعدی شامل مؤلفه افقی و اختلاف ارتفاع بین دو نقطه است.
+            این مقدار بر حسب کیلومتر در خروجی
+            <code>Ascent Distance 3D (km)</code>
+            ثبت می‌شود.
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         7
+    ========================== -->
+
+    <div class="section-card" id="section-7">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۷. تحلیل شیب و Resampling
+            </span>
+
+        </h2>
+
+        <p>
+            برای محاسبه پایدارتر شیب، پروفایل مسیر ابتدا با فاصله نمونه‌برداری
+            ثابت بازسازی می‌شود.
+            در نسخه فعلی فاصله نمونه‌برداری <strong>۲۰ متر</strong> است.
+        </p>
+
+        <h3>
+            Interpolation
+        </h3>
+
+        <p>
+            ارتفاع نقاط جدید از روی پروفایل اصلی با درون‌یابی خطی به دست می‌آید.
+        </p>
+
+        <h3>
+            Smoothing
+        </h3>
+
+        <p>
+            پس از Resampling، ارتفاع با میانگین متحرک هموار می‌شود.
+            مقدار پنجره در فراخوانی فعلی ۵ است؛
+            بنابراین از یک پنجره پنج‌نقطه‌ای استفاده می‌شود.
+        </p>
+
+        <div class="formula">
+            Smoothed Elevationᵢ = Average(Elevationᵢ₋₂ ... Elevationᵢ₊₂)
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         8
+    ========================== -->
+
+    <div class="section-card" id="section-8">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۸. محاسبه شیب هر قطعه
+            </span>
+
+        </h2>
+
+        <p>
+            برای هر قطعه بین دو نمونه متوالی:
+        </p>
+
+        <div class="formula">
+            Grade (%) = (ΔElevation / ΔDistance) × 100
+        </div>
+
+        <p>
+            اگر اختلاف ارتفاع مثبت باشد، قطعه صعودی
+            و اگر منفی باشد، قطعه فرودی محسوب می‌شود.
+        </p>
+
+        <div class="legend">
+
+            <div>
+                <strong>&lt; 0%</strong>
+                <br>
+                Descent
+            </div>
+
+            <div>
+                <strong>0–5%</strong>
+                <br>
+                Very Easy
+            </div>
+
+            <div>
+                <strong>5–10%</strong>
+                <br>
+                Easy
+            </div>
+
+            <div>
+                <strong>10–15%</strong>
+                <br>
+                Moderate
+            </div>
+
+            <div>
+                <strong>15–20%</strong>
+                <br>
+                Steep
+            </div>
+
+            <div>
+                <strong>20–25%</strong>
+                <br>
+                Very Steep
+            </div>
+
+            <div>
+                <strong>≥ 25%</strong>
+                <br>
+                Extreme
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         9
+    ========================== -->
+
+    <div class="section-card" id="section-9">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۹. Slope Load
+            </span>
+
+        </h2>
+
+        <p>
+            هر دسته شیب یک وزن دارد.
+            سپس فاصله قطعات آن دسته در وزن مربوط ضرب می‌شود.
+            در نتیجه مسیرهای دارای شیب بیشتر سهم بیشتری در Slope Load دارند.
+        </p>
+
+        <table>
+
+            <tr>
+                <th>دسته شیب</th>
+                <th>وزن</th>
+            </tr>
+
+            <tr>
+                <td>Very Easy (0–5%)</td>
+                <td>0.00</td>
+            </tr>
+
+            <tr>
+                <td>Easy (5–10%)</td>
+                <td>0.10</td>
+            </tr>
+
+            <tr>
+                <td>Moderate (10–15%)</td>
+                <td>0.25</td>
+            </tr>
+
+            <tr>
+                <td>Steep (15–20%)</td>
+                <td>0.40</td>
+            </tr>
+
+            <tr>
+                <td>Very Steep (20–25%)</td>
+                <td>0.60</td>
+            </tr>
+
+            <tr>
+                <td>Extreme (&gt;25%)</td>
+                <td>1.00</td>
+            </tr>
+
+        </table>
+
+        <div class="formula">
+            Slope Load = Σ (Distance of Category × Category Weight)
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         10
+    ========================== -->
+
+    <div class="section-card" id="section-10">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۱۰. Slope Difficulty
+            </span>
+
+        </h2>
+
+        <p>
+            Slope Difficulty نشان می‌دهد بار ناشی از شیب،
+            نسبت به کل مسافت صعودی مسیر چقدر است.
+        </p>
+
+        <div class="formula">
+            Slope Difficulty = (Slope Load / Uphill Distance) × 100
+        </div>
+
+        <p>
+            بنابراین این مقدار یک <strong>شاخص سختی شیب</strong> است، نه زمان.
+            هرچه بخش بیشتری از مسیر صعودی در شیب‌های بالاتر قرار داشته باشد،
+            این شاخص افزایش پیدا می‌کند.
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         11
+    ========================== -->
+
+    <div class="section-card" id="section-11">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۱۱. Slope Factor
+            </span>
+
+        </h2>
+
+        <p>
+            Slope Factor از Slope Difficulty ساخته می‌شود و نقش آن
+            تبدیل شاخص سختی شیب به یک ضریب برای اصلاح زمان صعود است.
+        </p>
+
+        <div class="formula">
+            Slope Factor = 1 + (Slope Difficulty / 200)
+        </div>
+
+        <table>
+
+            <tr>
+                <th>Slope Difficulty</th>
+                <th>Slope Factor</th>
+                <th>افزایش زمان پایه</th>
+            </tr>
+
+            <tr>
+                <td>0</td>
+                <td>1.00</td>
+                <td>0%</td>
+            </tr>
+
+            <tr>
+                <td>20</td>
+                <td>1.10</td>
+                <td>10%</td>
+            </tr>
+
+            <tr>
+                <td>40</td>
+                <td>1.20</td>
+                <td>20%</td>
+            </tr>
+
+            <tr>
+                <td>60</td>
+                <td>1.30</td>
+                <td>30%</td>
+            </tr>
+
+            <tr>
+                <td>80</td>
+                <td>1.40</td>
+                <td>40%</td>
+            </tr>
+
+            <tr>
+                <td>100</td>
+                <td>1.50</td>
+                <td>50%</td>
+            </tr>
+
+        </table>
+
+        <div class="note">
+
+            <strong>توجه:</strong>
+
+            Slope Factor یک ضریب اصلاحی اختصاصی این پروژه است؛
+            خودِ این ضریب جزء فرمول کلاسیک نای‌اسمیت نیست.
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         12
+    ========================== -->
+
+    <div class="section-card" id="section-12">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۱۲. زمان صعود — نای‌اسمیت اصلاح‌شده
+            </span>
+
+        </h2>
+
+        <p>
+            زمان پایه از دو جزء تشکیل می‌شود:
+            زمان لازم برای طی مسافت و زمان لازم برای ارتفاع‌گیری.
+            در پروژه، فاصله سه‌بعدی تا بالاترین نقطه مسیر استفاده می‌شود.
+        </p>
+
+        <div class="formula">
+            Naismith Base Time
+            = (Ascent Distance 3D / 5)
+            + (Total Ascent / 600)
+        </div>
+
+        <p>
+            سپس اثر شیب با Slope Factor اعمال می‌شود:
+        </p>
+
+        <div class="formula">
+            Estimated Ascent Time
+            = Naismith Base Time × Slope Factor
+        </div>
+
+        <p>
+            در نتیجه فرمول کامل:
+        </p>
+
+        <div class="formula">
+            Estimated Ascent Time
+            = [(Ascent Distance 3D / 5)
+            + (Total Ascent / 600)]
+            × Slope Factor
+        </div>
+
+        <div class="note">
+
+            <strong>تفسیر:</strong>
+
+            در این مدل، ۵ کیلومتر مسیر معادل یک ساعت
+            و ۶۰۰ متر ارتفاع‌گیری معادل یک ساعت در نظر گرفته می‌شود.
+            سپس زمان حاصل متناسب با سختی شیب افزایش می‌یابد.
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         13
+    ========================== -->
+
+    <div class="section-card" id="section-13">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۱۳. امتیاز فاصله
+            </span>
+
+        </h2>
+
+        <p>
+            Distance Score فاصله مسیر را نسبت به آستانه‌های تعریف‌شده
+            به امتیازی بین ۰ تا ۱۰۰ تبدیل می‌کند.
+            بین آستانه‌ها درون‌یابی خطی انجام می‌شود.
+        </p>
+
+        <table>
+
+            <tr>
+                <th>فاصله (km)</th>
+                <th>امتیاز</th>
+            </tr>
+
+            <tr>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+
+            <tr>
+                <td>5</td>
+                <td>20</td>
+            </tr>
+
+            <tr>
+                <td>10</td>
+                <td>40</td>
+            </tr>
+
+            <tr>
+                <td>15</td>
+                <td>60</td>
+            </tr>
+
+            <tr>
+                <td>20</td>
+                <td>80</td>
+            </tr>
+
+            <tr>
+                <td>25</td>
+                <td>100</td>
+            </tr>
+
+        </table>
+
+    </div>
+
+
+    <!-- =========================
+         14
+    ========================== -->
+
+    <div class="section-card" id="section-14">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۱۴. امتیاز ارتفاع‌گیری
+            </span>
+
+        </h2>
+
+        <p>
+            Total Ascent نیز با همین روش به امتیاز ۰ تا ۱۰۰ تبدیل می‌شود.
+        </p>
+
+        <table>
+
+            <tr>
+                <th>Total Ascent (m)</th>
+                <th>امتیاز</th>
+            </tr>
+
+            <tr>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+
+            <tr>
+                <td>500</td>
+                <td>20</td>
+            </tr>
+
+            <tr>
+                <td>1000</td>
+                <td>40</td>
+            </tr>
+
+            <tr>
+                <td>1500</td>
+                <td>60</td>
+            </tr>
+
+            <tr>
+                <td>2000</td>
+                <td>80</td>
+            </tr>
+
+            <tr>
+                <td>2500</td>
+                <td>100</td>
+            </tr>
+
+        </table>
+
+    </div>
+
+
+    <!-- =========================
+         15
+    ========================== -->
+
+    <div class="section-card" id="section-15">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۱۵. Climb Load
+            </span>
+
+        </h2>
+
+        <p>
+            برای ترکیب سختی ناشی از فاصله و ارتفاع‌گیری،
+            میانگین هندسی دو امتیاز استفاده می‌شود:
+        </p>
+
+        <div class="formula">
+            Climb Load = √(Distance Score × Ascent Score)
+        </div>
+
+        <p>
+            این روش باعث می‌شود یک مسیر برای کسب Climb Load بالا،
+            هم از نظر فاصله و هم ارتفاع‌گیری بار قابل‌توجهی داشته باشد.
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         16
+    ========================== -->
+
+    <div class="section-card" id="section-16">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۱۶. امتیاز ارتفاع
+            </span>
+
+        </h2>
+
+        <h3>
+            Maximum Altitude Score
+        </h3>
+
+        <table>
+
+            <tr>
+                <th>Maximum Elevation (m)</th>
+                <th>امتیاز</th>
+            </tr>
+
+            <tr>
+                <td>1500</td>
+                <td>0</td>
+            </tr>
+
+            <tr>
+                <td>2000</td>
+                <td>20</td>
+            </tr>
+
+            <tr>
+                <td>2500</td>
+                <td>40</td>
+            </tr>
+
+            <tr>
+                <td>3000</td>
+                <td>60</td>
+            </tr>
+
+            <tr>
+                <td>3500</td>
+                <td>80</td>
+            </tr>
+
+            <tr>
+                <td>4000</td>
+                <td>100</td>
+            </tr>
+
+        </table>
+
+
+        <h3>
+            Mean Altitude Score
+        </h3>
+
+        <table>
+
+            <tr>
+                <th>Mean Elevation (m)</th>
+                <th>امتیاز</th>
+            </tr>
+
+            <tr>
+                <td>1000</td>
+                <td>0</td>
+            </tr>
+
+            <tr>
+                <td>1500</td>
+                <td>20</td>
+            </tr>
+
+            <tr>
+                <td>2000</td>
+                <td>40</td>
+            </tr>
+
+            <tr>
+                <td>2500</td>
+                <td>60</td>
+            </tr>
+
+            <tr>
+                <td>3000</td>
+                <td>80</td>
+            </tr>
+
+            <tr>
+                <td>3500</td>
+                <td>100</td>
+            </tr>
+
+        </table>
+
+        <p>
+            سپس امتیاز ارتفاع نهایی به صورت زیر محاسبه می‌شود:
+        </p>
+
+        <div class="formula">
+            Altitude Score
+            = 0.60 × Max Altitude Score
+            + 0.40 × Mean Altitude Score
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         17
+    ========================== -->
+
+    <div class="section-card" id="section-17">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۱۷. امتیاز فرود
+            </span>
+
+        </h2>
+
+        <p>
+            Total Descent نیز با آستانه‌های زیر
+            به امتیاز ۰ تا ۱۰۰ تبدیل می‌شود:
+        </p>
+
+        <table>
+
+            <tr>
+                <th>Total Descent (m)</th>
+                <th>امتیاز</th>
+            </tr>
+
+            <tr>
+                <td>0</td>
+                <td>0</td>
+            </tr>
+
+            <tr>
+                <td>500</td>
+                <td>20</td>
+            </tr>
+
+            <tr>
+                <td>1000</td>
+                <td>40</td>
+            </tr>
+
+            <tr>
+                <td>1500</td>
+                <td>60</td>
+            </tr>
+
+            <tr>
+                <td>2000</td>
+                <td>80</td>
+            </tr>
+
+            <tr>
+                <td>2500</td>
+                <td>100</td>
+            </tr>
+
+        </table>
+
+    </div>
+
+
+    <!-- =========================
+         18
+    ========================== -->
+
+    <div class="section-card" id="section-18">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۱۸. Difficulty Score
+            </span>
+
+        </h2>
+
+        <p>
+            امتیاز نهایی سختی مسیر از چهار مؤلفه ساخته می‌شود:
+        </p>
+
+        <table>
+
+            <tr>
+                <th>مؤلفه</th>
+                <th>وزن</th>
+            </tr>
+
+            <tr>
+                <td>Climb Load</td>
+                <td>40%</td>
+            </tr>
+
+            <tr>
+                <td>Slope Difficulty</td>
+                <td>35%</td>
+            </tr>
+
+            <tr>
+                <td>Altitude Score</td>
+                <td>15%</td>
+            </tr>
+
+            <tr>
+                <td>Descent Score</td>
+                <td>10%</td>
+            </tr>
+
+        </table>
+
+        <div class="formula">
+            Difficulty Score
+            = 0.40 × Climb Load
+            + 0.35 × Slope Difficulty
+            + 0.15 × Altitude Score
+            + 0.10 × Descent Score
+        </div>
+
+        <div class="note">
+
+            این امتیاز یک مدل ترکیبی برای مقایسه مسیرها
+            در همین پروژه است و یک استاندارد رسمی
+            برای درجه‌بندی دشواری مسیرهای کوهستانی محسوب نمی‌شود.
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         19
+    ========================== -->
+
+    <div class="section-card" id="section-19">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                ۱۹. زمان واقعی ثبت‌شده در GPX
+            </span>
+
+        </h2>
+
+        <p>
+            اگر نقاط GPX دارای timestamp معتبر باشند،
+            پروژه زمان واقعی ثبت‌شده در فایل را نیز محاسبه می‌کند.
+            ابتدا بالاترین نقطه مسیر به عنوان قله تعیین می‌شود.
+        </p>
+
+        <h3>
+            Ascent Time
+        </h3>
+
+        <div class="formula">
+            Ascent Time = Summit Timestamp − Start Timestamp
+        </div>
+
+        <h3>
+            Total Time
+        </h3>
+
+        <div class="formula">
+            Total Time = End Timestamp − Start Timestamp
+        </div>
+
+        <p>
+            این زمان‌ها «زمان ثبت‌شده در GPX» هستند
+            و با زمان تخمینی مدل نای‌اسمیت تفاوت دارند.
+            زمان ثبت‌شده می‌تواند شامل توقف‌ها، استراحت‌ها
+            و سایر وقفه‌هایی باشد که در timestampهای مسیر منعکس شده‌اند.
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         Summary
+    ========================== -->
+
+    <div class="section-card" id="summary">
+
+        <h2 class="section-title">
+
+            <a
+                href="#toc"
+                class="back-to-toc"
+                title="بازگشت به فهرست مطالب"
+                aria-label="بازگشت به فهرست مطالب"
+            >
+                ↑
+            </a>
+
+            <span>
+                جمع‌بندی روابط اصلی
+            </span>
+
+        </h2>
+
+        <table>
+
+            <tr>
+                <th>مورد</th>
+                <th>فرمول</th>
+            </tr>
+
+            <tr>
+                <td>Maximum Elevation Gain</td>
+                <td>
+                    Max Elevation − Min Elevation
+                </td>
+            </tr>
+
+            <tr>
+                <td>Total Ascent</td>
+                <td>
+                    Σ max(ΔElevation, 0)
+                </td>
+            </tr>
+
+            <tr>
+                <td>Total Descent</td>
+                <td>
+                    Σ max(−ΔElevation, 0)
+                </td>
+            </tr>
+
+            <tr>
+                <td>Grade</td>
+                <td>
+                    (ΔElevation / ΔDistance) × 100
+                </td>
+            </tr>
+
+            <tr>
+                <td>Slope Load</td>
+                <td>
+                    Σ(Category Distance × Weight)
+                </td>
+            </tr>
+
+            <tr>
+                <td>Slope Difficulty</td>
+                <td>
+                    (Slope Load / Uphill Distance) × 100
+                </td>
+            </tr>
+
+            <tr>
+                <td>Slope Factor</td>
+                <td>
+                    1 + Slope Difficulty / 200
+                </td>
+            </tr>
+
+            <tr>
+                <td>Naismith Base Time</td>
+                <td>
+                    (Ascent Distance 3D / 5)
+                    + (Total Ascent / 600)
+                </td>
+            </tr>
+
+            <tr>
+                <td>Estimated Ascent Time</td>
+                <td>
+                    Naismith Base Time × Slope Factor
+                </td>
+            </tr>
+
+            <tr>
+                <td>Climb Load</td>
+                <td>
+                    √(Distance Score × Ascent Score)
+                </td>
+            </tr>
+
+            <tr>
+                <td>Altitude Score</td>
+                <td>
+                    0.60 × Max Altitude Score
+                    + 0.40 × Mean Altitude Score
+                </td>
+            </tr>
+
+            <tr>
+                <td>Difficulty Score</td>
+                <td>
+                    0.40 × Climb Load
+                    + 0.35 × Slope Difficulty
+                    + 0.15 × Altitude Score
+                    + 0.10 × Descent Score
+                </td>
+            </tr>
+
+        </table>
+
+    </div>
+
+
+    <!-- =========================
+         Footer
+    ========================== -->
+
+    <footer>
+
+        <a
+            href="mailto:j_rafiee@yahoo.com"
+            class="contact-link"
+            aria-label="ایمیل"
+        >
+
+            <!-- Email Icon -->
+            <svg
+                class="contact-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+            >
+                <path
+                    d="M20 4H4c-1.1 0-2 .9-2 2v12
+                    c0 1.1.9 2 2 2h16
+                    c1.1 0 2-.9 2-2V6
+                    c0-1.1-.9-2-2-2z
+                    m0 4-8 5-8-5V6l8 5 8-5v2z"
+                />
+            </svg>
+
+            <span>
+                j_rafiee@yahoo.com
+            </span>
+
+        </a>
+
+
+        <a
+            href="https://t.me/javadrafie"
+            class="contact-link"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Telegram"
+        >
+
+            <!-- Telegram Icon -->
+            <svg
+                class="contact-icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+            >
+                <path
+                    d="M21.4 3.6
+                    2.9 10.7
+                    c-1.3.5-1.3 1.3-.2 1.6
+                    l4.7 1.5
+                    1.8 5.6
+                    c.2.7.1 1 .7 1
+                    .4 0 .6-.2.9-.5
+                    l2.3-2.2
+                    4.8 3.5
+                    c.9.5 1.5.2 1.7-.9
+                    l3.2-15
+                    c.3-1.3-.5-1.8-1.4-1.3z
+
+                    M8.1 13.4
+                    l10.2-6.4
+                    c.5-.3 1-.1.6.2
+                    l-8.3 7.6
+                    -.3 3.3
+                    -1.5-4.7
+                    -.7-.2z"
+                />
+            </svg>
+
+            <span>
+                @javadrafie
+            </span>
+
+        </a>
+
+    </footer>
+
+</div>
+
+</body>
+</html>

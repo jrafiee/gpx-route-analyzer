@@ -4,7 +4,6 @@
 
 <head>
 
-```
 <meta charset="UTF-8">
 
 <meta
@@ -16,6 +15,10 @@
     Mountain Route Compare
 </title>
 
+
+<!-- =========================================================
+     External libraries
+     ========================================================= -->
 
 <!-- Plotly -->
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
@@ -39,10 +42,12 @@
 >
 
 <script type="module">
+
     import * as maplibregl
         from "https://unpkg.com/maplibre-gl@6.9.0/dist/maplibre-gl.mjs";
 
     window.maplibregl = maplibregl;
+
 </script>
 
 
@@ -57,6 +62,10 @@
 
 
 <style>
+
+    /* =========================================================
+       Base
+       ========================================================= */
 
     * {
         box-sizing: border-box;
@@ -78,9 +87,9 @@
     }
 
 
-    /* =========================
+    /* =========================================================
        Sidebar
-       ========================= */
+       ========================================================= */
 
     .sidebar {
 
@@ -105,15 +114,35 @@
     }
 
 
-    .sidebar h2 {
+    /* =========================================================
+       Sidebar header
+       ========================================================= */
 
-        margin-top: 0;
+    .sidebar-header {
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        gap: 10px;
 
         margin-bottom: 20px;
+    }
+
+
+    .sidebar-header h2 {
+
+        margin: 0;
 
         font-size: 20px;
     }
 
+
+    /* =========================================================
+       Section titles
+       ========================================================= */
 
     .section-title {
 
@@ -126,20 +155,28 @@
     }
 
 
-    /* =========================
-       Theme
-       ========================= */
+    /* =========================================================
+       Theme toggle
+       ========================================================= */
 
     .theme-toggle {
 
-        width: 100%;
+        width: 36px;
+        min-width: 36px;
 
-        padding: 10px;
+        height: 34px;
+
+        display: flex;
+
+        align-items: center;
+        justify-content: center;
+
+        padding: 0;
 
         border:
             1px solid #ccc;
 
-        border-radius: 8px;
+        border-radius: 7px;
 
         background: #f3f3f3;
 
@@ -149,9 +186,13 @@
 
         font-family: inherit;
 
-        font-size: 14px;
+        font-size: 16px;
 
-        margin-bottom: 20px;
+        flex-shrink: 0;
+
+        transition:
+            background 0.2s ease,
+            border-color 0.2s ease;
     }
 
 
@@ -161,9 +202,9 @@
     }
 
 
-    /* =========================
+    /* =========================================================
        Default routes
-       ========================= */
+       ========================================================= */
 
     #default-routes {
 
@@ -197,9 +238,9 @@
     }
 
 
-    /* =========================
+    /* =========================================================
        Add GPX
-       ========================= */
+       ========================================================= */
 
     .gpx-input {
 
@@ -242,9 +283,9 @@
     }
 
 
-    /* =========================
+    /* =========================================================
        Selected routes
-       ========================= */
+       ========================================================= */
 
     .selected-routes {
 
@@ -368,9 +409,9 @@
     }
 
 
-    /* =========================
+    /* =========================================================
        Main
-       ========================= */
+       ========================================================= */
 
     .main {
 
@@ -380,18 +421,97 @@
     }
 
 
-    .page-title {
+    /* =========================================================
+       Page header
+       ========================================================= */
 
-        font-size: 24px;
+    .page-header {
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: space-between;
+
+        gap: 20px;
 
         margin:
             0 0 25px;
     }
 
 
-    /* =========================
+    .page-title {
+
+        font-size: 24px;
+
+        margin: 0;
+    }
+
+
+    /* =========================================================
+       Page header actions
+       ========================================================= */
+
+    .page-header-actions {
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 8px;
+    }
+
+
+    /* =========================================================
+       Calculations link
+       ========================================================= */
+
+    .calculations-link {
+
+        display: inline-flex;
+
+        align-items: center;
+
+        gap: 7px;
+
+        padding:
+            7px 11px;
+
+        border:
+            1px solid #d5d5d5;
+
+        border-radius: 7px;
+
+        background: white;
+
+        color: #555;
+
+        text-decoration: none;
+
+        font-size: 13px;
+
+        white-space: nowrap;
+
+        transition:
+            background 0.2s ease,
+            border-color 0.2s ease,
+            color 0.2s ease;
+    }
+
+
+    .calculations-link:hover {
+
+        background: #f3f3f3;
+
+        border-color: #bbb;
+
+        color: #222;
+    }
+
+
+    /* =========================================================
        Charts
-       ========================= */
+       ========================================================= */
 
     .chart-container {
 
@@ -435,9 +555,9 @@
     }
 
 
-    /* =========================
+    /* =========================================================
        Bar charts
-       ========================= */
+       ========================================================= */
 
     .bar-charts-grid {
 
@@ -469,9 +589,9 @@
     }
 
 
-    /* =========================
+    /* =========================================================
        Route metrics selector
-       ========================= */
+       ========================================================= */
 
     .route-metrics-title {
 
@@ -507,9 +627,9 @@
     }
 
 
-    /* =========================
+    /* =========================================================
        Map
-       ========================= */
+       ========================================================= */
 
     #map-container {
 
@@ -606,7 +726,7 @@
 
 
     /* =========================================================
-       Route markers on map
+       Route markers
        ========================================================= */
 
     .route-map-marker {
@@ -638,7 +758,7 @@
 
 
     /* =========================================================
-       فقط برای Dark Mode نقشه
+       Dark mode map
        ========================================================= */
 
     body.dark-mode #map .leaflet-tile-pane {
@@ -650,9 +770,9 @@
     }
 
 
-    /* =========================
-       Mobile menu
-       ========================= */
+    /* =========================================================
+       Mobile menu button
+       ========================================================= */
 
     .menu-button {
 
@@ -665,6 +785,9 @@
 
         z-index: 1100;
 
+        width: 42px;
+        height: 42px;
+
         border: none;
 
         border-radius: 8px;
@@ -673,7 +796,7 @@
 
         color: white;
 
-        padding: 10px 13px;
+        padding: 0;
 
         font-size: 20px;
 
@@ -681,9 +804,9 @@
     }
 
 
-    /* =========================
+    /* =========================================================
        Dark mode
-       ========================= */
+       ========================================================= */
 
     body.dark-mode {
 
@@ -716,6 +839,28 @@
     body.dark-mode .theme-toggle:hover {
 
         background: #35383a;
+    }
+
+
+    body.dark-mode .calculations-link {
+
+        background: #202324;
+
+        border-color:
+            #484b4d;
+
+        color: #ddd;
+    }
+
+
+    body.dark-mode .calculations-link:hover {
+
+        background: #2b2e30;
+
+        border-color:
+            #606467;
+
+        color: white;
     }
 
 
@@ -814,16 +959,19 @@
     }
 
 
-    /* =========================
+    /* =========================================================
        Mobile
-       ========================= */
+       ========================================================= */
 
     @media (max-width: 900px) {
 
         .sidebar {
 
+            /*
+             * در موبایل منو در ابتدا باز است.
+             */
             transform:
-                translateX(100%);
+                translateX(0);
 
             transition:
                 transform 0.25s ease;
@@ -834,10 +982,13 @@
         }
 
 
-        .sidebar.open {
+        /*
+         * کلاس closed منو را می‌بندد.
+         */
+        .sidebar.closed {
 
             transform:
-                translateX(0);
+                translateX(100%);
         }
 
 
@@ -848,12 +999,56 @@
             padding: 15px;
 
             padding-top: 65px;
+
+            cursor: default;
         }
 
 
         .menu-button {
 
-            display: block;
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+        }
+
+
+        .page-header {
+
+            gap: 10px;
+        }
+
+
+        .page-title {
+
+            font-size: 20px;
+        }
+
+
+        .page-header-actions {
+
+            gap: 6px;
+        }
+
+
+        .calculations-link {
+
+            padding:
+                6px 9px;
+
+            font-size: 12px;
+        }
+
+
+        .theme-toggle {
+
+            width: 34px;
+            min-width: 34px;
+
+            height: 32px;
+
+            font-size: 15px;
         }
 
 
@@ -904,47 +1099,45 @@
     }
 
 </style>
-```
 
 </head>
 
+
 <body>
 
-```
-<!-- =========================
-     Mobile menu
-     ========================= -->
+
+<!-- =========================================================
+     Mobile menu button
+     ========================================================= -->
 
 <button
     class="menu-button"
+    id="menu-button"
     onclick="toggleMenu()"
-    aria-label="باز کردن منو"
+    aria-label="بستن منوی مسیرها"
+    aria-expanded="true"
+    aria-controls="sidebar"
 >
     ☰
 </button>
 
 
-<!-- =========================
+<!-- =========================================================
      Sidebar
-     ========================= -->
+     ========================================================= -->
 
 <aside
     class="sidebar"
     id="sidebar"
 >
 
-    <h2>
-        انتخاب مسیرها
-    </h2>
+    <div class="sidebar-header">
 
+        <h2>
+            انتخاب مسیرها
+        </h2>
 
-    <button
-        class="theme-toggle"
-        id="theme-toggle"
-        onclick="toggleTheme()"
-    >
-        🌙 حالت تاریک
-    </button>
+    </div>
 
 
     <div class="section-title">
@@ -955,134 +1148,170 @@
     <div id="default-routes">
 
         <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="صفه"
                 data-file="data/sample/صفه.gpx"
             >
+
             صفه
+
         </label>
 
 
         <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="کرکس"
                 data-file="data/sample/کرکس.gpx"
             >
+
             کرکس
+
         </label>
 
 
         <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="دالان کوه"
                 data-file="data/sample/دالان کوه.gpx"
             >
+
             دالان کوه
+
         </label>
 
 
         <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="کلار چیرو"
                 data-file="data/sample/کلار چیرو.gpx"
             >
+
             کلار چیرو
+
         </label>
 
 
         <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="شاهانکوه"
                 data-file="data/sample/شاهانکوه.gpx"
             >
+
             شاهانکوه
+
         </label>
 
 
         <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="شاه کوه"
                 data-file="data/sample/شاه کوه.gpx"
             >
+
             شاه کوه
+
         </label>
 
 
         <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="حوض دال دنا"
                 data-file="data/sample/حوض دال دنا.gpx"
             >
+
             حوض دال دنا
+
         </label>
 
 
         <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="دماوند"
                 data-file="data/sample/دماوند.gpx"
             >
+
             دماوند
+
         </label>
-		
-		        <label>
+
+
+        <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="دماوند از بارگاه سوم"
                 data-file="data/sample/دماوند از بارگاه سوم.gpx"
             >
-             دماوند از بارگاه سوم
+
+            دماوند از بارگاه سوم
+
         </label>
-		
 
 
         <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="سبلان"
                 data-file="data/sample/سبلان.gpx"
             >
+
             سبلان
+
         </label>
 
 
         <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="سنبران"
                 data-file="data/sample/سنبران.gpx"
             >
+
             سنبران
+
         </label>
 
 
         <label>
+
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="علم کوه"
                 data-file="data/sample/علم کوه.gpx"
             >
+
             علم کوه
+
         </label>
 
     </div>
@@ -1103,7 +1332,9 @@
 
 
     <div class="gpx-help">
+
         یک یا چند فایل GPX را از کامپیوتر خود انتخاب کنید.
+
     </div>
 
 
@@ -1129,20 +1360,59 @@
 </aside>
 
 
-<!-- =========================
+<!-- =========================================================
      Main
-     ========================= -->
+     ========================================================= -->
 
 <main class="main">
 
-    <h1 class="page-title">
-        مقایسه مسیرهای کوهستانی
-    </h1>
+
+    <!-- =====================================================
+         Page header
+         ===================================================== -->
+
+    <div class="page-header">
+
+        <h1 class="page-title">
+            مقایسه مسیرهای کوهستانی
+        </h1>
 
 
-    <!-- =========================
+        <div class="page-header-actions">
+
+            <a
+                href="mountain-route-calculations-fa.html"
+                class="calculations-link"
+                title="راهنمای محاسبات مسیر"
+            >
+
+                ⚙️
+
+                <span>
+                    محاسبات
+                </span>
+
+            </a>
+
+
+            <button
+                class="theme-toggle"
+                id="theme-toggle"
+                onclick="toggleTheme()"
+                aria-label="تغییر به حالت تاریک"
+                title="حالت تاریک"
+            >
+                🌙
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
          1. Elevation
-         ========================= -->
+         ===================================================== -->
 
     <div
         id="elevation-container"
@@ -1159,9 +1429,9 @@
     </div>
 
 
-    <!-- =========================
+    <!-- =====================================================
          2. Elevation gain
-         ========================= -->
+         ===================================================== -->
 
     <div
         id="elevation-gain-container"
@@ -1178,9 +1448,9 @@
     </div>
 
 
-    <!-- =========================
+    <!-- =====================================================
          3. Ordered elevation
-         ========================= -->
+         ===================================================== -->
 
     <div
         id="ordered-elevation-container"
@@ -1197,9 +1467,9 @@
     </div>
 
 
-    <!-- =========================
+    <!-- =====================================================
          4. Slope
-         ========================= -->
+         ===================================================== -->
 
     <div
         id="slope-container"
@@ -1216,52 +1486,53 @@
     </div>
 
 
-    <!-- =========================
+    <!-- =====================================================
          5-6. Bar charts
-         ========================= -->
-
-<div
-    id="bar-charts-grid"
-    class="bar-charts-grid"
-    style="display:none;"
->
-
-    <!-- زمان صعود -->
+         ===================================================== -->
 
     <div
-        id="estimated-ascent-time-container"
-        class="chart-container"
+        id="bar-charts-grid"
+        class="bar-charts-grid"
+        style="display:none;"
     >
 
-        <div class="chart-title">
-            زمان صعود
+        <!-- زمان صعود -->
+
+        <div
+            id="estimated-ascent-time-container"
+            class="chart-container"
+        >
+
+            <div class="chart-title">
+                زمان صعود
+            </div>
+
+            <div id="estimated-ascent-time-chart"></div>
+
         </div>
 
-        <div id="estimated-ascent-time-chart"></div>
+
+        <!-- مقایسه شاخص مسیرها -->
+
+        <div
+            id="route-metrics-container"
+            class="chart-container"
+        >
+
+            <div class="chart-title">
+                مقایسه شاخص مسیرها
+            </div>
+
+            <div id="route-metrics-comparison-chart"></div>
+
+        </div>
 
     </div>
 
 
-    <!-- مقایسه شاخص مسیرها -->
-
-    <div
-        id="route-metrics-container"
-        class="chart-container"
-    >
-
-        <div class="chart-title">
-            مقایسه شاخص مسیرها
-        </div>
-
-        <div id="route-metrics-comparison-chart"></div>
-
-    </div>
-
-</div>
-
-    <!-- =========================
+    <!-- =====================================================
          7. Map
-         ========================= -->
+         ===================================================== -->
 
     <div
         id="map-container"
@@ -1362,6 +1633,7 @@
 
                 tickColor:
                     "#aaa"
+
             };
 
         }
@@ -1389,6 +1661,7 @@
 
             tickColor:
                 "#555"
+
         };
 
     }
@@ -1408,10 +1681,25 @@
             );
 
 
+        if (!button) {
+
+            return;
+
+        }
+
+
         if (isDark) {
 
             button.textContent =
-                "☀️ حالت روشن";
+                "☀️";
+
+            button.title =
+                "حالت روشن";
+
+            button.setAttribute(
+                "aria-label",
+                "تغییر به حالت روشن"
+            );
 
             localStorage.setItem(
                 "theme",
@@ -1421,7 +1709,15 @@
         } else {
 
             button.textContent =
-                "🌙 حالت تاریک";
+                "🌙";
+
+            button.title =
+                "حالت تاریک";
+
+            button.setAttribute(
+                "aria-label",
+                "تغییر به حالت تاریک"
+            );
 
             localStorage.setItem(
                 "theme",
@@ -1481,13 +1777,200 @@
        Mobile menu
        ========================================================= */
 
-    function toggleMenu() {
+    function updateMenuButton() {
 
-        document
-            .getElementById("sidebar")
-            .classList.toggle("open");
+        const sidebar =
+            document.getElementById(
+                "sidebar"
+            );
+
+
+        const button =
+            document.getElementById(
+                "menu-button"
+            );
+
+
+        if (
+            !sidebar ||
+            !button
+        ) {
+
+            return;
+
+        }
+
+
+        const isClosed =
+            sidebar.classList.contains(
+                "closed"
+            );
+
+
+        button.setAttribute(
+            "aria-expanded",
+            String(!isClosed)
+        );
+
+
+        button.setAttribute(
+            "aria-label",
+            isClosed
+                ? "باز کردن منوی مسیرها"
+                : "بستن منوی مسیرها"
+        );
+
+
+        button.title =
+            isClosed
+                ? "باز کردن منوی مسیرها"
+                : "بستن منوی مسیرها";
 
     }
+
+
+    function toggleMenu() {
+
+        const sidebar =
+            document.getElementById(
+                "sidebar"
+            );
+
+
+        if (!sidebar) {
+
+            return;
+
+        }
+
+
+        sidebar.classList.toggle(
+            "closed"
+        );
+
+
+        updateMenuButton();
+
+    }
+
+
+    function closeMobileMenu() {
+
+        if (
+            window.innerWidth >
+            900
+        ) {
+
+            return;
+
+        }
+
+
+        const sidebar =
+            document.getElementById(
+                "sidebar"
+            );
+
+
+        if (!sidebar) {
+
+            return;
+
+        }
+
+
+        sidebar.classList.add(
+            "closed"
+        );
+
+
+        updateMenuButton();
+
+    }
+
+
+    function initializeMobileMenu() {
+
+        const sidebar =
+            document.getElementById(
+                "sidebar"
+            );
+
+
+        if (!sidebar) {
+
+            return;
+
+        }
+
+
+        /*
+         * در موبایل، منو باید در شروع باز باشد.
+         * در دسکتاپ نیز کلاس closed نباید باقی بماند.
+         */
+
+        sidebar.classList.remove(
+            "closed"
+        );
+
+
+        updateMenuButton();
+
+    }
+
+
+    /*
+     * با کلیک روی بخش اصلی صفحه در موبایل،
+     * منوی کناری بسته می‌شود.
+     */
+
+    document
+        .querySelector(".main")
+        .addEventListener(
+            "click",
+            function() {
+
+                closeMobileMenu();
+
+            }
+        );
+
+
+    /*
+     * هنگام تغییر اندازه پنجره،
+     * وضعیت منو را با حالت فعلی هماهنگ کن.
+     */
+
+    window.addEventListener(
+        "resize",
+        function() {
+
+            if (
+                window.innerWidth >
+                900
+            ) {
+
+                const sidebar =
+                    document.getElementById(
+                        "sidebar"
+                    );
+
+
+                if (sidebar) {
+
+                    sidebar.classList.remove(
+                        "closed"
+                    );
+
+                }
+
+            }
+
+
+            updateMenuButton();
+
+        }
+    );
 
 
     /* =========================================================
@@ -1646,10 +2129,9 @@
          * مقایسه شاخص‌های مسیر
          */
 
- 
-drawRouteMetricsComparisonChart(
-    analysisResults
-);
+        drawRouteMetricsComparisonChart(
+            analysisResults
+        );
 
 
         drawRoutesOnMap(
@@ -1674,7 +2156,6 @@ drawRouteMetricsComparisonChart(
         }
 
     }
-
 
 
     /* =========================================================
@@ -2405,7 +2886,6 @@ drawRouteMetricsComparisonChart(
 
     /* =========================================================
        Synchronize analysis result order
-       with Sidebar order
        ========================================================= */
 
     function syncAnalysisOrder() {
@@ -3514,8 +3994,9 @@ drawRouteMetricsComparisonChart(
 
     initializeTheme();
 
+    initializeMobileMenu();
+
 </script>
-```
 
 </body>
 

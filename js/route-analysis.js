@@ -922,21 +922,36 @@ function calculateDifficulty(metrics) {
         1 +
         result["Slope Difficulty"] / 200;
 
-    // ========================================================
-    // 7. Estimated ascent time
-    // ========================================================
+// ========================================================
+// 7. Estimated ascent time - Adjusted Naismith
+// ========================================================
+//
+// Base Naismith:
+//   5 km distance  = 1 hour
+//   600 m ascent   = 1 hour
+//
+// Distance:
+//   Ascent Distance 3D
+//
+// Elevation:
+//   Total Ascent
+//
+// Slope adjustment:
+//   Multiply base time by Slope Factor
+//
 
-  result["Estimated Ascent Time (h)"] =
+const naismithTime =
     (
-        result["Ascent Distance 3D (km)"] /
-        5
+        result["Ascent Distance 3D (km)"] / 5
     )
     +
     (
-        result["Maximum Elevation Gain (m)"] /
-        600
+        result["Total Ascent (m)"] / 600
     );
 
+result["Estimated Ascent Time (h)"] =
+    naismithTime *
+    result["Slope Factor"];
     // ========================================================
     // 8. Maximum altitude score
     // ========================================================
