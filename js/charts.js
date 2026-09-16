@@ -1,3 +1,4 @@
+
 function getResponsiveLegend() {
 
     const isMobile = window.innerWidth <= 900;
@@ -212,10 +213,17 @@ function drawElevationProfile(
         );
 
 
+    /*
+     * عنوان داخلی حذف شده است.
+     *
+     * عنوان اصلی نمودار در index.html
+     * نمایش داده می‌شود.
+     */
+
     const layout =
         buildPlotLayout(
 
-            "پروفایل ارتفاعی مسیرها",
+            "",
 
             "ارتفاع (m)",
 
@@ -290,10 +298,17 @@ function drawElevationGainProfile(
         );
 
 
+    /*
+     * عنوان داخلی حذف شده است.
+     *
+     * عنوان اصلی نمودار در index.html
+     * نمایش داده می‌شود.
+     */
+
     const layout =
         buildPlotLayout(
 
-            "پروفایل ارتفاع‌گیری مسیرها",
+            "",
 
             "ارتفاع‌گیری نسبت به نقطه شروع (m)",
 
@@ -953,7 +968,7 @@ function drawSlopeDistribution(
     const layout =
         buildPlotLayout(
 
-            "توزیع شیب مسیر رفت",
+            "",
 
             "مسافت (km)"
 
@@ -979,19 +994,45 @@ function drawSlopeDistribution(
 
 
     /*
-     * کمی فضای بالای نمودار برای نوشته‌ها
+     * در موبایل:
+     *
+     * Legend در بالای نمودار قرار دارد.
+     * برای جلوگیری از برخورد Legend با عنوان
+     * داخلی نمودار، فضای بیشتری در بالا ایجاد
+     * می‌کنیم و Legend را کمی پایین‌تر می‌آوریم.
      */
+
+    const isMobile =
+        window.innerWidth <= 900;
+
 
     layout.margin = {
 
         ...layout.margin,
 
         t:
-            window.innerWidth <= 900
-                ? 90
+            isMobile
+                ? 120
                 : 55
 
     };
+
+
+    if (isMobile) {
+
+        layout.legend = {
+
+            ...layout.legend,
+
+            y:
+                1.02,
+
+            yanchor:
+                "bottom"
+
+        };
+
+    }
 
 
     Plotly.react(
@@ -1517,3 +1558,4 @@ function drawTotalTimeChart(
     );
 
 }
+
