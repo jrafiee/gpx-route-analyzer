@@ -1,59 +1,175 @@
+function getResponsiveLegend() {
 
-function buildPlotLayout(title, yTitle, xTitle = "") {
-    const theme = getPlotTheme();
+    const isMobile = window.innerWidth <= 900;
+
+    if (isMobile) {
+
+        return {
+            orientation: "h",
+
+            x: 0.5,
+            xanchor: "center",
+
+            y: 1.08,
+            yanchor: "bottom",
+
+            font: {
+                size: 11
+            }
+        };
+
+    }
 
     return {
+        orientation: "v",
+
+        x: 1.02,
+        xanchor: "left",
+
+        y: 1,
+        yanchor: "top"
+    };
+
+}
+
+
+function buildPlotLayout(
+    title,
+    yTitle,
+    xTitle = ""
+) {
+
+    const theme = getPlotTheme();
+
+    const isMobile =
+        window.innerWidth <= 900;
+
+
+    return {
+
         title: {
+
             text: title,
+
             font: {
                 color: theme.textColor
             }
+
         },
 
-        paper_bgcolor: theme.paperBg,
-        plot_bgcolor: theme.plotBg,
+
+        paper_bgcolor:
+            theme.paperBg,
+
+        plot_bgcolor:
+            theme.plotBg,
+
 
         font: {
-            color: theme.textColor
+
+            color:
+                theme.textColor
+
         },
+
 
         xaxis: {
+
             title: {
-                text: xTitle,
+
+                text:
+                    xTitle,
+
                 font: {
-                    color: theme.textColor
+
+                    color:
+                        theme.textColor
+
                 }
+
             },
-            color: theme.textColor,
-            gridcolor: theme.gridColor
+
+            color:
+                theme.textColor,
+
+            gridcolor:
+                theme.gridColor
+
         },
+
 
         yaxis: {
+
             title: {
-                text: yTitle,
+
+                text:
+                    yTitle,
+
                 font: {
-                    color: theme.textColor
+
+                    color:
+                        theme.textColor
+
                 }
+
             },
-            color: theme.textColor,
-            gridcolor: theme.gridColor
+
+            color:
+                theme.textColor,
+
+            gridcolor:
+                theme.gridColor
+
         },
+
 
         margin: {
-            t: 60,
-            r: 30,
+
+            /*
+             * در موبایل Legend افقی بالای
+             * نمودار قرار می‌گیرد، بنابراین
+             * فضای بیشتری در بالا نیاز داریم.
+             */
+
+            t:
+                isMobile
+                    ? 90
+                    : 60,
+
+            r:
+                isMobile
+                    ? 20
+                    : 30,
+
             b: 70,
-            l: 70
+
+            l:
+                isMobile
+                    ? 60
+                    : 70
+
         },
 
-        hovermode: "x unified",
+
+        hovermode:
+            "x unified",
+
 
         legend: {
+
+            ...getResponsiveLegend(),
+
             font: {
-                color: theme.textColor
+
+                color:
+                    theme.textColor
+
             }
+
         }
+
     };
+
 }
 
 
@@ -65,32 +181,69 @@ function drawElevationProfile(
     results,
     containerId = "elevation-chart"
 ) {
-    const traces = results.map(result => ({
-        x: result.profiles.elevation.distance_km,
-        y: result.profiles.elevation.elevation_m,
-        type: "scatter",
-        mode: "lines",
-        name: result.route,
-        line: {
-            width: 2
-        }
-    }));
 
-    const layout = buildPlotLayout(
-        "پروفایل ارتفاعی مسیرها",
-        "ارتفاع (m)",
-        "مسافت (km)"
-    );
+    const traces =
+        results.map(
+            result => ({
+
+                x:
+                    result.profiles.elevation.distance_km,
+
+                y:
+                    result.profiles.elevation.elevation_m,
+
+                type:
+                    "scatter",
+
+                mode:
+                    "lines",
+
+                name:
+                    result.route,
+
+                line: {
+
+                    width:
+                        2
+
+                }
+
+            })
+        );
+
+
+    const layout =
+        buildPlotLayout(
+
+            "پروفایل ارتفاعی مسیرها",
+
+            "ارتفاع (m)",
+
+            "مسافت (km)"
+
+        );
+
 
     Plotly.react(
+
         containerId,
+
         traces,
+
         layout,
+
         {
-            responsive: true,
-            displaylogo: false
+
+            responsive:
+                true,
+
+            displaylogo:
+                false
+
         }
+
     );
+
 }
 
 
@@ -102,32 +255,73 @@ function drawElevationGainProfile(
     results,
     containerId = "elevation-gain-chart"
 ) {
-    const traces = results.map(result => ({
-        x: result.profiles.elevation_gain.distance_km,
-        y: result.profiles.elevation_gain.elevation_gain_m,
-        type: "scatter",
-        mode: "lines",
-        name: result.route,
-        line: {
-            width: 2
-        }
-    }));
 
-    const layout = buildPlotLayout(
-        "پروفایل ارتفاع‌گیری مسیرها",
-        "ارتفاع‌گیری نسبت به نقطه شروع (m)",
-        "مسافت (km)"
-    );
+    const traces =
+        results.map(
+            result => ({
+
+                x:
+                    result.profiles
+                        .elevation_gain
+                        .distance_km,
+
+                y:
+                    result.profiles
+                        .elevation_gain
+                        .elevation_gain_m,
+
+                type:
+                    "scatter",
+
+                mode:
+                    "lines",
+
+                name:
+                    result.route,
+
+                line: {
+
+                    width:
+                        2
+
+                }
+
+            })
+        );
+
+
+    const layout =
+        buildPlotLayout(
+
+            "پروفایل ارتفاع‌گیری مسیرها",
+
+            "ارتفاع‌گیری نسبت به نقطه شروع (m)",
+
+            "مسافت (km)"
+
+        );
+
 
     Plotly.react(
+
         containerId,
+
         traces,
+
         layout,
+
         {
-            responsive: true,
-            displaylogo: false
+
+            responsive:
+                true,
+
+            displaylogo:
+                false
+
         }
+
     );
+
 }
 
 
@@ -144,14 +338,22 @@ function drawOrderedElevationProfile(
     containerId = "ordered-elevation-chart"
 ) {
 
-    const theme = getPlotTheme();
+    const theme =
+        getPlotTheme();
+
 
     const traces = [];
 
+
     let offset = 0;
 
-    let globalMin = Infinity;
-    let globalMax = -Infinity;
+
+    let globalMin =
+        Infinity;
+
+
+    let globalMax =
+        -Infinity;
 
 
     /*
@@ -220,25 +422,40 @@ function drawOrderedElevationProfile(
 
             traces.push({
 
-                x: x,
+                x:
+                    x,
 
-                y: elevations,
+                y:
+                    elevations,
 
-                type: "scatter",
+                type:
+                    "scatter",
 
-                mode: "lines",
+                mode:
+                    "lines",
 
                 name:
-                    result.route || "مسیر",
+                    result.route ||
+                    "مسیر",
 
                 line: {
-                    width: 2
+
+                    width:
+                        2
+
                 },
 
                 hovertemplate:
-                    `مسیر: ${result.route || "مسیر"}` +
+
+                    `مسیر: ${
+                        result.route ||
+                        "مسیر"
+                    }` +
+
                     `<br>مسافت مسیر: %{customdata:.2f} km` +
+
                     `<br>ارتفاع: %{y:.0f} m` +
+
                     `<extra></extra>`,
 
                 customdata:
@@ -265,27 +482,40 @@ function drawOrderedElevationProfile(
                 traces.push({
 
                     x: [
+
                         lastX,
                         lastX
+
                     ],
 
                     y: [
+
                         globalMin,
                         globalMax
+
                     ],
 
-                    type: "scatter",
+                    type:
+                        "scatter",
 
-                    mode: "lines",
+                    mode:
+                        "lines",
 
                     line: {
-                        dash: "dash",
-                        width: 1
+
+                        dash:
+                            "dash",
+
+                        width:
+                            1
+
                     },
 
-                    showlegend: false,
+                    showlegend:
+                        false,
 
-                    hoverinfo: "skip"
+                    hoverinfo:
+                        "skip"
 
                 });
 
@@ -308,23 +538,38 @@ function drawOrderedElevationProfile(
 
     const layout =
         buildPlotLayout(
+
             "",
+
             "ارتفاع (m)",
+
             "مسافت تجمعی (km)"
+
         );
 
 
-    layout.hovermode = "closest";
+    layout.hovermode =
+        "closest";
 
 
     Plotly.react(
+
         containerId,
+
         traces,
+
         layout,
+
         {
-            responsive: true,
-            displaylogo: false
+
+            responsive:
+                true,
+
+            displaylogo:
+                false
+
         }
+
     );
 
 }
@@ -379,197 +624,221 @@ function drawSlopeDistribution(
      * فقط بخش ابتدای مسیر تا رسیدن به بیشترین ارتفاع بررسی می‌شود.
      */
 
-    const uphillData = results.map(result => {
+    const uphillData =
+        results.map(
+            result => {
 
-        const profile =
-            result.profiles?.elevation;
+                const profile =
+                    result.profiles?.elevation;
 
 
-        if (
-            !profile ||
-            !profile.distance_km ||
-            !profile.elevation_m ||
-            profile.distance_km.length < 2
-        ) {
+                if (
+                    !profile ||
+                    !profile.distance_km ||
+                    !profile.elevation_m ||
+                    profile.distance_km.length < 2
+                ) {
 
-            return {
+                    return {
 
-                route: result.route,
+                        route:
+                            result.route,
 
-                values:
+                        values:
+                            categories.map(
+                                () => 0
+                            ),
+
+                        distance:
+                            0
+
+                    };
+
+                }
+
+
+                const distances =
+                    profile.distance_km;
+
+
+                const elevations =
+                    profile.elevation_m;
+
+
+                // نقطه رسیدن به بیشترین ارتفاع
+
+                let summitIndex =
+                    0;
+
+
+                for (
+                    let i = 1;
+                    i < elevations.length;
+                    i++
+                ) {
+
+                    if (
+                        elevations[i] >
+                        elevations[summitIndex]
+                    ) {
+
+                        summitIndex =
+                            i;
+
+                    }
+
+                }
+
+
+                const values =
                     categories.map(
                         () => 0
-                    ),
-
-                distance: 0
-
-            };
-
-        }
+                    );
 
 
-        const distances =
-            profile.distance_km;
+                /*
+                 * محاسبه شیب هر قطعه از مسیر
+                 * فقط از شروع تا summitIndex
+                 */
+
+                for (
+                    let i = 1;
+                    i <= summitIndex;
+                    i++
+                ) {
+
+                    const distance =
+                        distances[i] -
+                        distances[i - 1];
 
 
-        const elevations =
-            profile.elevation_m;
+                    const elevationChange =
+                        elevations[i] -
+                        elevations[i - 1];
 
 
-        // نقطه رسیدن به بیشترین ارتفاع
+                    if (
+                        !Number.isFinite(
+                            distance
+                        ) ||
+                        distance <= 0 ||
+                        !Number.isFinite(
+                            elevationChange
+                        )
+                    ) {
 
-        let summitIndex = 0;
+                        continue;
+
+                    }
 
 
-        for (
-            let i = 1;
-            i < elevations.length;
-            i++
-        ) {
+                    const slope =
+                        (
+                            elevationChange /
+                            (distance * 1000)
+                        ) * 100;
 
-            if (
-                elevations[i] >
-                elevations[summitIndex]
-            ) {
 
-                summitIndex = i;
+                    /*
+                     * فقط شیب‌های صعودی
+                     * بخش‌های نزولی در این نمودار نمایش داده نمی‌شوند.
+                     */
+
+                    if (
+                        slope <= 0
+                    ) {
+
+                        continue;
+
+                    }
+
+
+                    let categoryIndex =
+                        -1;
+
+
+                    if (
+                        slope < 5
+                    ) {
+
+                        categoryIndex =
+                            0;
+
+                    }
+                    else if (
+                        slope < 10
+                    ) {
+
+                        categoryIndex =
+                            1;
+
+                    }
+                    else if (
+                        slope < 15
+                    ) {
+
+                        categoryIndex =
+                            2;
+
+                    }
+                    else if (
+                        slope < 20
+                    ) {
+
+                        categoryIndex =
+                            3;
+
+                    }
+                    else if (
+                        slope < 25
+                    ) {
+
+                        categoryIndex =
+                            4;
+
+                    }
+                    else {
+
+                        categoryIndex =
+                            5;
+
+                    }
+
+
+                    values[
+                        categoryIndex
+                    ] +=
+                        distance;
+
+                }
+
+
+                /*
+                 * طول مسیر رفت:
+                 * از نقطه شروع تا رسیدن به قله
+                 */
+
+                const uphillDistance =
+                    distances[
+                        summitIndex
+                    ] || 0;
+
+
+                return {
+
+                    route:
+                        result.route,
+
+                    values:
+                        values,
+
+                    distance:
+                        uphillDistance
+
+                };
 
             }
-
-        }
-
-
-        const values =
-            categories.map(
-                () => 0
-            );
-
-
-        /*
-         * محاسبه شیب هر قطعه از مسیر
-         * فقط از شروع تا summitIndex
-         */
-
-        for (
-            let i = 1;
-            i <= summitIndex;
-            i++
-        ) {
-
-            const distance =
-                distances[i] -
-                distances[i - 1];
-
-
-            const elevationChange =
-                elevations[i] -
-                elevations[i - 1];
-
-
-            if (
-                !Number.isFinite(distance) ||
-                distance <= 0 ||
-                !Number.isFinite(elevationChange)
-            ) {
-
-                continue;
-
-            }
-
-
-            const slope =
-                (
-                    elevationChange /
-                    (distance * 1000)
-                ) * 100;
-
-
-            /*
-             * فقط شیب‌های صعودی
-             * بخش‌های نزولی در این نمودار نمایش داده نمی‌شوند.
-             */
-
-            if (
-                slope <= 0
-            ) {
-
-                continue;
-
-            }
-
-
-            let categoryIndex = -1;
-
-
-            if (
-                slope < 5
-            ) {
-
-                categoryIndex = 0;
-
-            } else if (
-                slope < 10
-            ) {
-
-                categoryIndex = 1;
-
-            } else if (
-                slope < 15
-            ) {
-
-                categoryIndex = 2;
-
-            } else if (
-                slope < 20
-            ) {
-
-                categoryIndex = 3;
-
-            } else if (
-                slope < 25
-            ) {
-
-                categoryIndex = 4;
-
-            } else {
-
-                categoryIndex = 5;
-
-            }
-
-
-            values[
-                categoryIndex
-            ] += distance;
-
-        }
-
-
-        /*
-         * طول مسیر رفت:
-         * از نقطه شروع تا رسیدن به قله
-         */
-
-        const uphillDistance =
-            distances[
-                summitIndex
-            ] || 0;
-
-
-        return {
-
-            route:
-                result.route,
-
-            values:
-                values,
-
-            distance:
-                uphillDistance
-
-        };
-
-    });
+        );
 
 
     /*
@@ -597,7 +866,8 @@ function drawSlopeDistribution(
                             ]
                     ),
 
-                type: "bar",
+                type:
+                    "bar",
 
                 name:
                     labels[
@@ -605,8 +875,11 @@ function drawSlopeDistribution(
                     ],
 
                 hovertemplate:
+
                     `مسیر: %{x}` +
+
                     `<br>مسافت: %{y:.2f} km` +
+
                     `<extra></extra>`
 
             })
@@ -658,12 +931,17 @@ function drawSlopeDistribution(
                     text:
                         `${totalDistance.toFixed(1)} km`,
 
-                    showarrow: false,
+                    showarrow:
+                        false,
 
-                    yshift: 8,
+                    yshift:
+                        8,
 
                     font: {
-                        size: 12
+
+                        size:
+                            12
+
                     }
 
                 };
@@ -674,17 +952,25 @@ function drawSlopeDistribution(
 
     const layout =
         buildPlotLayout(
+
             "توزیع شیب مسیر رفت",
+
             "مسافت (km)"
+
         );
 
 
-    layout.barmode = "stack";
+    layout.barmode =
+        "stack";
 
 
     layout.xaxis = {
+
         ...layout.xaxis,
-        type: "category"
+
+        type:
+            "category"
+
     };
 
 
@@ -697,19 +983,35 @@ function drawSlopeDistribution(
      */
 
     layout.margin = {
+
         ...layout.margin,
-        t: 55
+
+        t:
+            window.innerWidth <= 900
+                ? 90
+                : 55
+
     };
 
 
     Plotly.react(
+
         containerId,
+
         traces,
+
         layout,
+
         {
-            responsive: true,
-            displaylogo: false
+
+            responsive:
+                true,
+
+            displaylogo:
+                false
+
         }
+
     );
 
 }
@@ -742,36 +1044,56 @@ function drawRouteBarChart(
 
     const trace = {
 
-        x: names,
+        x:
+            names,
 
-        y: values,
+        y:
+            values,
 
-        type: "bar"
+        type:
+            "bar"
 
     };
 
 
     const layout =
         buildPlotLayout(
+
             "",
+
             yTitle
+
         );
 
 
     layout.xaxis = {
+
         ...layout.xaxis,
-        type: "category"
+
+        type:
+            "category"
+
     };
 
 
     Plotly.react(
+
         containerId,
+
         [trace],
+
         layout,
+
         {
-            responsive: true,
-            displaylogo: false
+
+            responsive:
+                true,
+
+            displaylogo:
+                false
+
         }
+
     );
 
 }
@@ -823,18 +1145,24 @@ function drawRouteMetricsComparisonChart(
 
         {
 
-            x: names,
+            x:
+                names,
 
-            y: elevationGain,
+            y:
+                elevationGain,
 
-            type: "bar",
+            type:
+                "bar",
 
             name:
                 "حداکثر ارتفاع‌گیری",
 
             hovertemplate:
+
                 "مسیر: %{x}" +
+
                 "<br>حداکثر ارتفاع‌گیری: %{y:.2f} m" +
+
                 "<extra></extra>"
 
         },
@@ -842,18 +1170,24 @@ function drawRouteMetricsComparisonChart(
 
         {
 
-            x: names,
+            x:
+                names,
 
-            y: maxElevation,
+            y:
+                maxElevation,
 
-            type: "bar",
+            type:
+                "bar",
 
             name:
                 "حداکثر ارتفاع",
 
             hovertemplate:
+
                 "مسیر: %{x}" +
+
                 "<br>حداکثر ارتفاع: %{y:.2f} m" +
+
                 "<extra></extra>"
 
         },
@@ -861,18 +1195,24 @@ function drawRouteMetricsComparisonChart(
 
         {
 
-            x: names,
+            x:
+                names,
 
-            y: difficulty,
+            y:
+                difficulty,
 
-            type: "bar",
+            type:
+                "bar",
 
             name:
                 "امتیاز سختی نهایی",
 
             hovertemplate:
+
                 "مسیر: %{x}" +
+
                 "<br>امتیاز سختی نهایی: %{y:.2f}" +
+
                 "<extra></extra>"
 
         }
@@ -882,8 +1222,11 @@ function drawRouteMetricsComparisonChart(
 
     const layout =
         buildPlotLayout(
+
             "",
+
             "مقدار شاخص"
+
         );
 
 
@@ -902,43 +1245,42 @@ function drawRouteMetricsComparisonChart(
 
 
     /*
-     * Legend
+     * Legend به صورت Responsive
      *
-     * هر سه شاخص به صورت هم‌زمان نمایش داده می‌شوند
-     * و کاربر می‌تواند هر trace را با کلیک روی Legend
-     * روشن یا خاموش کند.
+     * دسکتاپ:
+     * عمودی در سمت راست
+     *
+     * موبایل:
+     * افقی در بالای نمودار
      */
 
     layout.legend = {
 
         ...layout.legend,
 
-        orientation:
-            "h",
-
-        x:
-            0.5,
-
-        xanchor:
-            "center",
-
-        y:
-            1.05
+        ...getResponsiveLegend()
 
     };
 
 
     Plotly.react(
+
         "route-metrics-comparison-chart",
+
         traces,
+
         layout,
+
         {
+
             responsive:
                 true,
 
             displaylogo:
                 false
+
         }
+
     );
 
 }
@@ -990,18 +1332,24 @@ function drawAscentTimeComparisonChart(
 
         {
 
-            x: names,
+            x:
+                names,
 
-            y: estimatedValues,
+            y:
+                estimatedValues,
 
-            type: "bar",
+            type:
+                "bar",
 
             name:
                 "زمان تقریبی صعود",
 
             hovertemplate:
+
                 "مسیر: %{x}" +
+
                 "<br>زمان تقریبی صعود: %{y:.2f} ساعت" +
+
                 "<extra></extra>"
 
         },
@@ -1009,18 +1357,24 @@ function drawAscentTimeComparisonChart(
 
         {
 
-            x: names,
+            x:
+                names,
 
-            y: actualValues,
+            y:
+                actualValues,
 
-            type: "bar",
+            type:
+                "bar",
 
             name:
                 "زمان واقعی صعود",
 
             hovertemplate:
+
                 "مسیر: %{x}" +
+
                 "<br>زمان واقعی صعود: %{y:.2f} ساعت" +
+
                 "<extra></extra>"
 
         },
@@ -1028,18 +1382,24 @@ function drawAscentTimeComparisonChart(
 
         {
 
-            x: names,
+            x:
+                names,
 
-            y: totalTimeValues,
+            y:
+                totalTimeValues,
 
-            type: "bar",
+            type:
+                "bar",
 
             name:
                 "زمان کل مسیر",
 
             hovertemplate:
+
                 "مسیر: %{x}" +
+
                 "<br>زمان کل مسیر: %{y:.2f} ساعت" +
+
                 "<extra></extra>"
 
         }
@@ -1049,8 +1409,11 @@ function drawAscentTimeComparisonChart(
 
     const layout =
         buildPlotLayout(
+
             "",
+
             "زمان (ساعت)"
+
         );
 
 
@@ -1062,34 +1425,43 @@ function drawAscentTimeComparisonChart(
 
         ...layout.xaxis,
 
-        type: "category"
+        type:
+            "category"
 
     };
 
+
+    /*
+     * Legend به صورت Responsive
+     */
 
     layout.legend = {
 
         ...layout.legend,
 
-        orientation: "h",
-
-        x: 0.5,
-
-        xanchor: "center",
-
-        y: 1.05
+        ...getResponsiveLegend()
 
     };
 
 
     Plotly.react(
+
         "estimated-ascent-time-chart",
+
         traces,
+
         layout,
+
         {
-            responsive: true,
-            displaylogo: false
+
+            responsive:
+                true,
+
+            displaylogo:
+                false
+
         }
+
     );
 
 }
@@ -1104,6 +1476,7 @@ function drawAscentTimeChart(
 ) {
 
     drawRouteBarChart(
+
         results,
 
         result =>
@@ -1114,6 +1487,7 @@ function drawAscentTimeChart(
         "ascent-time-chart",
 
         "زمان صعود (ساعت)"
+
     );
 
 }
@@ -1128,6 +1502,7 @@ function drawTotalTimeChart(
 ) {
 
     drawRouteBarChart(
+
         results,
 
         result =>
@@ -1138,7 +1513,7 @@ function drawTotalTimeChart(
         "total-time-chart",
 
         "زمان کل مسیر (ساعت)"
+
     );
 
 }
-
