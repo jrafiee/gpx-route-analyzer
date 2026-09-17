@@ -1,4 +1,9 @@
 /* =========================================================
+   3D Map
+   ========================================================= */
+
+
+/* =========================================================
    3D Map initialization
    ========================================================= */
 
@@ -51,6 +56,16 @@ function initialize3DMap() {
 
                 version:
                     8,
+
+
+                /*
+                 * Glyphs are required for the route-number
+                 * symbol layer.
+                 */
+
+                glyphs:
+                    "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+
 
                 sources: {
 
@@ -119,6 +134,7 @@ function initialize3DMap() {
                             "osm"
 
                     },
+
 
                     {
 
@@ -253,6 +269,7 @@ function routeToGeoJSON(result) {
             type:
                 "Feature",
 
+
             properties: {
 
                 name:
@@ -270,6 +287,7 @@ function routeToGeoJSON(result) {
                     distance3D
 
             },
+
 
             geometry: {
 
@@ -295,6 +313,7 @@ function routeToGeoJSON(result) {
                             : 0
 
                     ],
+
 
                     [
 
@@ -352,11 +371,46 @@ function drawRoutesOn3DMap(results) {
     }
 
 
+    /*
+     * Route line features
+     */
+
     const features = [];
 
 
+    /*
+     * Route-number point features
+     */
+
+    const routeLabelFeatures = [];
+
+
+    /*
+     * Same route colors used by the 2D map.
+     */
+
+    const routeColors = [
+
+        "#e53935",
+        "#1e88e5",
+        "#43a047",
+        "#fb8c00",
+        "#8e24aa",
+        "#00acc1",
+        "#6d4c41",
+        "#3949ab",
+        "#f4511e",
+        "#00897b"
+
+    ];
+
+
+    /*
+     * Build route lines and route-number points.
+     */
+
     results.forEach(
-        result => {
+        (result, index) => {
 
             const routeGeoJSON =
                 routeToGeoJSON(
@@ -377,9 +431,99 @@ function drawRoutesOn3DMap(results) {
 
             }
 
+
+            /*
+             * Create one numbered point
+             * at the beginning of each route.
+             */
+
+            const points =
+                result.routeData?.points;
+
+
+            if (
+                !points ||
+                points.length === 0
+            ) {
+
+                return;
+
+            }
+
+
+            const firstPoint =
+                points[0];
+
+
+            if (
+                !Number.isFinite(
+                    firstPoint.latitude
+                ) ||
+                !Number.isFinite(
+                    firstPoint.longitude
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            const markerColor =
+                routeColors[
+                    index %
+                    routeColors.length
+                ];
+
+
+            routeLabelFeatures.push({
+
+                type:
+                    "Feature",
+
+
+                properties: {
+
+                    number:
+                        index + 1,
+
+                    name:
+                        result.route,
+
+                    color:
+                        markerColor
+
+                },
+
+
+                geometry: {
+
+                    type:
+                        "Point",
+
+                    coordinates: [
+
+                        Number(
+                            firstPoint.longitude
+                        ),
+
+                        Number(
+                            firstPoint.latitude
+                        )
+
+                    ]
+
+                }
+
+            });
+
         }
     );
 
+
+    /*
+     * Route line GeoJSON.
+     */
 
     const geojson = {
 
@@ -391,6 +535,25 @@ function drawRoutesOn3DMap(results) {
 
     };
 
+
+    /*
+     * Route-number GeoJSON.
+     */
+
+    const labelGeoJSON = {
+
+        type:
+            "FeatureCollection",
+
+        features:
+            routeLabelFeatures
+
+    };
+
+
+    /* =====================================================
+       Route source
+       ===================================================== */
 
     if (
         map3d.getSource(
@@ -423,105 +586,160 @@ function drawRoutesOn3DMap(results) {
             }
         );
 
-
-        const speedColorExpression = [
-
-            "case",
-
-            [
-                "==",
-
-                [
-                    "get",
-                    "speed"
-                ],
-
-                null
-
-            ],
-
-            SPEED_COLORS.noData,
+    }
 
 
-            [
-                "<",
+    /* =====================================================
+       Route-number source
+       ===================================================== */
 
-                [
-                    "get",
-                    "speed"
-                ],
+    if (
+        map3d.getSource(
+            "route-labels-3d"
+        )
+    ) {
 
-                1.5
+        map3d
+            .getSource(
+                "route-labels-3d"
+            )
+            .setData(
+                labelGeoJSON
+            );
 
-            ],
+    }
 
-            SPEED_COLORS.verySlow,
+    else {
+
+        map3d.addSource(
+            "route-labels-3d",
+            {
+
+                type:
+                    "geojson",
+
+                data:
+                    labelGeoJSON
+
+            }
+        );
+
+    }
 
 
-            [
-                "<",
+    /* =====================================================
+       Speed color expression
+       ===================================================== */
 
-                [
-                    "get",
-                    "speed"
-                ],
+    const speedColorExpression = [
 
-                2.5
-
-            ],
-
-            SPEED_COLORS.slow,
+        "case",
 
 
-            [
-                "<",
-
-                [
-                    "get",
-                    "speed"
-                ],
-
-                3.5
-
-            ],
-
-            SPEED_COLORS.moderate,
-
+        [
+            "==",
 
             [
-                "<",
-
-                [
-                    "get",
-                    "speed"
-                ],
-
-                4.5
-
+                "get",
+                "speed"
             ],
 
-            SPEED_COLORS.fast,
+            null
 
+        ],
+
+        SPEED_COLORS.noData,
+
+
+        [
+            "<",
 
             [
-                "<",
-
-                [
-                    "get",
-                    "speed"
-                ],
-
-                5.5
-
+                "get",
+                "speed"
             ],
 
-            SPEED_COLORS.veryFast,
+            1.5
+
+        ],
+
+        SPEED_COLORS.verySlow,
 
 
-            SPEED_COLORS.fastest
+        [
+            "<",
 
-        ];
+            [
+                "get",
+                "speed"
+            ],
 
+            2.5
+
+        ],
+
+        SPEED_COLORS.slow,
+
+
+        [
+            "<",
+
+            [
+                "get",
+                "speed"
+            ],
+
+            3.5
+
+        ],
+
+        SPEED_COLORS.moderate,
+
+
+        [
+            "<",
+
+            [
+                "get",
+                "speed"
+            ],
+
+            4.5
+
+        ],
+
+        SPEED_COLORS.fast,
+
+
+        [
+            "<",
+
+            [
+                "get",
+                "speed"
+            ],
+
+            5.5
+
+        ],
+
+        SPEED_COLORS.veryFast,
+
+
+        SPEED_COLORS.fastest
+
+    ];
+
+
+    /* =====================================================
+       Route line layer
+       ===================================================== */
+
+    if (
+        !map3d.getLayer(
+            "routes-3d"
+        )
+    ) {
 
         map3d.addLayer({
 
@@ -559,115 +777,341 @@ function drawRoutesOn3DMap(results) {
 
         });
 
-
-        map3d.on(
-            "mouseenter",
-            "routes-3d",
-            function() {
-
-                map3d.getCanvas()
-                    .style.cursor =
-                    "pointer";
-
-            }
-        );
+    }
 
 
-        map3d.on(
-            "mouseleave",
-            "routes-3d",
-            function() {
+    /* =====================================================
+       Route-number circle layer
+       ===================================================== */
 
-                map3d.getCanvas()
-                    .style.cursor =
-                    "";
+    if (
+        !map3d.getLayer(
+            "route-labels-3d"
+        )
+    ) {
 
-            }
-        );
+        map3d.addLayer({
 
+            id:
+                "route-labels-3d",
 
-        map3d.on(
-            "click",
-            "routes-3d",
-            function(event) {
+            type:
+                "circle",
 
-                const feature =
-                    event.features?.[0];
+            source:
+                "route-labels-3d",
 
+            paint: {
 
-                if (!feature) {
+                "circle-radius":
+                    13,
 
-                    return;
+                "circle-color":
 
-                }
+                    [
+                        "get",
+                        "color"
+                    ],
 
+                "circle-stroke-color":
+                    "#ffffff",
 
-                const properties =
-                    feature.properties;
+                "circle-stroke-width":
+                    2,
 
-
-                const speed =
-                    Number(
-                        properties.speed
-                    );
-
-
-                let html =
-                    `<strong>${escapeHtml(
-                        properties.name || ""
-                    )}</strong>`;
-
-
-                if (
-                    Number.isFinite(speed)
-                ) {
-
-                    html +=
-                        `<br>سرعت: <b>${speed.toFixed(1)}</b> km/h`;
-
-                } else {
-
-                    html +=
-                        `<br>سرعت: بدون اطلاعات زمانی`;
-
-                }
-
-
-                const distance3D =
-                    Number(
-                        properties.distance3D
-                    );
-
-
-                if (
-                    Number.isFinite(distance3D)
-                ) {
-
-                    html +=
-                        `<br>فاصله 3D: ${distance3D.toFixed(1)} m`;
-
-                }
-
-
-                new window.maplibregl.Popup()
-
-                    .setLngLat(
-                        event.lngLat
-                    )
-
-                    .setHTML(
-                        html
-                    )
-
-                    .addTo(
-                        map3d
-                    );
+                "circle-opacity":
+                    1
 
             }
-        );
+
+        });
 
     }
 
+
+    /* =====================================================
+       Route-number text layer
+       ===================================================== */
+
+    if (
+        !map3d.getLayer(
+            "route-label-text-3d"
+        )
+    ) {
+
+        map3d.addLayer({
+
+            id:
+                "route-label-text-3d",
+
+            type:
+                "symbol",
+
+            source:
+                "route-labels-3d",
+
+            layout: {
+
+                "text-field":
+
+                    [
+                        "to-string",
+
+                        [
+                            "get",
+                            "number"
+                        ]
+
+                    ],
+
+                "text-size":
+                    12,
+
+                "text-font": [
+                    "Open Sans Bold"
+                ],
+
+                "text-anchor":
+                    "center",
+
+                "text-allow-overlap":
+                    true,
+
+                "text-ignore-placement":
+                    true
+
+            },
+
+            paint: {
+
+                "text-color":
+                    "#ffffff",
+
+                "text-halo-color":
+                    "rgba(0,0,0,0.25)",
+
+                "text-halo-width":
+                    0.5
+
+            }
+
+        });
+
+    }
+
+
+    /* =====================================================
+       Route hover cursor
+       ===================================================== */
+
+    map3d.on(
+        "mouseenter",
+        "routes-3d",
+        function() {
+
+            map3d.getCanvas()
+                .style.cursor =
+                "pointer";
+
+        }
+    );
+
+
+    map3d.on(
+        "mouseleave",
+        "routes-3d",
+        function() {
+
+            map3d.getCanvas()
+                .style.cursor =
+                "";
+
+        }
+    );
+
+
+    /* =====================================================
+       Route click
+       ===================================================== */
+
+    map3d.on(
+        "click",
+        "routes-3d",
+        function(event) {
+
+            const feature =
+                event.features?.[0];
+
+
+            if (!feature) {
+
+                return;
+
+            }
+
+
+            const properties =
+                feature.properties;
+
+
+            const speed =
+                Number(
+                    properties.speed
+                );
+
+
+            let html =
+                `<strong>${escapeHtml(
+                    properties.name || ""
+                )}</strong>`;
+
+
+            if (
+                Number.isFinite(
+                    speed
+                )
+            ) {
+
+                html +=
+                    `<br>سرعت: <b>${speed.toFixed(1)}</b> km/h`;
+
+            }
+
+            else {
+
+                html +=
+                    `<br>سرعت: بدون اطلاعات زمانی`;
+
+            }
+
+
+            const distance3D =
+                Number(
+                    properties.distance3D
+                );
+
+
+            if (
+                Number.isFinite(
+                    distance3D
+                )
+            ) {
+
+                html +=
+                    `<br>فاصله 3D: ${distance3D.toFixed(1)} m`;
+
+            }
+
+
+            new window.maplibregl.Popup()
+
+                .setLngLat(
+                    event.lngLat
+                )
+
+                .setHTML(
+                    html
+                )
+
+                .addTo(
+                    map3d
+                );
+
+        }
+    );
+
+
+    /* =====================================================
+       Route-number hover cursor
+       ===================================================== */
+
+    map3d.on(
+        "mouseenter",
+        "route-labels-3d",
+        function() {
+
+            map3d.getCanvas()
+                .style.cursor =
+                "pointer";
+
+        }
+    );
+
+
+    map3d.on(
+        "mouseleave",
+        "route-labels-3d",
+        function() {
+
+            map3d.getCanvas()
+                .style.cursor =
+                "";
+
+        }
+    );
+
+
+    /* =====================================================
+       Route-number click
+       ===================================================== */
+
+    map3d.on(
+        "click",
+        "route-labels-3d",
+        function(event) {
+
+            const feature =
+                event.features?.[0];
+
+
+            if (!feature) {
+
+                return;
+
+            }
+
+
+            const properties =
+                feature.properties;
+
+
+            const number =
+                Number(
+                    properties.number
+                );
+
+
+            const name =
+                properties.name || "";
+
+
+            let html =
+                `<strong>${number}. ${escapeHtml(
+                    name
+                )}</strong>`;
+
+
+            new window.maplibregl.Popup()
+
+                .setLngLat(
+                    event.lngLat
+                )
+
+                .setHTML(
+                    html
+                )
+
+                .addTo(
+                    map3d
+                );
+
+        }
+    );
+
+
+    /* =====================================================
+       Speed legend
+       ===================================================== */
 
     createSpeedLegend(
         document.getElementById(
@@ -675,6 +1119,10 @@ function drawRoutesOn3DMap(results) {
         )
     );
 
+
+    /* =====================================================
+       Fit map to routes
+       ===================================================== */
 
     fit3DMapToRoutes(
         results
@@ -684,7 +1132,7 @@ function drawRoutesOn3DMap(results) {
 
 
 /* =========================================================
-   Fit map
+   Fit 3D map
    ========================================================= */
 
 function fit3DMapToRoutes(results) {
@@ -736,10 +1184,15 @@ function fit3DMapToRoutes(results) {
                     ) {
 
                         bounds.extend(
+
                             [
+
                                 point.longitude,
+
                                 point.latitude
+
                             ]
+
                         );
 
 
@@ -796,6 +1249,61 @@ function clear3DMap() {
     }
 
 
+    /* =====================================================
+       Remove route-number text layer
+       ===================================================== */
+
+    if (
+        map3d.getLayer(
+            "route-label-text-3d"
+        )
+    ) {
+
+        map3d.removeLayer(
+            "route-label-text-3d"
+        );
+
+    }
+
+
+    /* =====================================================
+       Remove route-number circle layer
+       ===================================================== */
+
+    if (
+        map3d.getLayer(
+            "route-labels-3d"
+        )
+    ) {
+
+        map3d.removeLayer(
+            "route-labels-3d"
+        );
+
+    }
+
+
+    /* =====================================================
+       Remove route-number source
+       ===================================================== */
+
+    if (
+        map3d.getSource(
+            "route-labels-3d"
+        )
+    ) {
+
+        map3d.removeSource(
+            "route-labels-3d"
+        );
+
+    }
+
+
+    /* =====================================================
+       Remove route line layer
+       ===================================================== */
+
     if (
         map3d.getLayer(
             "routes-3d"
@@ -809,6 +1317,10 @@ function clear3DMap() {
     }
 
 
+    /* =====================================================
+       Remove route line source
+       ===================================================== */
+
     if (
         map3d.getSource(
             "routes-3d"
@@ -821,6 +1333,10 @@ function clear3DMap() {
 
     }
 
+
+    /* =====================================================
+       Remove speed legend
+       ===================================================== */
 
     const legend =
         document.querySelector(
@@ -896,6 +1412,10 @@ function show2DMap() {
 
 }
 
+
+/* =========================================================
+   Show 3D map
+   ========================================================= */
 
 function show3DMap() {
 

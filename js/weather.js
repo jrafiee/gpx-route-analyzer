@@ -580,189 +580,215 @@ function createWeatherDay(
         </div>
 
 
-        <div class="weather-table-wrapper">
+        <div class="weather-grid">
 
-            <table class="weather-table">
+            <!-- Fixed parameter column -->
 
-                <thead>
+            <div class="weather-label-column">
 
-                    <tr>
+                <div class="weather-grid-cell weather-grid-header">
+                    پارامتر
+                </div>
 
-                        <th>
-                            پارامتر
-                        </th>
+                <div class="weather-grid-cell weather-temperature-label">
+                    🌡️ دما
+                </div>
 
+                <div class="weather-grid-cell weather-wind-label">
+                    💨 باد
+                </div>
+
+                <div class="weather-grid-cell weather-rain-label">
+                    🌧️ بارش
+                </div>
+
+                <div class="weather-grid-cell weather-rain-probability-label">
+                    ☔ احتمال بارش
+                </div>
+
+            </div>
+
+
+            <!-- Horizontally scrollable hourly data -->
+
+            <div class="weather-scroll">
+
+                <div
+                    class="weather-data"
+                    style="
+                        --weather-hours:
+                        ${hourlyData.length};
+                    "
+                >
+
+                    <div class="weather-time-row">
 
                         ${hourlyData
                             .map(
-                                item => `
-                                    <th>
-                                        ${formatWeatherTime(
-                                            item.time
-                                        )}
-                                    </th>
+                                hour => `
+                                    <div class="weather-grid-cell weather-time">
+                                        ${formatWeatherTime(hour.time)}
+                                    </div>
                                 `
                             )
                             .join("")
                         }
 
-                    </tr>
-
-                </thead>
+                    </div>
 
 
-                <tbody>
+                    <div class="weather-temperature-chart-row">
+
+                        ${createTemperatureChart(
+                            hourlyData
+                        )}
+
+                    </div>
 
 
-                    <!-- Temperature -->
-
-                    <tr
-                        class="weather-temperature-row"
-                    >
-
-                        <th>
-                            🌡️ دما
-                        </th>
-
+                    <div class="weather-value-row weather-wind-row">
 
                         ${hourlyData
                             .map(
-                                item => `
+                                hour => {
 
-                                    <td>
+                                    const wind =
+                                        Number(
+                                            hour.windSpeed
+                                        );
 
-                                        ${
-                                            Number.isFinite(
-                                                item.temperature
-                                            )
-                                                ? `${Math.round(
-                                                    item.temperature
-                                                )}°`
-                                                : "-"
-                                        }
+                                    const background =
+                                        getWindCellColor(
+                                            wind
+                                        );
 
-                                    </td>
 
-                                `
+                                    return `
+
+                                        <div
+                                            class="weather-grid-cell weather-wind-cell"
+                                            style="background:${background};"
+                                            title="سرعت باد: ${
+                                                Number.isFinite(wind)
+                                                    ? wind.toFixed(1)
+                                                    : "-"
+                                            } km/h"
+                                        >
+
+                                            ${
+                                                Number.isFinite(wind)
+                                                    ? Math.round(wind)
+                                                    : "-"
+                                            }
+
+                                        </div>
+
+                                    `;
+
+                                }
                             )
                             .join("")
                         }
 
-                    </tr>
+                    </div>
 
 
-                    <!-- Wind -->
-
-                    <tr
-                        class="weather-wind-row"
-                    >
-
-                        <th>
-                            💨 باد
-                        </th>
-
+                    <div class="weather-value-row weather-rain-row">
 
                         ${hourlyData
                             .map(
-                                item => `
+                                hour => {
 
-                                    <td>
+                                    const rain =
+                                        Number(
+                                            hour.precipitation
+                                        );
 
-                                        ${
-                                            Number.isFinite(
-                                                item.windSpeed
-                                            )
-                                                ? `${Math.round(
-                                                    item.windSpeed
-                                                )}`
-                                                : "-"
-                                        }
+                                    const background =
+                                        getRainCellColor(
+                                            rain
+                                        );
 
-                                    </td>
 
-                                `
+                                    return `
+
+                                        <div
+                                            class="weather-grid-cell weather-rain-cell"
+                                            style="background:${background};"
+                                            title="بارش: ${
+                                                Number.isFinite(rain)
+                                                    ? rain.toFixed(1)
+                                                    : "-"
+                                            } mm"
+                                        >
+
+                                            ${
+                                                Number.isFinite(rain)
+                                                    ? rain.toFixed(1)
+                                                    : "-"
+                                            }
+
+                                        </div>
+
+                                    `;
+
+                                }
                             )
                             .join("")
                         }
 
-                    </tr>
+                    </div>
 
 
-                    <!-- Precipitation -->
-
-                    <tr
-                        class="weather-rain-row"
-                    >
-
-                        <th>
-                            🌧️ بارش
-                        </th>
-
+                    <div class="weather-value-row weather-rain-probability-row">
 
                         ${hourlyData
                             .map(
-                                item => `
+                                hour => {
 
-                                    <td>
+                                    const probability =
+                                        Number(
+                                            hour.precipitationProbability
+                                        );
 
-                                        ${
-                                            Number.isFinite(
-                                                item.precipitation
-                                            )
-                                                ? item.precipitation.toFixed(1)
-                                                : "-"
-                                        }
+                                    const background =
+                                        getRainProbabilityCellColor(
+                                            probability
+                                        );
 
-                                    </td>
 
-                                `
+                                    return `
+
+                                        <div
+                                            class="weather-grid-cell weather-rain-probability-cell"
+                                            style="background:${background};"
+                                            title="احتمال بارش: ${
+                                                Number.isFinite(probability)
+                                                    ? probability.toFixed(0)
+                                                    : "-"
+                                            }%"
+                                        >
+
+                                            ${
+                                                Number.isFinite(probability)
+                                                    ? Math.round(probability)
+                                                    : "-"
+                                            }%
+
+                                        </div>
+
+                                    `;
+
+                                }
                             )
                             .join("")
                         }
 
-                    </tr>
+                    </div>
 
+                </div>
 
-                    <!-- Precipitation probability -->
-
-                    <tr
-                        class="weather-rain-probability-row"
-                    >
-
-                        <th>
-                            ☔ احتمال بارش
-                        </th>
-
-
-                        ${hourlyData
-                            .map(
-                                item => `
-
-                                    <td>
-
-                                        ${
-                                            Number.isFinite(
-                                                item.precipitationProbability
-                                            )
-                                                ? `${Math.round(
-                                                    item.precipitationProbability
-                                                )}%`
-                                                : "-"
-                                        }
-
-                                    </td>
-
-                                `
-                            )
-                            .join("")
-                        }
-
-                    </tr>
-
-
-                </tbody>
-
-            </table>
+            </div>
 
         </div>
 
@@ -774,8 +800,548 @@ function createWeatherDay(
 
 
 /* =========================================================
+   Create temperature chart
+   ========================================================= */
+
+function createTemperatureChart(
+    hourlyData
+) {
+
+    if (
+        !Array.isArray(hourlyData) ||
+        hourlyData.length === 0
+    ) {
+
+        return `
+            <div class="weather-temperature-empty">
+                داده‌ای وجود ندارد
+            </div>
+        `;
+
+    }
+
+
+    const width =
+        Math.max(
+            hourlyData.length * 70,
+            70
+        );
+
+
+    const height =
+        92;
+
+
+    const topPadding =
+        18;
+
+
+    const bottomPadding =
+        14;
+
+
+    const chartHeight =
+        height -
+        topPadding -
+        bottomPadding;
+
+
+    const temperatures =
+        hourlyData.map(
+            item => {
+
+                const value =
+                    Number(
+                        item.temperature
+                    );
+
+                return Number.isFinite(value)
+                    ? value
+                    : null;
+
+            }
+        );
+
+
+    const validTemperatures =
+        temperatures.filter(
+            value =>
+                value !== null
+        );
+
+
+    if (
+        validTemperatures.length === 0
+    ) {
+
+        return `
+            <div class="weather-temperature-empty">
+                داده دما موجود نیست
+            </div>
+        `;
+
+    }
+
+
+    let minTemperature =
+        Math.min(
+            ...validTemperatures
+        );
+
+
+    let maxTemperature =
+        Math.max(
+            ...validTemperatures
+        );
+
+
+    /*
+       Add some vertical breathing room.
+       Zero is always included when the
+       temperature range crosses zero.
+    */
+
+    minTemperature =
+        Math.min(
+            minTemperature,
+            0
+        );
+
+    maxTemperature =
+        Math.max(
+            maxTemperature,
+            0
+        );
+
+
+    const range =
+        Math.max(
+            maxTemperature -
+            minTemperature,
+            1
+        );
+
+
+    const zeroY =
+        topPadding +
+        (
+            maxTemperature /
+            range
+        ) *
+        chartHeight;
+
+
+    const points =
+        temperatures.map(
+            (temperature, index) => {
+
+                if (
+                    temperature === null
+                ) {
+                    return null;
+                }
+
+
+                const x =
+                    hourlyData.length === 1
+                        ? width / 2
+                        : index *
+                          (
+                              width /
+                              (
+                                  hourlyData.length -
+                                  1
+                              )
+                          );
+
+
+                const y =
+                    topPadding +
+                    (
+                        (
+                            maxTemperature -
+                            temperature
+                        ) /
+                        range
+                    ) *
+                    chartHeight;
+
+
+                return {
+                    x,
+                    y,
+                    temperature
+                };
+
+            }
+        );
+
+
+    const lineSegments = [];
+
+
+    for (
+        let i = 0;
+        i < points.length - 1;
+        i++
+    ) {
+
+        const p1 =
+            points[i];
+
+        const p2 =
+            points[i + 1];
+
+
+        if (
+            !p1 ||
+            !p2
+        ) {
+            continue;
+        }
+
+
+        /*
+           Both points below zero.
+        */
+
+        if (
+            p1.temperature < 0 &&
+            p2.temperature < 0
+        ) {
+
+            lineSegments.push(`
+
+                <line
+                    x1="${p1.x}"
+                    y1="${p1.y}"
+                    x2="${p2.x}"
+                    y2="${p2.y}"
+                    class="temperature-line temperature-line-cold"
+                />
+
+            `);
+
+            continue;
+        }
+
+
+        /*
+           Both points at or above zero.
+        */
+
+        if (
+            p1.temperature >= 0 &&
+            p2.temperature >= 0
+        ) {
+
+            lineSegments.push(`
+
+                <line
+                    x1="${p1.x}"
+                    y1="${p1.y}"
+                    x2="${p2.x}"
+                    y2="${p2.y}"
+                    class="temperature-line temperature-line-warm"
+                />
+
+            `);
+
+            continue;
+        }
+
+
+        /*
+           Segment crosses zero.
+           Calculate the exact x position where
+           temperature reaches 0°C.
+        */
+
+        const fraction =
+            (
+                0 -
+                p1.temperature
+            ) /
+            (
+                p2.temperature -
+                p1.temperature
+            );
+
+
+        const zeroX =
+            p1.x +
+            (
+                p2.x -
+                p1.x
+            ) *
+            fraction;
+
+
+        const zeroPointY =
+            zeroY;
+
+
+        const firstClass =
+            p1.temperature < 0
+                ? "temperature-line-cold"
+                : "temperature-line-warm";
+
+
+        const secondClass =
+            p2.temperature < 0
+                ? "temperature-line-cold"
+                : "temperature-line-warm";
+
+
+        lineSegments.push(`
+
+            <line
+                x1="${p1.x}"
+                y1="${p1.y}"
+                x2="${zeroX}"
+                y2="${zeroPointY}"
+                class="temperature-line ${firstClass}"
+            />
+
+            <line
+                x1="${zeroX}"
+                y1="${zeroPointY}"
+                x2="${p2.x}"
+                y2="${p2.y}"
+                class="temperature-line ${secondClass}"
+            />
+
+        `);
+
+    }
+
+
+    const labels =
+        points
+            .map(
+                point => {
+
+                    if (!point) {
+                        return "";
+                    }
+
+
+                    const cold =
+                        point.temperature < 0;
+
+
+                    return `
+
+                        <text
+                            x="${point.x}"
+                            y="${Math.max(
+                                point.y - 8,
+                                14
+                            )}"
+                            class="temperature-value ${
+                                cold
+                                    ? "temperature-value-cold"
+                                    : "temperature-value-warm"
+                            }"
+                            text-anchor="middle"
+                        >
+                            ${Math.round(
+                                point.temperature
+                            )}°
+                        </text>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+
+    const pointsMarkup =
+        points
+            .map(
+                point => {
+
+                    if (!point) {
+                        return "";
+                    }
+
+
+                    return `
+
+                        <circle
+                            cx="${point.x}"
+                            cy="${point.y}"
+                            r="3.5"
+                            class="temperature-point ${
+                                point.temperature < 0
+                                    ? "temperature-point-cold"
+                                    : "temperature-point-warm"
+                            }"
+                        />
+
+                    `;
+
+                }
+            )
+            .join("");
+
+
+    return `
+
+        <svg
+            class="temperature-chart"
+            viewBox="0 0 ${width} ${height}"
+            preserveAspectRatio="none"
+            role="img"
+            aria-label="نمودار دمای ساعتی"
+        >
+
+            <!-- Zero degree reference -->
+
+            <line
+                x1="0"
+                y1="${zeroY}"
+                x2="${width}"
+                y2="${zeroY}"
+                class="temperature-zero-line"
+            />
+
+
+            <!-- Continuous temperature line -->
+
+            ${lineSegments.join("")}
+
+
+            <!-- Temperature values -->
+
+            ${labels}
+
+
+            <!-- Data points -->
+
+            ${pointsMarkup}
+
+        </svg>
+
+    `;
+
+}
+
+
+/* =========================================================
+   Weather cell color helpers
+   ========================================================= */
+
+function getWindCellColor(
+    windSpeed
+) {
+
+    if (
+        !Number.isFinite(windSpeed) ||
+        windSpeed <= 0
+    ) {
+        return "transparent";
+    }
+
+
+    /*
+       Wind scale:
+       < 15 km/h  -> almost neutral
+       15–25      -> yellow
+       25–40      -> orange
+       40–55      -> red-orange
+       > 55       -> deep red
+    */
+
+    if (windSpeed < 15) {
+        return "rgba(255, 193, 7, 0.10)";
+    }
+
+
+    if (windSpeed < 25) {
+        return "rgba(255, 193, 7, 0.28)";
+    }
+
+
+    if (windSpeed < 40) {
+        return "rgba(255, 152, 0, 0.48)";
+    }
+
+
+    if (windSpeed < 55) {
+        return "rgba(244, 81, 30, 0.58)";
+    }
+
+
+    return "rgba(198, 40, 40, 0.72)";
+}
+
+
+function getRainCellColor(
+    precipitation
+) {
+
+    if (
+        !Number.isFinite(precipitation) ||
+        precipitation <= 0
+    ) {
+        return "transparent";
+    }
+
+
+    /*
+       Blue intensity increases with precipitation.
+    */
+
+    const intensity =
+        Math.min(
+            precipitation / 8,
+            1
+        );
+
+
+    const alpha =
+        0.16 +
+        intensity * 0.62;
+
+
+    return `rgba(30, 136, 229, ${alpha})`;
+}
+
+
+function getRainProbabilityCellColor(
+    probability
+) {
+
+    if (
+        !Number.isFinite(probability) ||
+        probability <= 0
+    ) {
+        return "transparent";
+    }
+
+
+    const intensity =
+        Math.min(
+            probability / 100,
+            1
+        );
+
+
+    const alpha =
+        0.08 +
+        intensity * 0.32;
+
+
+    return `rgba(30, 136, 229, ${alpha})`;
+}
+
+
+/* =========================================================
    Get / create weather container
    ========================================================= */
+
 function getWeatherContainer() {
 
     return document.getElementById(
@@ -787,6 +1353,7 @@ function getWeatherContainer() {
 /* =========================================================
    Draw all weather forecasts
    ========================================================= */
+
 async function drawWeatherForecasts(
     results
 ) {
@@ -953,6 +1520,7 @@ async function drawWeatherForecasts(
 /* =========================================================
    Clear weather
    ========================================================= */
+
 function clearWeatherForecasts() {
 
     const container =
