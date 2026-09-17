@@ -1,0 +1,213 @@
+/* =========================================================
+   Mobile / Responsive
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    /* -----------------------------------------------------
+       Sidebar
+       ----------------------------------------------------- */
+
+    .sidebar {
+
+        transform:
+            translateX(0);
+
+        transition:
+            transform 0.25s ease;
+
+        box-shadow:
+            -4px 0 12px
+            rgba(0, 0, 0, 0.15);
+    }
+
+
+    .sidebar.closed {
+
+        transform:
+            translateX(100%);
+    }
+
+
+    /* -----------------------------------------------------
+       Main
+       ----------------------------------------------------- */
+
+    .main {
+
+        margin-right: 0;
+
+        padding: 15px;
+
+        padding-top: 65px;
+
+        cursor: default;
+    }
+
+
+    /* -----------------------------------------------------
+       Mobile menu
+       ----------------------------------------------------- */
+
+    .menu-button {
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+    }
+
+
+    /* -----------------------------------------------------
+       Page header
+       ----------------------------------------------------- */
+
+    .page-header {
+
+        gap: 10px;
+    }
+
+
+    .page-title {
+
+        font-size: 20px;
+    }
+
+
+    .page-header-actions {
+
+        gap: 6px;
+    }
+
+
+    /* -----------------------------------------------------
+       Calculations link
+       ----------------------------------------------------- */
+
+    .calculations-link {
+
+        padding:
+            6px 9px;
+
+        font-size: 12px;
+    }
+
+
+    /* -----------------------------------------------------
+       Theme toggle
+       ----------------------------------------------------- */
+
+    .theme-toggle {
+
+        width: 34px;
+        min-width: 34px;
+
+        height: 32px;
+
+        font-size: 15px;
+    }
+
+
+    /* -----------------------------------------------------
+       Charts
+       ----------------------------------------------------- */
+
+    #elevation-chart,
+    #ordered-elevation-chart,
+    #elevation-gain-chart,
+    #slope-chart,
+    #estimated-ascent-time-chart,
+    #route-metrics-comparison-chart {
+
+        height: 400px;
+    }
+
+
+    /* -----------------------------------------------------
+       Bar charts
+       ----------------------------------------------------- */
+
+    .bar-charts-grid {
+
+        grid-template-columns:
+            1fr;
+
+        gap: 20px;
+    }
+
+
+    .bar-charts-grid .chart-container {
+
+        margin-bottom: 0;
+    }
+
+
+    /* -----------------------------------------------------
+       2D map
+       ----------------------------------------------------- */
+
+    #map {
+
+        height: 450px;
+    }
+
+
+    /* -----------------------------------------------------
+       3D map
+       ----------------------------------------------------- */
+
+    #map-3d {
+
+        height: 450px;
+    }
+
+
+    /* -----------------------------------------------------
+       Speed legend
+       ----------------------------------------------------- */
+
+    .speed-legend {
+
+        left: 7px;
+
+        bottom: 7px;
+
+        min-width: 125px;
+
+        padding:
+            7px 8px;
+
+        font-size: 10px;
+    }
+
+
+    .speed-legend-title {
+
+        font-size: 11px;
+    }
+
+
+    /* -----------------------------------------------------
+       Dark mode mobile menu
+       ----------------------------------------------------- */
+
+    body.dark-mode .menu-button {
+
+        background: #e5e5e5;
+
+        color: #222;
+    }
+
+}
+@media (max-width: 900px) {
+
+    .weather-section-header {
+
+        align-items: flex-start;
+
+        flex-direction: column;
+
+    }
+
+}
