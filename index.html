@@ -646,6 +646,8 @@
         border-radius: 8px;
 
         overflow: hidden;
+
+        position: relative;
     }
 
 
@@ -722,6 +724,119 @@
         border-radius: 8px;
 
         overflow: hidden;
+
+        position: relative;
+    }
+
+
+    /* =========================================================
+       Speed legend
+       ========================================================= */
+
+    .speed-legend {
+
+        position: absolute;
+
+        left: 12px;
+
+        bottom: 12px;
+
+        z-index: 1000;
+
+        min-width: 145px;
+
+        padding:
+            9px 10px;
+
+        border-radius: 8px;
+
+        background:
+            rgba(255, 255, 255, 0.94);
+
+        color: #333;
+
+        box-shadow:
+            0 2px 8px
+            rgba(0, 0, 0, 0.25);
+
+        font-size: 11px;
+
+        line-height: 1.5;
+
+        direction: rtl;
+
+        text-align: right;
+
+        pointer-events: none;
+    }
+
+
+    .speed-legend-title {
+
+        font-weight: bold;
+
+        font-size: 12px;
+
+        margin-bottom: 5px;
+
+        text-align: center;
+    }
+
+
+    .speed-legend-item {
+
+        display: flex;
+
+        align-items: center;
+
+        gap: 6px;
+
+        margin:
+            3px 0;
+    }
+
+
+    .speed-legend-color {
+
+        width: 24px;
+
+        height: 5px;
+
+        border-radius: 3px;
+
+        flex-shrink: 0;
+    }
+
+
+    .speed-legend-smoothing {
+
+        margin-top: 6px;
+
+        padding-top: 5px;
+
+        border-top:
+            1px solid rgba(128, 128, 128, 0.35);
+
+        font-size: 10px;
+
+        color: #777;
+
+        text-align: center;
+    }
+
+
+    body.dark-mode .speed-legend {
+
+        background:
+            rgba(32, 35, 36, 0.94);
+
+        color: #eee;
+    }
+
+
+    body.dark-mode .speed-legend-smoothing {
+
+        color: #aaa;
     }
 
 
@@ -967,9 +1082,6 @@
 
         .sidebar {
 
-            /*
-             * در موبایل منو در ابتدا باز است.
-             */
             transform:
                 translateX(0);
 
@@ -982,9 +1094,6 @@
         }
 
 
-        /*
-         * کلاس closed منو را می‌بندد.
-         */
         .sidebar.closed {
 
             transform:
@@ -1089,6 +1198,27 @@
         }
 
 
+        .speed-legend {
+
+            left: 7px;
+
+            bottom: 7px;
+
+            min-width: 125px;
+
+            padding:
+                7px 8px;
+
+            font-size: 10px;
+        }
+
+
+        .speed-legend-title {
+
+            font-size: 11px;
+        }
+
+
         body.dark-mode .menu-button {
 
             background: #e5e5e5;
@@ -1148,170 +1278,134 @@
     <div id="default-routes">
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="صفه"
                 data-file="data/sample/صفه.gpx"
             >
-
             صفه
-
         </label>
 
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="کرکس"
                 data-file="data/sample/کرکس.gpx"
             >
-
             کرکس
-
         </label>
 
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="دالان کوه"
                 data-file="data/sample/دالان کوه.gpx"
             >
-
             دالان کوه
-
         </label>
 
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="کلار چیرو"
                 data-file="data/sample/کلار چیرو.gpx"
             >
-
             کلار چیرو
-
         </label>
 
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="شاهانکوه"
                 data-file="data/sample/شاهانکوه.gpx"
             >
-
             شاهانکوه
-
         </label>
 
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="شاه کوه"
                 data-file="data/sample/شاه کوه.gpx"
             >
-
             شاه کوه
-
         </label>
 
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="حوض دال دنا"
                 data-file="data/sample/حوض دال دنا.gpx"
             >
-
             حوض دال دنا
-
         </label>
 
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="دماوند"
                 data-file="data/sample/دماوند.gpx"
             >
-
             دماوند
-
         </label>
 
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="دماوند از بارگاه سوم"
                 data-file="data/sample/دماوند از بارگاه سوم.gpx"
             >
-
             دماوند از بارگاه سوم
-
         </label>
 
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="سبلان"
                 data-file="data/sample/سبلان.gpx"
             >
-
             سبلان
-
         </label>
 
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="سنبران"
                 data-file="data/sample/سنبران.gpx"
             >
-
             سنبران
-
         </label>
 
 
         <label>
-
             <input
                 type="checkbox"
                 class="default-route"
                 data-name="علم کوه"
                 data-file="data/sample/علم کوه.gpx"
             >
-
             علم کوه
-
         </label>
 
     </div>
@@ -1367,10 +1461,6 @@
 <main class="main">
 
 
-    <!-- =====================================================
-         Page header
-         ===================================================== -->
-
     <div class="page-header">
 
         <h1 class="page-title">
@@ -1380,56 +1470,52 @@
 
         <div class="page-header-actions">
 
-    <a
-        href="mountain-route-calculations-fa.html"
-        class="calculations-link"
-        title="راهنمای محاسبات مسیر"
-    >
+            <a
+                href="mountain-route-calculations-fa.html"
+                class="calculations-link"
+                title="راهنمای محاسبات مسیر"
+            >
 
-        ⚙️
+                ⚙️
 
-        <span>
-            محاسبات
-        </span>
+                <span>
+                    محاسبات
+                </span>
 
-    </a>
-
-
-    <a
-        href="https://irimo.ir/far/wd/10823-%D8%A8%D9%88%D9%84%D8%AA%D9%86-%DA%A9%D9%88%D9%87%D8%B3%D8%AA%D8%A7%D9%86.html"
-        class="calculations-link"
-        title="بولتن پیش‌بینی کوهستان"
-        target="_blank"
-        rel="noopener noreferrer"
-    >
-
-        🏔️
-
-        <span>
-            بولتن پیش‌بینی کوهستان
-        </span>
-
-    </a>
+            </a>
 
 
-    <button
-        class="theme-toggle"
-        id="theme-toggle"
-        onclick="toggleTheme()"
-        aria-label="تغییر به حالت تاریک"
-        title="حالت تاریک"
-    >
-        🌙
-    </button>
+            <a
+                href="https://irimo.ir/far/wd/10823-%D8%A8%D9%88%D9%84%D8%AA%D9%86-%DA%A9%D9%88%D9%87%D8%B3%D8%AA%D8%A7%D9%86.html"
+                class="calculations-link"
+                title="بولتن پیش‌بینی کوهستان"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
 
-</div>
+                🏔️
+
+                <span>
+                    بولتن پیش‌بینی کوهستان
+                </span>
+
+            </a>
+
+
+            <button
+                class="theme-toggle"
+                id="theme-toggle"
+                onclick="toggleTheme()"
+                aria-label="تغییر به حالت تاریک"
+                title="حالت تاریک"
+            >
+                🌙
+            </button>
+
+        </div>
 
     </div>
 
-
-    <!-- =====================================================
-         1. Elevation
-         ===================================================== -->
 
     <div
         id="elevation-container"
@@ -1446,10 +1532,6 @@
     </div>
 
 
-    <!-- =====================================================
-         2. Elevation gain
-         ===================================================== -->
-
     <div
         id="elevation-gain-container"
         class="chart-container"
@@ -1464,10 +1546,6 @@
 
     </div>
 
-
-    <!-- =====================================================
-         3. Ordered elevation
-         ===================================================== -->
 
     <div
         id="ordered-elevation-container"
@@ -1484,10 +1562,6 @@
     </div>
 
 
-    <!-- =====================================================
-         4. Slope
-         ===================================================== -->
-
     <div
         id="slope-container"
         class="chart-container"
@@ -1503,17 +1577,11 @@
     </div>
 
 
-    <!-- =====================================================
-         5-6. Bar charts
-         ===================================================== -->
-
     <div
         id="bar-charts-grid"
         class="bar-charts-grid"
         style="display:none;"
     >
-
-        <!-- زمان صعود -->
 
         <div
             id="estimated-ascent-time-container"
@@ -1528,8 +1596,6 @@
 
         </div>
 
-
-        <!-- مقایسه شاخص مسیرها -->
 
         <div
             id="route-metrics-container"
@@ -1547,10 +1613,6 @@
     </div>
 
 
-    <!-- =====================================================
-         7. Map
-         ===================================================== -->
-
     <div
         id="map-container"
         class="chart-container"
@@ -1560,8 +1622,6 @@
             نقشه مسیرها
         </div>
 
-
-        <!-- 2D / 3D buttons -->
 
         <div class="map-view-buttons">
 
@@ -1585,12 +1645,8 @@
         </div>
 
 
-        <!-- 2D -->
-
         <div id="map"></div>
 
-
-        <!-- 3D -->
 
         <div id="map-3d-container">
 
@@ -1630,26 +1686,13 @@
 
             return {
 
-                paperBg:
-                    "#202324",
-
-                plotBg:
-                    "#202324",
-
-                textColor:
-                    "#e5e5e5",
-
-                gridColor:
-                    "#3a3d3f",
-
-                zerolineColor:
-                    "#55585a",
-
-                lineColor:
-                    "#666",
-
-                tickColor:
-                    "#aaa"
+                paperBg: "#202324",
+                plotBg: "#202324",
+                textColor: "#e5e5e5",
+                gridColor: "#3a3d3f",
+                zerolineColor: "#55585a",
+                lineColor: "#666",
+                tickColor: "#aaa"
 
             };
 
@@ -1658,26 +1701,13 @@
 
         return {
 
-            paperBg:
-                "white",
-
-            plotBg:
-                "white",
-
-            textColor:
-                "#333",
-
-            gridColor:
-                "#ddd",
-
-            zerolineColor:
-                "#aaa",
-
-            lineColor:
-                "#777",
-
-            tickColor:
-                "#555"
+            paperBg: "white",
+            plotBg: "white",
+            textColor: "#333",
+            gridColor: "#ddd",
+            zerolineColor: "#aaa",
+            lineColor: "#777",
+            tickColor: "#555"
 
         };
 
@@ -1707,11 +1737,9 @@
 
         if (isDark) {
 
-            button.textContent =
-                "☀️";
+            button.textContent = "☀️";
 
-            button.title =
-                "حالت روشن";
+            button.title = "حالت روشن";
 
             button.setAttribute(
                 "aria-label",
@@ -1725,11 +1753,9 @@
 
         } else {
 
-            button.textContent =
-                "🌙";
+            button.textContent = "🌙";
 
-            button.title =
-                "حالت تاریک";
+            button.title = "حالت تاریک";
 
             button.setAttribute(
                 "aria-label",
@@ -1921,11 +1947,6 @@
         }
 
 
-        /*
-         * در موبایل، منو باید در شروع باز باشد.
-         * در دسکتاپ نیز کلاس closed نباید باقی بماند.
-         */
-
         sidebar.classList.remove(
             "closed"
         );
@@ -1935,11 +1956,6 @@
 
     }
 
-
-    /*
-     * با کلیک روی بخش اصلی صفحه در موبایل،
-     * منوی کناری بسته می‌شود.
-     */
 
     document
         .querySelector(".main")
@@ -1952,11 +1968,6 @@
             }
         );
 
-
-    /*
-     * هنگام تغییر اندازه پنجره،
-     * وضعیت منو را با حالت فعلی هماهنگ کن.
-     */
 
     window.addEventListener(
         "resize",
@@ -2132,19 +2143,10 @@
         );
 
 
-        /*
-         * زمان تقریبی و زمان واقعی صعود
-         * روی یک نمودار
-         */
-
         drawAscentTimeComparisonChart(
             analysisResults
         );
 
-
-        /*
-         * مقایسه شاخص‌های مسیر
-         */
 
         drawRouteMetricsComparisonChart(
             analysisResults
@@ -2155,11 +2157,6 @@
             analysisResults
         );
 
-
-        /*
-         * اگر حالت 3D فعال باشد،
-         * مسیرها را در آن نیز به‌روزرسانی کن.
-         */
 
         if (
             currentMapMode === "3d" &&
@@ -2978,11 +2975,8 @@
 
 
         map.setView(
-
             [32.0, 51.5],
-
             7
-
         );
 
     }
@@ -3109,6 +3103,853 @@
 
 
     /* =========================================================
+       SPEED CALCULATION
+       ========================================================= */
+
+    const SPEED_SMOOTHING_WINDOW = 5;
+
+
+    /*
+     * رنگ‌بندی سرعت
+     *
+     * واحد:
+     * km/h
+     */
+
+    const SPEED_COLORS = {
+
+        verySlow:
+            "#b2182b",
+
+        slow:
+            "#ef8a62",
+
+        moderate:
+            "#fddbc7",
+
+        fast:
+            "#fee08b",
+
+        veryFast:
+            "#a6d96a",
+
+        fastest:
+            "#1a9850",
+
+        noData:
+            "#888888"
+
+    };
+
+
+    /*
+     * تعریف مرکزی Legend
+     *
+     * همین محدوده‌ها در:
+     *
+     * - نقشه 2D
+     * - نقشه 3D
+     * - Legend
+     *
+     * استفاده می‌شوند.
+     */
+
+    const SPEED_LEGEND_ITEMS = [
+
+        {
+            max:
+                1.5,
+
+            label:
+                "کمتر از ۱.۵",
+
+            color:
+                SPEED_COLORS.verySlow
+        },
+
+        {
+            max:
+                2.5,
+
+            label:
+                "۱.۵ تا ۲.۵",
+
+            color:
+                SPEED_COLORS.slow
+        },
+
+        {
+            max:
+                3.5,
+
+            label:
+                "۲.۵ تا ۳.۵",
+
+            color:
+                SPEED_COLORS.moderate
+        },
+
+        {
+            max:
+                4.5,
+
+            label:
+                "۳.۵ تا ۴.۵",
+
+            color:
+                SPEED_COLORS.fast
+        },
+
+        {
+            max:
+                5.5,
+
+            label:
+                "۴.۵ تا ۵.۵",
+
+            color:
+                SPEED_COLORS.veryFast
+        },
+
+        {
+            max:
+                Infinity,
+
+            label:
+                "۵.۵ و بیشتر",
+
+            color:
+                SPEED_COLORS.fastest
+        },
+
+        {
+            max:
+                null,
+
+            label:
+                "بدون زمان",
+
+            color:
+                SPEED_COLORS.noData,
+
+            noData:
+                true
+
+        }
+
+    ];
+
+
+    function haversineDistance(
+        lat1,
+        lon1,
+        lat2,
+        lon2
+    ) {
+
+        const R =
+            6371000;
+
+
+        const lat1Rad =
+            lat1 *
+            Math.PI /
+            180;
+
+
+        const lat2Rad =
+            lat2 *
+            Math.PI /
+            180;
+
+
+        const deltaLat =
+            (lat2 - lat1) *
+            Math.PI /
+            180;
+
+
+        const deltaLon =
+            (lon2 - lon1) *
+            Math.PI /
+            180;
+
+
+        const a =
+
+            Math.sin(
+                deltaLat / 2
+            ) ** 2
+
+            +
+
+            Math.cos(
+                lat1Rad
+            )
+
+            *
+
+            Math.cos(
+                lat2Rad
+            )
+
+            *
+
+            Math.sin(
+                deltaLon / 2
+            ) ** 2;
+
+
+        const c =
+            2 *
+            Math.atan2(
+                Math.sqrt(a),
+                Math.sqrt(1 - a)
+            );
+
+
+        return R * c;
+
+    }
+
+
+    function calculate3DDistance(
+        point1,
+        point2
+    ) {
+
+        const horizontalDistance =
+            haversineDistance(
+
+                Number(
+                    point1.latitude
+                ),
+
+                Number(
+                    point1.longitude
+                ),
+
+                Number(
+                    point2.latitude
+                ),
+
+                Number(
+                    point2.longitude
+                )
+
+            );
+
+
+        const elevation1 =
+            Number(
+                point1.elevation
+            );
+
+
+        const elevation2 =
+            Number(
+                point2.elevation
+            );
+
+
+        const safeElevation1 =
+            Number.isFinite(
+                elevation1
+            )
+                ? elevation1
+                : 0;
+
+
+        const safeElevation2 =
+            Number.isFinite(
+                elevation2
+            )
+                ? elevation2
+                : 0;
+
+
+        const verticalDistance =
+            safeElevation2 -
+            safeElevation1;
+
+
+        return Math.sqrt(
+
+            horizontalDistance *
+            horizontalDistance
+
+            +
+
+            verticalDistance *
+            verticalDistance
+
+        );
+
+    }
+
+
+    function getPointTimestamp(
+        point
+    ) {
+
+        if (
+            !point ||
+            point.time === undefined ||
+            point.time === null
+        ) {
+
+            return null;
+
+        }
+
+
+        if (
+            point.time instanceof Date
+        ) {
+
+            const value =
+                point.time.getTime();
+
+
+            return Number.isFinite(
+                value
+            )
+                ? value
+                : null;
+
+        }
+
+
+        if (
+            typeof point.time ===
+            "number"
+        ) {
+
+            return Number.isFinite(
+                point.time
+            )
+                ? point.time
+                : null;
+
+        }
+
+
+        const date =
+            new Date(
+                point.time
+            );
+
+
+        const timestamp =
+            date.getTime();
+
+
+        return Number.isFinite(
+            timestamp
+        )
+            ? timestamp
+            : null;
+
+    }
+
+
+    function calculateRawSpeed(
+        point1,
+        point2
+    ) {
+
+        const timestamp1 =
+            getPointTimestamp(
+                point1
+            );
+
+
+        const timestamp2 =
+            getPointTimestamp(
+                point2
+            );
+
+
+        if (
+            timestamp1 === null ||
+            timestamp2 === null
+        ) {
+
+            return null;
+
+        }
+
+
+        const elapsedSeconds =
+            (
+                timestamp2 -
+                timestamp1
+            ) / 1000;
+
+
+        if (
+            !Number.isFinite(
+                elapsedSeconds
+            ) ||
+            elapsedSeconds <= 0
+        ) {
+
+            return null;
+
+        }
+
+
+        const distance3D =
+            calculate3DDistance(
+                point1,
+                point2
+            );
+
+
+        if (
+            !Number.isFinite(
+                distance3D
+            ) ||
+            distance3D < 0
+        ) {
+
+            return null;
+
+        }
+
+
+        const speed =
+            (
+                distance3D /
+                elapsedSeconds
+            ) * 3.6;
+
+
+        if (
+            !Number.isFinite(
+                speed
+            )
+        ) {
+
+            return null;
+
+        }
+
+
+        return speed;
+
+    }
+
+
+    function smoothSpeeds(
+        rawSpeeds,
+        windowSize
+    ) {
+
+        if (
+            !Array.isArray(
+                rawSpeeds
+            )
+        ) {
+
+            return [];
+
+        }
+
+
+        if (
+            rawSpeeds.length === 0
+        ) {
+
+            return [];
+
+        }
+
+
+        let size =
+            Number(
+                windowSize
+            );
+
+
+        if (
+            !Number.isFinite(
+                size
+            ) ||
+            size < 1
+        ) {
+
+            size = 1;
+
+        }
+
+
+        size =
+            Math.floor(
+                size
+            );
+
+
+        if (
+            size % 2 === 0
+        ) {
+
+            size += 1;
+
+        }
+
+
+        const half =
+            Math.floor(
+                size / 2
+            );
+
+
+        return rawSpeeds.map(
+            (
+                currentSpeed,
+                index
+            ) => {
+
+                const values = [];
+
+
+                const start =
+                    Math.max(
+                        0,
+                        index - half
+                    );
+
+
+                const end =
+                    Math.min(
+                        rawSpeeds.length - 1,
+                        index + half
+                    );
+
+
+                for (
+                    let i = start;
+                    i <= end;
+                    i++
+                ) {
+
+                    const value =
+                        rawSpeeds[i];
+
+
+                    if (
+                        value !== null &&
+                        Number.isFinite(
+                            value
+                        )
+                    ) {
+
+                        values.push(
+                            value
+                        );
+
+                    }
+
+                }
+
+
+                if (
+                    values.length === 0
+                ) {
+
+                    return null;
+
+                }
+
+
+                const sum =
+                    values.reduce(
+                        (
+                            total,
+                            value
+                        ) =>
+                            total + value,
+                        0
+                    );
+
+
+                return (
+                    sum /
+                    values.length
+                );
+
+            }
+        );
+
+    }
+
+
+    function calculateRouteSpeeds(
+        points
+    ) {
+
+        if (
+            !Array.isArray(
+                points
+            ) ||
+            points.length < 2
+        ) {
+
+            return [];
+
+        }
+
+
+        const rawSpeeds = [];
+
+
+        for (
+            let i = 0;
+            i < points.length - 1;
+            i++
+        ) {
+
+            const speed =
+                calculateRawSpeed(
+                    points[i],
+                    points[i + 1]
+                );
+
+
+            rawSpeeds.push(
+                speed
+            );
+
+        }
+
+
+        const smoothedSpeeds =
+            smoothSpeeds(
+                rawSpeeds,
+                SPEED_SMOOTHING_WINDOW
+            );
+
+
+        return rawSpeeds.map(
+            (
+                rawSpeed,
+                index
+            ) => {
+
+                const distance3D =
+                    calculate3DDistance(
+                        points[index],
+                        points[index + 1]
+                    );
+
+
+                const timestamp1 =
+                    getPointTimestamp(
+                        points[index]
+                    );
+
+
+                const timestamp2 =
+                    getPointTimestamp(
+                        points[index + 1]
+                    );
+
+
+                let elapsedSeconds =
+                    null;
+
+
+                if (
+                    timestamp1 !== null &&
+                    timestamp2 !== null
+                ) {
+
+                    elapsedSeconds =
+                        (
+                            timestamp2 -
+                            timestamp1
+                        ) / 1000;
+
+                }
+
+
+                return {
+
+                    rawSpeed:
+                        rawSpeed,
+
+                    speed:
+                        smoothedSpeeds[index],
+
+                    distance3D:
+                        distance3D,
+
+                    elapsedSeconds:
+                        elapsedSeconds
+
+                };
+
+            }
+        );
+
+    }
+
+
+    /* =========================================================
+       Speed color
+       ========================================================= */
+
+    function getSpeedColor(
+        speed
+    ) {
+
+        if (
+            speed === null ||
+            !Number.isFinite(
+                speed
+            )
+        ) {
+
+            return SPEED_COLORS.noData;
+
+        }
+
+
+        if (
+            speed < 1.5
+        ) {
+
+            return SPEED_COLORS.verySlow;
+
+        }
+
+
+        if (
+            speed < 2.5
+        ) {
+
+            return SPEED_COLORS.slow;
+
+        }
+
+
+        if (
+            speed < 3.5
+        ) {
+
+            return SPEED_COLORS.moderate;
+
+        }
+
+
+        if (
+            speed < 4.5
+        ) {
+
+            return SPEED_COLORS.fast;
+
+        }
+
+
+        if (
+            speed < 5.5
+        ) {
+
+            return SPEED_COLORS.veryFast;
+
+        }
+
+
+        return SPEED_COLORS.fastest;
+
+    }
+
+
+    /* =========================================================
+       Speed legend
+       ========================================================= */
+
+    function createSpeedLegend(
+        container
+    ) {
+
+        if (!container) {
+
+            return;
+
+        }
+
+
+        const existing =
+            container.querySelector(
+                ".speed-legend"
+            );
+
+
+        if (existing) {
+
+            existing.remove();
+
+        }
+
+
+        const legend =
+            document.createElement(
+                "div"
+            );
+
+
+        legend.className =
+            "speed-legend";
+
+
+        const itemsHtml =
+            SPEED_LEGEND_ITEMS
+                .map(
+                    item => `
+
+                        <div class="speed-legend-item">
+
+                            <span
+                                class="speed-legend-color"
+                                style="background:${item.color};"
+                            ></span>
+
+                            <span>
+                                ${item.label}
+                            </span>
+
+                        </div>
+
+                    `
+                )
+                .join("");
+
+
+        legend.innerHTML = `
+
+            <div class="speed-legend-title">
+                سرعت حرکت
+            </div>
+
+            ${itemsHtml}
+
+            <div class="speed-legend-smoothing">
+                هموارسازی: ۵ سگمنت
+            </div>
+
+        `;
+
+
+        container.appendChild(
+            legend
+        );
+
+    }
+
+
+    /* =========================================================
        Draw selected routes on 2D map
        ========================================================= */
 
@@ -3159,74 +4000,177 @@
                 }
 
 
-                const latLngs =
-                    points.map(
-                        point => [
-
-                            point.latitude,
-
-                            point.longitude
-
-                        ]
+                const speedSegments =
+                    calculateRouteSpeeds(
+                        points
                     );
 
 
-                const color =
+                for (
+                    let i = 0;
+                    i < points.length - 1;
+                    i++
+                ) {
+
+                    const point1 =
+                        points[i];
+
+
+                    const point2 =
+                        points[i + 1];
+
+
+                    const segment =
+                        speedSegments[i];
+
+
+                    const latLngs = [
+
+                        [
+
+                            point1.latitude,
+
+                            point1.longitude
+
+                        ],
+
+                        [
+
+                            point2.latitude,
+
+                            point2.longitude
+
+                        ]
+
+                    ];
+
+
+                    const speed =
+                        segment
+                            ? segment.speed
+                            : null;
+
+
+                    const color =
+                        getSpeedColor(
+                            speed
+                        );
+
+
+                    const line =
+                        L.polyline(
+                            latLngs,
+                            {
+
+                                color:
+                                    color,
+
+                                weight:
+                                    4,
+
+                                opacity:
+                                    0.9,
+
+                                lineJoin:
+                                    "round",
+
+                                lineCap:
+                                    "round"
+
+                            }
+                        ).addTo(
+                            map
+                        );
+
+
+                    let tooltipText =
+                        `${index + 1}. ${escapeHtml(result.route)}`;
+
+
+                    if (
+                        speed !== null &&
+                        Number.isFinite(
+                            speed
+                        )
+                    ) {
+
+                        tooltipText +=
+                            `<br>سرعت: <b>${speed.toFixed(1)}</b> km/h`;
+
+                    } else {
+
+                        tooltipText +=
+                            `<br>سرعت: بدون اطلاعات زمانی`;
+
+                    }
+
+
+                    if (
+                        segment &&
+                        Number.isFinite(
+                            segment.distance3D
+                        )
+                    ) {
+
+                        tooltipText +=
+                            `<br>فاصله 3D: ${segment.distance3D.toFixed(1)} m`;
+
+                    }
+
+
+                    line.bindTooltip(
+
+                        tooltipText,
+
+                        {
+
+                            sticky:
+                                true,
+
+                            direction:
+                                "top"
+
+                        }
+
+                    );
+
+
+                    mapLayers.push(
+                        line
+                    );
+
+
+                    bounds.extend(
+                        latLngs[0]
+                    );
+
+
+                    bounds.extend(
+                        latLngs[1]
+                    );
+
+                }
+
+
+                const firstPoint =
+                    points[0];
+
+
+                const startLatLng = [
+
+                    firstPoint.latitude,
+
+                    firstPoint.longitude
+
+                ];
+
+
+                const markerColor =
                     routeColors[
                         index %
                         routeColors.length
                     ];
 
-
-                const line =
-                    L.polyline(
-                        latLngs,
-                        {
-
-                            color:
-                                color,
-
-                            weight:
-                                4,
-
-                            opacity:
-                                0.9,
-
-                            lineJoin:
-                                "round",
-
-                            lineCap:
-                                "round"
-
-                        }
-                    ).addTo(map);
-
-
-                line.bindTooltip(
-
-                    `${index + 1}. ${escapeHtml(result.route)}`,
-
-                    {
-
-                        sticky:
-                            true,
-
-                        direction:
-                            "top"
-
-                    }
-
-                );
-
-
-                mapLayers.push(
-                    line
-                );
-
-
-                /* =================================================
-                   Route start marker
-                   ================================================= */
 
                 const routeIcon =
                     L.divIcon(
@@ -3238,7 +4182,7 @@
                             html:
                                 `<div
                                     class="route-map-marker"
-                                    style="background:${color};"
+                                    style="background:${markerColor};"
                                 >
                                     ${index + 1}
                                 </div>`,
@@ -3258,12 +4202,14 @@
 
                 const startMarker =
                     L.marker(
-                        latLngs[0],
+                        startLatLng,
                         {
                             icon:
                                 routeIcon
                         }
-                    ).addTo(map);
+                    ).addTo(
+                        map
+                    );
 
 
                 startMarker.bindTooltip(
@@ -3287,18 +4233,14 @@
                     startMarker
                 );
 
-
-                latLngs.forEach(
-                    point => {
-
-                        bounds.extend(
-                            point
-                        );
-
-                    }
-                );
-
             }
+        );
+
+
+        createSpeedLegend(
+            document.getElementById(
+                "map"
+            )
         );
 
 
@@ -3554,41 +4496,127 @@
         }
 
 
-        return {
+        const speedSegments =
+            calculateRouteSpeeds(
+                points
+            );
 
-            type:
-                "Feature",
 
-            properties: {
+        const features = [];
 
-                name:
-                    result.route
 
-            },
+        for (
+            let i = 0;
+            i < points.length - 1;
+            i++
+        ) {
 
-            geometry: {
+            const point1 =
+                points[i];
+
+
+            const point2 =
+                points[i + 1];
+
+
+            const segment =
+                speedSegments[i];
+
+
+            const speed =
+                segment
+                    ? segment.speed
+                    : null;
+
+
+            const distance3D =
+                segment
+                    ? segment.distance3D
+                    : null;
+
+
+            features.push({
 
                 type:
-                    "LineString",
+                    "Feature",
 
-                coordinates:
-                    points.map(
-                        point => [
+                properties: {
 
-                            point.longitude,
+                    name:
+                        result.route,
 
-                            point.latitude,
+                    speed:
+                        speed,
+
+                    rawSpeed:
+                        segment
+                            ? segment.rawSpeed
+                            : null,
+
+                    distance3D:
+                        distance3D
+
+                },
+
+                geometry: {
+
+                    type:
+                        "LineString",
+
+                    coordinates: [
+
+                        [
+
+                            Number(
+                                point1.longitude
+                            ),
+
+                            Number(
+                                point1.latitude
+                            ),
 
                             Number.isFinite(
-                                point.elevation
+                                point1.elevation
                             )
-                                ? point.elevation
+                                ? point1.elevation
+                                : 0
+
+                        ],
+
+                        [
+
+                            Number(
+                                point2.longitude
+                            ),
+
+                            Number(
+                                point2.latitude
+                            ),
+
+                            Number.isFinite(
+                                point2.elevation
+                            )
+                                ? point2.elevation
                                 : 0
 
                         ]
-                    )
 
-            }
+                    ]
+
+                }
+
+            });
+
+        }
+
+
+        return {
+
+            type:
+                "FeatureCollection",
+
+            features:
+                features
 
         };
 
@@ -3613,34 +4641,33 @@
         }
 
 
-        const routeColors = [
-
-            "#e53935",
-            "#1e88e5",
-            "#43a047",
-            "#fb8c00",
-            "#8e24aa",
-            "#00acc1",
-            "#6d4c41",
-            "#3949ab",
-            "#f4511e",
-            "#00897b"
-
-        ];
+        const features = [];
 
 
-        const features =
-            results
-                .map(
-                    result =>
-                        routeToGeoJSON(
-                            result
-                        )
-                )
-                .filter(
-                    feature =>
-                        feature !== null
-                );
+        results.forEach(
+            result => {
+
+                const routeGeoJSON =
+                    routeToGeoJSON(
+                        result
+                    );
+
+
+                if (
+                    routeGeoJSON &&
+                    Array.isArray(
+                        routeGeoJSON.features
+                    )
+                ) {
+
+                    features.push(
+                        ...routeGeoJSON.features
+                    );
+
+                }
+
+            }
+        );
 
 
         const geojson = {
@@ -3668,7 +4695,9 @@
                     geojson
                 );
 
-        } else {
+        }
+
+        else {
 
             map3d.addSource(
                 "routes-3d",
@@ -3684,6 +4713,110 @@
             );
 
 
+            /*
+             * رنگ بر اساس همان محدوده‌های
+             * استفاده‌شده در Legend و نقشه 2D
+             */
+
+            const speedColorExpression = [
+
+                "case",
+
+                [
+                    "==",
+
+                    [
+                        "get",
+                        "speed"
+                    ],
+
+                    null
+
+                ],
+
+                SPEED_COLORS.noData,
+
+
+                [
+                    "<",
+
+                    [
+                        "get",
+                        "speed"
+                    ],
+
+                    1.5
+
+                ],
+
+                SPEED_COLORS.verySlow,
+
+
+                [
+                    "<",
+
+                    [
+                        "get",
+                        "speed"
+                    ],
+
+                    2.5
+
+                ],
+
+                SPEED_COLORS.slow,
+
+
+                [
+                    "<",
+
+                    [
+                        "get",
+                        "speed"
+                    ],
+
+                    3.5
+
+                ],
+
+                SPEED_COLORS.moderate,
+
+
+                [
+                    "<",
+
+                    [
+                        "get",
+                        "speed"
+                    ],
+
+                    4.5
+
+                ],
+
+                SPEED_COLORS.fast,
+
+
+                [
+                    "<",
+
+                    [
+                        "get",
+                        "speed"
+                    ],
+
+                    5.5
+
+                ],
+
+                SPEED_COLORS.veryFast,
+
+
+                SPEED_COLORS.fastest
+
+            ];
+
+
             map3d.addLayer({
 
                 id:
@@ -3695,35 +4828,20 @@
                 source:
                     "routes-3d",
 
+                layout: {
+
+                    "line-cap":
+                        "round",
+
+                    "line-join":
+                        "round"
+
+                },
+
                 paint: {
 
                     "line-color":
-                        [
-                            "match",
-
-                            [
-                                "get",
-                                "name"
-                            ],
-
-                            ...results.flatMap(
-                                (
-                                    result,
-                                    index
-                                ) => [
-
-                                    result.route,
-
-                                    routeColors[
-                                        index %
-                                        routeColors.length
-                                    ]
-
-                                ]
-                            ),
-
-                            "#e53935"
-                        ],
+                        speedColorExpression,
 
                     "line-width":
                         5,
@@ -3735,7 +4853,125 @@
 
             });
 
+
+            map3d.on(
+                "mouseenter",
+                "routes-3d",
+                function() {
+
+                    map3d.getCanvas()
+                        .style.cursor =
+                        "pointer";
+
+                }
+            );
+
+
+            map3d.on(
+                "mouseleave",
+                "routes-3d",
+                function() {
+
+                    map3d.getCanvas()
+                        .style.cursor =
+                        "";
+
+                }
+            );
+
+
+            map3d.on(
+                "click",
+                "routes-3d",
+                function(event) {
+
+                    const feature =
+                        event.features?.[0];
+
+
+                    if (!feature) {
+
+                        return;
+
+                    }
+
+
+                    const properties =
+                        feature.properties;
+
+
+                    const speed =
+                        Number(
+                            properties.speed
+                        );
+
+
+                    let html =
+                        `<strong>${escapeHtml(
+                            properties.name || ""
+                        )}</strong>`;
+
+
+                    if (
+                        Number.isFinite(
+                            speed
+                        )
+                    ) {
+
+                        html +=
+                            `<br>سرعت: <b>${speed.toFixed(1)}</b> km/h`;
+
+                    } else {
+
+                        html +=
+                            `<br>سرعت: بدون اطلاعات زمانی`;
+
+                    }
+
+
+                    const distance3D =
+                        Number(
+                            properties.distance3D
+                        );
+
+
+                    if (
+                        Number.isFinite(
+                            distance3D
+                        )
+                    ) {
+
+                        html +=
+                            `<br>فاصله 3D: ${distance3D.toFixed(1)} m`;
+
+                    }
+
+
+                    new window.maplibregl.Popup()
+
+                        .setLngLat(
+                            event.lngLat
+                        )
+
+                        .setHTML(
+                            html
+                        )
+
+                        .addTo(
+                            map3d
+                        );
+
+                }
+            );
+
         }
+
+
+        createSpeedLegend(
+            document.getElementById(
+                "map-3d"
+            )
+        );
 
 
         fit3DMapToRoutes(
@@ -3806,6 +5042,7 @@
                                     point.latitude
                                 ]
                             );
+
 
                             hasPoints =
                                 true;
@@ -3888,6 +5125,19 @@
 
         }
 
+
+        const legend =
+            document.querySelector(
+                "#map-3d .speed-legend"
+            );
+
+
+        if (legend) {
+
+            legend.remove();
+
+        }
+
     }
 
 
@@ -3936,6 +5186,11 @@
                 if (map) {
 
                     map.invalidateSize();
+
+
+                    drawRoutesOnMap(
+                        analysisResults
+                    );
 
                 }
 
@@ -3991,6 +5246,7 @@
                 if (map3d) {
 
                     map3d.resize();
+
 
                     drawRoutesOn3DMap(
                         analysisResults
