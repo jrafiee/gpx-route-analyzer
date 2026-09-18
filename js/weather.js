@@ -1,3 +1,4 @@
+
 /* =========================================================
    Mountain Route Compare
    Weather Forecast
@@ -18,12 +19,375 @@ const WEATHER_DISPLAY_DAYS = 3;
 
 const WEATHER_TIMEZONE = "Asia/Tehran";
 
-const WEATHER_HOURLY_VARIABLES = [
-    "temperature_2m",
-    "wind_speed_10m",
-    "precipitation",
-    "precipitation_probability"
+
+/* =========================================================
+   Weather Models
+   ========================================================= */
+
+/*
+   IMPORTANT:
+
+   These are the model IDs currently used by
+   Open-Meteo Forecast API.
+
+   Best Match:
+   No "models" parameter is sent.
+   Open-Meteo automatically selects the
+   appropriate model for the location.
+*/
+
+const WEATHER_MODELS = [
+
+    {
+        id: "best_match",
+
+        name: "Best Match",
+
+        apiModel: null
+    },
+
+
+    {
+        id: "ecmwf_ifs",
+
+        name: "ECMWF IFS HRES 9 km",
+
+        apiModel: "ecmwf_ifs"
+    },
+
+
+    {
+        id: "ecmwf_aifs025_single",
+
+        name: "ECMWF AIFS 0.25°",
+
+        apiModel: "ecmwf_aifs025_single"
+    },
+
+
+    {
+        id: "ncep_gfs_seamless",
+
+        name: "GFS Seamless",
+
+        apiModel: "ncep_gfs_seamless"
+    },
+
+
+    {
+        id: "icon_seamless",
+
+        name: "DWD ICON Seamless",
+
+        apiModel: "icon_seamless"
+    }
+
 ];
+
+
+/*
+   Default selected model.
+
+   Best Match means that Open-Meteo itself
+   selects the appropriate model.
+*/
+
+let selectedWeatherModel =
+    "best_match";
+
+
+/*
+   Keep the last route results.
+
+   This is required so that when the user
+   changes the model we can automatically
+   request the weather again for the same
+   routes.
+*/
+
+let currentWeatherResults = [];
+
+
+/*
+   Request generation.
+
+   If the user changes the model several
+   times quickly, an older request must not
+   overwrite the newest result.
+*/
+
+let weatherRequestGeneration = 0;
+
+
+/* =========================================================
+   Hourly Variables
+   ========================================================= */
+
+const WEATHER_HOURLY_VARIABLES = [
+
+    "temperature_2m",
+
+    "wind_speed_10m",
+
+    "precipitation",
+
+    "precipitation_probability"
+
+];
+
+
+/* =========================================================
+   Weather Model Helpers
+   ========================================================= */
+
+function getSelectedWeatherModel() {
+
+    return WEATHER_MODELS.find(
+        model =>
+            model.id === selectedWeatherModel
+    ) || WEATHER_MODELS[0];
+
+}
+
+
+function getSelectedWeatherModelName() {
+
+    return getSelectedWeatherModel().name;
+
+}
+
+
+function getSelectedWeatherModelApiId() {
+
+    return getSelectedWeatherModel().apiModel;
+
+}
+
+
+/* =========================================================
+   Create Weather Model Selector
+   ========================================================= */
+
+function createWeatherModelSelector() {
+
+    const selector =
+        document.createElement(
+            "div"
+        );
+
+
+    selector.className =
+        "weather-model-selector";
+
+
+    const title =
+        document.createElement(
+            "div"
+        );
+
+
+    title.className =
+        "weather-model-selector-title";
+
+
+    title.textContent =
+        "مدل هواشناسی:";
+
+
+    selector.appendChild(
+        title
+    );
+
+
+    const options =
+        document.createElement(
+            "div"
+        );
+
+
+    options.className =
+        "weather-model-options";
+
+
+    WEATHER_MODELS.forEach(
+        model => {
+
+            const label =
+                document.createElement(
+                    "label"
+                );
+
+
+            label.className =
+                "weather-model-option";
+
+
+            const radio =
+                document.createElement(
+                    "input"
+                );
+
+
+            radio.type =
+                "radio";
+
+
+            radio.name =
+                "weather-model";
+
+
+            radio.value =
+                model.id;
+
+
+            radio.checked =
+                model.id ===
+                selectedWeatherModel;
+
+
+            radio.addEventListener(
+                "change",
+                () => {
+
+                    if (!radio.checked) {
+                        return;
+                    }
+
+
+                    if (
+                        selectedWeatherModel ===
+                        model.id
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    selectedWeatherModel =
+                        model.id;
+
+
+                    console.log(
+                        "Weather model changed:",
+                        model.id,
+                        model.name
+                    );
+
+
+                    reloadWeatherForecasts();
+
+                }
+            );
+
+
+            const text =
+                document.createElement(
+                    "span"
+                );
+
+
+            text.textContent =
+                model.name;
+
+
+            label.appendChild(
+                radio
+            );
+
+
+            label.appendChild(
+                text
+            );
+
+
+            options.appendChild(
+                label
+            );
+
+        }
+    );
+
+
+    selector.appendChild(
+        options
+    );
+
+
+    return selector;
+
+}
+
+
+/* =========================================================
+   Ensure Weather Model Selector
+   ========================================================= */
+
+function ensureWeatherModelSelector() {
+
+    const cardsContainer =
+        document.getElementById(
+            "weather-cards"
+        );
+
+
+    if (!cardsContainer) {
+
+        return;
+
+    }
+
+
+    /*
+       If selector already exists, only make sure
+       the currently selected radio is checked.
+    */
+
+    let selector =
+        document.querySelector(
+            "#weather-container .weather-model-selector"
+        );
+
+
+    if (!selector) {
+
+        selector =
+            createWeatherModelSelector();
+
+
+        /*
+           IMPORTANT:
+
+           Insert the selector immediately before
+           weather-cards.
+
+           Therefore it appears after the weather
+           section title and before the cards,
+           without changing index.html.
+        */
+
+        cardsContainer.parentNode.insertBefore(
+            selector,
+            cardsContainer
+        );
+
+    }
+
+
+    const selectedRadio =
+        selector.querySelector(
+            `input[name="weather-model"][value="${selectedWeatherModel}"]`
+        );
+
+
+    if (selectedRadio) {
+
+        selectedRadio.checked =
+            true;
+
+    }
+
+}
 
 
 /* =========================================================
@@ -36,26 +400,45 @@ function getRouteSummitPoint(routeData) {
         !routeData ||
         !Array.isArray(routeData.points)
     ) {
+
         return null;
+
     }
 
-    if (routeData.points.length === 0) {
+
+    if (
+        routeData.points.length === 0
+    ) {
+
         return null;
+
     }
 
-    let highestPoint = null;
+
+    let highestPoint =
+        null;
 
 
-    for (const point of routeData.points) {
+    for (
+        const point of routeData.points
+    ) {
 
         const latitude =
-            Number(point.latitude);
+            Number(
+                point.latitude
+            );
+
 
         const longitude =
-            Number(point.longitude);
+            Number(
+                point.longitude
+            );
+
 
         const elevation =
-            Number(point.elevation);
+            Number(
+                point.elevation
+            );
 
 
         if (
@@ -63,19 +446,26 @@ function getRouteSummitPoint(routeData) {
             !Number.isFinite(longitude) ||
             !Number.isFinite(elevation)
         ) {
+
             continue;
+
         }
 
 
         if (
             highestPoint === null ||
-            elevation > highestPoint.elevation
+            elevation >
+            highestPoint.elevation
         ) {
 
             highestPoint = {
+
                 latitude,
+
                 longitude,
+
                 elevation
+
             };
 
         }
@@ -84,6 +474,7 @@ function getRouteSummitPoint(routeData) {
 
 
     return highestPoint;
+
 }
 
 
@@ -91,7 +482,9 @@ function getRouteSummitPoint(routeData) {
    Build Open-Meteo URL
    ========================================================= */
 
-function buildWeatherApiUrl(summitPoint) {
+function buildWeatherApiUrl(
+    summitPoint
+) {
 
     const params =
         new URLSearchParams();
@@ -109,10 +502,43 @@ function buildWeatherApiUrl(summitPoint) {
     );
 
 
+    /*
+       Summit elevation extracted from GPX
+       is explicitly sent to Open-Meteo.
+    */
+
     params.set(
         "elevation",
         summitPoint.elevation.toString()
     );
+
+
+    /*
+       Best Match:
+
+       Do NOT send the "models" parameter.
+
+       Open-Meteo will automatically select
+       the appropriate model.
+
+       Manual model:
+
+       Send the corresponding Open-Meteo
+       model ID.
+    */
+
+    const apiModel =
+        getSelectedWeatherModelApiId();
+
+
+    if (apiModel) {
+
+        params.set(
+            "models",
+            apiModel
+        );
+
+    }
 
 
     params.set(
@@ -154,6 +580,7 @@ function buildWeatherApiUrl(summitPoint) {
     return (
         `${WEATHER_API_URL}?${params.toString()}`
     );
+
 }
 
 
@@ -180,8 +607,66 @@ async function fetchSummitWeather(
         );
 
 
+    const selectedModel =
+        getSelectedWeatherModel();
+
+
+    /*
+       Keep request information available
+       for debugging.
+    */
+
+    console.log(
+        "WEATHER API REQUEST:"
+    );
+
+
+    console.log(
+        "Requested latitude:",
+        summitPoint.latitude
+    );
+
+
+    console.log(
+        "Requested longitude:",
+        summitPoint.longitude
+    );
+
+
+    console.log(
+        "Requested elevation:",
+        summitPoint.elevation
+    );
+
+
+    console.log(
+        "Selected weather model ID:",
+        selectedModel.id
+    );
+
+
+    console.log(
+        "Selected weather model name:",
+        selectedModel.name
+    );
+
+
+    console.log(
+        "Open-Meteo model parameter:",
+        selectedModel.apiModel || "(Best Match)"
+    );
+
+
+    console.log(
+        "URL:",
+        url
+    );
+
+
     const response =
-        await fetch(url);
+        await fetch(
+            url
+        );
 
 
     if (!response.ok) {
@@ -212,7 +697,47 @@ async function fetchSummitWeather(
     }
 
 
+    /*
+       Open-Meteo returns the elevation associated
+       with the forecast grid/model point.
+    */
+
+    console.log(
+        "WEATHER API RESPONSE:"
+    );
+
+
+    console.log(
+        "API returned latitude:",
+        data.latitude
+    );
+
+
+    console.log(
+        "API returned longitude:",
+        data.longitude
+    );
+
+
+    console.log(
+        "API returned elevation:",
+        data.elevation
+    );
+
+
+    console.log(
+        "Requested weather model:",
+        selectedModel.name
+    );
+
+
+    console.log(
+        "================================"
+    );
+
+
     return data;
+
 }
 
 
@@ -220,7 +745,9 @@ async function fetchSummitWeather(
    Get weather for route
    ========================================================= */
 
-async function getRouteWeather(result) {
+async function getRouteWeather(
+    result
+) {
 
     if (
         !result ||
@@ -267,6 +794,7 @@ async function getRouteWeather(result) {
             weather
 
     };
+
 }
 
 
@@ -292,6 +820,7 @@ function formatWeatherDate(
             day: "numeric"
         }
     ).format(date);
+
 }
 
 
@@ -307,6 +836,7 @@ function formatWeatherTime(
         11,
         16
     );
+
 }
 
 
@@ -322,6 +852,7 @@ function getWeatherDateKey(
         0,
         10
     );
+
 }
 
 
@@ -337,7 +868,8 @@ function groupWeatherByDay(
         weatherData.hourly;
 
 
-    const result = {};
+    const result =
+        {};
 
 
     const times =
@@ -378,7 +910,8 @@ function groupWeatherByDay(
 
         if (!result[dateKey]) {
 
-            result[dateKey] = [];
+            result[dateKey] =
+                [];
 
         }
 
@@ -406,6 +939,7 @@ function groupWeatherByDay(
 
 
     return result;
+
 }
 
 
@@ -437,18 +971,123 @@ function createWeatherCard(
         weatherResult.summit;
 
 
-    const elevation =
-        Math.round(
+    const weather =
+        weatherResult.weather;
+
+
+    /* -----------------------------------------------------
+       Summit elevation from GPX
+       ----------------------------------------------------- */
+
+    const summitElevation =
+        Number(
             summit.elevation
         );
 
 
+    /* -----------------------------------------------------
+       Elevation returned by Open-Meteo
+       ----------------------------------------------------- */
+
+    const apiElevation =
+        Number(
+            weather.elevation
+        );
+
+
+    const elevationText =
+        Number.isFinite(
+            summitElevation
+        )
+            ? Math.round(
+                summitElevation
+            )
+            : "-";
+
+
+    const apiElevationText =
+        Number.isFinite(
+            apiElevation
+        )
+            ? Math.round(
+                apiElevation
+            )
+            : "-";
+
+
+    /* -----------------------------------------------------
+       Calculate elevation difference
+       ----------------------------------------------------- */
+
+    let elevationDifferenceText =
+        "-";
+
+
+    if (
+        Number.isFinite(
+            summitElevation
+        ) &&
+        Number.isFinite(
+            apiElevation
+        )
+    ) {
+
+        const difference =
+            apiElevation -
+            summitElevation;
+
+
+        if (
+            difference === 0
+        ) {
+
+            elevationDifferenceText =
+                "0 متر";
+
+        } else {
+
+            const sign =
+                difference > 0
+                    ? "+"
+                    : "";
+
+
+            elevationDifferenceText =
+                `${sign}${Math.round(
+                    difference
+                )} متر`;
+
+        }
+
+    }
+
+
     const latitude =
-        summit.latitude.toFixed(5);
+        Number(
+            summit.latitude
+        );
 
 
     const longitude =
-        summit.longitude.toFixed(5);
+        Number(
+            summit.longitude
+        );
+
+
+    const latitudeText =
+        Number.isFinite(
+            latitude
+        )
+            ? latitude.toFixed(5)
+            : "-";
+
+
+    const longitudeText =
+        Number.isFinite(
+            longitude
+        )
+            ? longitude.toFixed(5)
+            : "-";
 
 
     card.innerHTML = `
@@ -469,7 +1108,7 @@ function createWeatherCard(
                     ارتفاع قله:
 
                     <strong>
-                        ${elevation}
+                        ${elevationText}
                     </strong>
 
                     متر
@@ -479,10 +1118,47 @@ function createWeatherCard(
 
                 <span>
 
+                    ارتفاع استفاده‌شده توسط API:
+
+                    <strong>
+                        ${apiElevationText}
+                    </strong>
+
+                    متر
+
+                </span>
+
+
+                <span>
+
+                    اختلاف:
+
+                    <strong>
+                        ${elevationDifferenceText}
+                    </strong>
+
+                </span>
+
+
+                <span>
+
+                    مدل هواشناسی:
+
+                    <strong>
+                        ${escapeHtml(
+                            getSelectedWeatherModelName()
+                        )}
+                    </strong>
+
+                </span>
+
+
+                <span>
+
                     مختصات:
 
-                    ${latitude},
-                    ${longitude}
+                    ${latitudeText},
+                    ${longitudeText}
 
                 </span>
 
@@ -539,6 +1215,7 @@ function createWeatherCard(
 
 
     return card;
+
 }
 
 
@@ -657,6 +1334,7 @@ function createWeatherDay(
                                             hour.windSpeed
                                         );
 
+
                                     const background =
                                         getWindCellColor(
                                             wind
@@ -703,6 +1381,7 @@ function createWeatherDay(
                                         Number(
                                             hour.precipitation
                                         );
+
 
                                     const background =
                                         getRainCellColor(
@@ -751,6 +1430,7 @@ function createWeatherDay(
                                             hour.precipitationProbability
                                         );
 
+
                                     const background =
                                         getRainProbabilityCellColor(
                                             probability
@@ -796,6 +1476,7 @@ function createWeatherDay(
 
 
     return day;
+
 }
 
 
@@ -855,6 +1536,7 @@ function createTemperatureChart(
                         item.temperature
                     );
 
+
                 return Number.isFinite(value)
                     ? value
                     : null;
@@ -907,6 +1589,7 @@ function createTemperatureChart(
             0
         );
 
+
     maxTemperature =
         Math.max(
             maxTemperature,
@@ -933,12 +1616,17 @@ function createTemperatureChart(
 
     const points =
         temperatures.map(
-            (temperature, index) => {
+            (
+                temperature,
+                index
+            ) => {
 
                 if (
                     temperature === null
                 ) {
+
                     return null;
+
                 }
 
 
@@ -968,16 +1656,21 @@ function createTemperatureChart(
 
 
                 return {
+
                     x,
+
                     y,
+
                     temperature
+
                 };
 
             }
         );
 
 
-    const lineSegments = [];
+    const lineSegments =
+        [];
 
 
     for (
@@ -989,6 +1682,7 @@ function createTemperatureChart(
         const p1 =
             points[i];
 
+
         const p2 =
             points[i + 1];
 
@@ -997,7 +1691,9 @@ function createTemperatureChart(
             !p1 ||
             !p2
         ) {
+
             continue;
+
         }
 
 
@@ -1023,6 +1719,7 @@ function createTemperatureChart(
             `);
 
             continue;
+
         }
 
 
@@ -1048,6 +1745,7 @@ function createTemperatureChart(
             `);
 
             continue;
+
         }
 
 
@@ -1122,7 +1820,9 @@ function createTemperatureChart(
                 point => {
 
                     if (!point) {
+
                         return "";
+
                     }
 
 
@@ -1163,7 +1863,9 @@ function createTemperatureChart(
                 point => {
 
                     if (!point) {
+
                         return "";
+
                     }
 
 
@@ -1241,7 +1943,9 @@ function getWindCellColor(
         !Number.isFinite(windSpeed) ||
         windSpeed <= 0
     ) {
+
         return "transparent";
+
     }
 
 
@@ -1254,27 +1958,44 @@ function getWindCellColor(
        > 55       -> deep red
     */
 
-    if (windSpeed < 15) {
+    if (
+        windSpeed < 15
+    ) {
+
         return "rgba(255, 193, 7, 0.10)";
+
     }
 
 
-    if (windSpeed < 25) {
+    if (
+        windSpeed < 25
+    ) {
+
         return "rgba(255, 193, 7, 0.28)";
+
     }
 
 
-    if (windSpeed < 40) {
+    if (
+        windSpeed < 40
+    ) {
+
         return "rgba(255, 152, 0, 0.48)";
+
     }
 
 
-    if (windSpeed < 55) {
+    if (
+        windSpeed < 55
+    ) {
+
         return "rgba(244, 81, 30, 0.58)";
+
     }
 
 
     return "rgba(198, 40, 40, 0.72)";
+
 }
 
 
@@ -1286,7 +2007,9 @@ function getRainCellColor(
         !Number.isFinite(precipitation) ||
         precipitation <= 0
     ) {
+
         return "transparent";
+
     }
 
 
@@ -1307,6 +2030,7 @@ function getRainCellColor(
 
 
     return `rgba(30, 136, 229, ${alpha})`;
+
 }
 
 
@@ -1318,7 +2042,9 @@ function getRainProbabilityCellColor(
         !Number.isFinite(probability) ||
         probability <= 0
     ) {
+
         return "transparent";
+
     }
 
 
@@ -1335,6 +2061,7 @@ function getRainProbabilityCellColor(
 
 
     return `rgba(30, 136, 229, ${alpha})`;
+
 }
 
 
@@ -1347,6 +2074,48 @@ function getWeatherContainer() {
     return document.getElementById(
         "weather-container"
     );
+
+}
+
+
+/* =========================================================
+   Reload weather forecasts
+   ========================================================= */
+
+async function reloadWeatherForecasts() {
+
+    if (
+        !Array.isArray(
+            currentWeatherResults
+        ) ||
+        currentWeatherResults.length === 0
+    ) {
+
+        return;
+
+    }
+
+
+    const generation =
+        ++weatherRequestGeneration;
+
+
+    console.log(
+        "Reloading weather forecasts..."
+    );
+
+
+    console.log(
+        "Selected model:",
+        getSelectedWeatherModelName()
+    );
+
+
+    await drawWeatherForecasts(
+        currentWeatherResults,
+        generation
+    );
+
 }
 
 
@@ -1355,13 +2124,15 @@ function getWeatherContainer() {
    ========================================================= */
 
 async function drawWeatherForecasts(
-    results
+    results,
+    requestGeneration = null
 ) {
 
     const container =
         document.getElementById(
             "weather-container"
         );
+
 
     const cardsContainer =
         document.getElementById(
@@ -1383,8 +2154,21 @@ async function drawWeatherForecasts(
     }
 
 
-    cardsContainer.innerHTML =
-        "";
+    /*
+       Keep the original route results.
+
+       These are the routes for which weather
+       will be requested whenever the model changes.
+    */
+
+    if (
+        Array.isArray(results)
+    ) {
+
+        currentWeatherResults =
+            results;
+
+    }
 
 
     if (
@@ -1395,6 +2179,7 @@ async function drawWeatherForecasts(
         container.style.display =
             "none";
 
+
         return;
 
     }
@@ -1404,9 +2189,53 @@ async function drawWeatherForecasts(
         "block";
 
 
+    /*
+       Create / preserve model selector.
+
+       It is inserted immediately before
+       weather-cards, so it stays below the
+       section title and above the cards.
+    */
+
+    ensureWeatherModelSelector();
+
+
+    /*
+       Clear old cards.
+
+       The model selector is NOT inside
+       weather-cards, so it remains intact.
+    */
+
+    cardsContainer.innerHTML =
+        "";
+
+
+    const generation =
+        requestGeneration !== null
+            ? requestGeneration
+            : weatherRequestGeneration;
+
+
     for (
         const result of results
     ) {
+
+        /*
+           If a newer model selection happened
+           while this request was running, stop
+           rendering the old result.
+        */
+
+        if (
+            generation !==
+            weatherRequestGeneration
+        ) {
+
+            return;
+
+        }
+
 
         const loading =
             document.createElement(
@@ -1452,6 +2281,22 @@ async function drawWeatherForecasts(
                 );
 
 
+            /*
+               Do not allow an old request to
+               insert a card after the user has
+               selected another model.
+            */
+
+            if (
+                generation !==
+                weatherRequestGeneration
+            ) {
+
+                return;
+
+            }
+
+
             const card =
                 createWeatherCard(
                     weatherResult
@@ -1464,6 +2309,20 @@ async function drawWeatherForecasts(
 
 
         } catch (error) {
+
+            /*
+               Ignore errors from obsolete requests.
+            */
+
+            if (
+                generation !==
+                weatherRequestGeneration
+            ) {
+
+                return;
+
+            }
+
 
             console.error(
                 `Weather error for ${result.route}:`,
@@ -1523,10 +2382,23 @@ async function drawWeatherForecasts(
 
 function clearWeatherForecasts() {
 
+    /*
+       Invalidate any request that is currently
+       being processed.
+    */
+
+    weatherRequestGeneration++;
+
+
+    currentWeatherResults =
+        [];
+
+
     const container =
         document.getElementById(
             "weather-container"
         );
+
 
     const cardsContainer =
         document.getElementById(
@@ -1574,6 +2446,35 @@ async function testRouteWeather(
         );
 
 
+        console.log(
+            "GPX summit elevation:",
+            weather.summit.elevation
+        );
+
+
+        console.log(
+            "Open-Meteo returned elevation:",
+            weather.weather.elevation
+        );
+
+
+        console.log(
+            "Selected weather model:",
+            getSelectedWeatherModelName()
+        );
+
+
+        console.log(
+            "Selected weather model ID:",
+            selectedWeatherModel
+        );
+
+
+        console.log(
+            "================================"
+        );
+
+
         return weather;
 
 
@@ -1590,3 +2491,4 @@ async function testRouteWeather(
     }
 
 }
+

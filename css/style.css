@@ -1741,6 +1741,372 @@ body.dark-mode .map-view-button.active {
 
     font-weight: bold;
 }
+/* =========================================================
+Weather Model Selector
+========================================================= */
+
+.weather-model-selector {
+
+```
+width: 100%;
+
+margin:
+    0 0 20px;
+
+padding:
+    14px 16px;
+
+background:
+    var(--card-bg, #fff);
+
+border:
+    1px solid
+    var(--border-color, #ddd);
+
+border-radius: 10px;
+```
+
+}
+
+.weather-model-selector-title {
+
+```
+margin-bottom: 10px;
+
+font-size: 14px;
+
+font-weight: bold;
+
+color:
+    var(--muted-text, #555);
+
+text-align: right;
+```
+
+}
+
+.weather-model-options {
+
+    display: flex;
+
+    flex-direction: row;
+
+    flex-wrap: nowrap;
+
+    gap: 9px;
+
+    width: 100%;
+
+    direction: ltr;
+
+    align-items: stretch;
+}
+
+.weather-model-option {
+
+```
+display: flex;
+
+align-items: center;
+
+gap: 8px;
+
+min-height: 38px;
+
+padding:
+    8px 13px;
+
+border:
+    1px solid
+    #ccc;
+
+border-radius: 8px;
+
+background:
+    #f8f8f8;
+
+color:
+    #333;
+
+font-family:
+    Tahoma,
+    Arial,
+    sans-serif;
+
+font-size: 13px;
+
+line-height: 1.4;
+
+cursor: pointer;
+
+user-select: none;
+white-space: nowrap;
+
+transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+```
+
+}
+
+/*
+Radio button
+*/
+
+.weather-model-option input[type="radio"] {
+
+```
+width: 15px;
+
+height: 15px;
+
+margin: 0;
+
+flex-shrink: 0;
+
+cursor: pointer;
+
+accent-color: #4d8bc9;
+```
+
+}
+
+/*
+Hover
+*/
+
+.weather-model-option:hover {
+
+```
+background:
+    #f0f4f8;
+
+border-color:
+    #9dbbd8;
+```
+
+}
+
+/*
+Selected option
+
+:has() lets the complete option react
+when its radio button is checked.
+*/
+
+.weather-model-option:has(
+input[type="radio"]:checked
+) {
+
+```
+background:
+    #eaf4ff;
+
+border-color:
+    #4d8bc9;
+
+box-shadow:
+    0 0 0 1px
+    rgba(77, 139, 201, 0.12);
+```
+
+}
+
+.weather-model-option:has(
+input[type="radio"]:checked
+) span {
+
+```
+font-weight: bold;
+
+color:
+    #245f91;
+```
+
+}
+
+/* =========================================================
+Weather Model Selector - Dark Mode
+========================================================= */
+
+body.dark-mode .weather-model-selector {
+
+```
+background:
+    #202324;
+
+border-color:
+    #3a3d3f;
+```
+
+}
+
+body.dark-mode .weather-model-selector-title {
+
+```
+color:
+    #bbb;
+```
+
+}
+
+body.dark-mode .weather-model-option {
+
+```
+background:
+    #2b2e30;
+
+border-color:
+    #484b4d;
+
+color:
+    #eee;
+```
+
+}
+
+body.dark-mode .weather-model-option:hover {
+
+```
+background:
+    #35383a;
+
+border-color:
+    #5d6870;
+```
+
+}
+
+body.dark-mode .weather-model-option:has(
+input[type="radio"]:checked
+) {
+
+```
+background:
+    #26384d;
+
+border-color:
+    #4d8bc9;
+
+box-shadow:
+    0 0 0 1px
+    rgba(77, 139, 201, 0.18);
+```
+
+}
+
+body.dark-mode .weather-model-option:has(
+input[type="radio"]:checked
+) span {
+
+```
+color:
+    #8ec5f5;
+```
+
+}
+
+/* =========================================================
+Weather Model Selector - Mobile
+========================================================= */
+
+@media (max-width: 900px) {
+
+```
+.weather-model-selector {
+
+    margin-bottom: 15px;
+
+    padding:
+        12px;
+}
+
+
+.weather-model-selector-title {
+
+    font-size: 13px;
+
+    margin-bottom: 9px;
+}
+
+
+.weather-model-options {
+flex-wrap: wrap;
+    gap: 7px;
+}
+
+
+.weather-model-option {
+
+    min-height: 36px;
+
+    padding:
+        7px 10px;
+
+    font-size: 12px;
+}
+
+
+.weather-model-option input[type="radio"] {
+
+    width: 14px;
+
+    height: 14px;
+}
+```
+
+}
+
+/* =========================================================
+Weather Model Selector - Very Small Screens
+========================================================= */
+
+@media (max-width: 480px) {
+
+```
+.weather-model-selector {
+
+    padding:
+        10px;
+}
+
+
+.weather-model-options {
+
+    display: grid;
+
+    grid-template-columns:
+        1fr 1fr;
+
+    gap: 7px;
+}
+
+
+.weather-model-option {
+
+    width: 100%;
+
+    min-height: 38px;
+
+    padding:
+        7px 8px;
+
+    font-size: 11px;
+
+    justify-content: flex-start;
+}
+
+
+.weather-model-option input[type="radio"] {
+
+    width: 13px;
+
+    height: 13px;
+}
+```
+
+}
 
 
 .weather-bulletin-link {
