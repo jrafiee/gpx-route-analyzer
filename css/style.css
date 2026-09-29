@@ -1747,7 +1747,6 @@ Weather Model Selector
 
 .weather-model-selector {
 
-```
 width: 100%;
 
 margin:
@@ -1764,13 +1763,11 @@ border:
     var(--border-color, #ddd);
 
 border-radius: 10px;
-```
 
 }
 
 .weather-model-selector-title {
 
-```
 margin-bottom: 10px;
 
 font-size: 14px;
@@ -1781,7 +1778,6 @@ color:
     var(--muted-text, #555);
 
 text-align: right;
-```
 
 }
 
@@ -1804,7 +1800,6 @@ text-align: right;
 
 .weather-model-option {
 
-```
 display: flex;
 
 align-items: center;
@@ -1846,7 +1841,6 @@ transition:
     background-color 0.2s ease,
     border-color 0.2s ease,
     box-shadow 0.2s ease;
-```
 
 }
 
@@ -1856,7 +1850,6 @@ Radio button
 
 .weather-model-option input[type="radio"] {
 
-```
 width: 15px;
 
 height: 15px;
@@ -1868,7 +1861,6 @@ flex-shrink: 0;
 cursor: pointer;
 
 accent-color: #4d8bc9;
-```
 
 }
 
@@ -1878,13 +1870,11 @@ Hover
 
 .weather-model-option:hover {
 
-```
 background:
     #f0f4f8;
 
 border-color:
     #9dbbd8;
-```
 
 }
 
@@ -1899,7 +1889,6 @@ when its radio button is checked.
 input[type="radio"]:checked
 ) {
 
-```
 background:
     #eaf4ff;
 
@@ -1909,7 +1898,6 @@ border-color:
 box-shadow:
     0 0 0 1px
     rgba(77, 139, 201, 0.12);
-```
 
 }
 
@@ -1917,12 +1905,10 @@ box-shadow:
 input[type="radio"]:checked
 ) span {
 
-```
 font-weight: bold;
 
 color:
     #245f91;
-```
 
 }
 
@@ -1932,28 +1918,23 @@ Weather Model Selector - Dark Mode
 
 body.dark-mode .weather-model-selector {
 
-```
 background:
     #202324;
 
 border-color:
     #3a3d3f;
-```
 
 }
 
 body.dark-mode .weather-model-selector-title {
 
-```
 color:
     #bbb;
-```
 
 }
 
 body.dark-mode .weather-model-option {
 
-```
 background:
     #2b2e30;
 
@@ -1962,19 +1943,16 @@ border-color:
 
 color:
     #eee;
-```
 
 }
 
 body.dark-mode .weather-model-option:hover {
 
-```
 background:
     #35383a;
 
 border-color:
     #5d6870;
-```
 
 }
 
@@ -1982,7 +1960,6 @@ body.dark-mode .weather-model-option:has(
 input[type="radio"]:checked
 ) {
 
-```
 background:
     #26384d;
 
@@ -1992,7 +1969,6 @@ border-color:
 box-shadow:
     0 0 0 1px
     rgba(77, 139, 201, 0.18);
-```
 
 }
 
@@ -2000,10 +1976,8 @@ body.dark-mode .weather-model-option:has(
 input[type="radio"]:checked
 ) span {
 
-```
 color:
     #8ec5f5;
-```
 
 }
 
@@ -2013,7 +1987,6 @@ Weather Model Selector - Mobile
 
 @media (max-width: 900px) {
 
-```
 .weather-model-selector {
 
     margin-bottom: 15px;
@@ -2054,7 +2027,6 @@ flex-wrap: wrap;
 
     height: 14px;
 }
-```
 
 }
 
@@ -2064,7 +2036,6 @@ Weather Model Selector - Very Small Screens
 
 @media (max-width: 480px) {
 
-```
 .weather-model-selector {
 
     padding:
@@ -2104,7 +2075,6 @@ Weather Model Selector - Very Small Screens
 
     height: 13px;
 }
-```
 
 }
 
@@ -2809,5 +2779,107 @@ body.dark-mode .chart-option.disabled:hover {
     #difficulty-score-chart {
 
         height: 340px;
+    }
+}
+
+
+/* =========================================================
+   Page heading + subtitle
+   ========================================================= */
+
+.page-heading {
+    min-width: 0;
+}
+
+.page-heading .page-title {
+    margin: 0 0 6px;
+}
+
+.page-subtitle {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.9;
+    color: #666;
+}
+
+body.dark-mode .page-subtitle {
+    color: #aaa;
+}
+
+@media (max-width: 900px) {
+    .page-subtitle {
+        font-size: 13px;
+    }
+}
+
+
+/* =========================================================
+   Intro section
+   ========================================================= */
+
+.intro-section {
+    width: 100%;
+    margin-bottom: 20px;
+    padding: 20px 24px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    line-height: 2;
+    font-size: 14px;
+}
+
+.intro-section h2 {
+    margin: 0 0 10px;
+    font-size: 20px;
+}
+
+.intro-section h3 {
+    margin: 22px 0 8px;
+    font-size: 16px;
+}
+
+.intro-section p {
+    margin: 8px 0;
+}
+
+.intro-section ul,
+.intro-section ol {
+    margin: 8px 0;
+    padding-right: 22px;
+}
+
+.intro-section a {
+    color: #315f8c;
+}
+
+.intro-section details {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+}
+
+.intro-section summary {
+    cursor: pointer;
+    font-weight: bold;
+}
+
+body.dark-mode .intro-section {
+    background: #202324;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+body.dark-mode .intro-section a {
+    color: #8ec5f5;
+}
+
+body.dark-mode .intro-section details {
+    border-color: #3a3d3f;
+}
+
+@media (max-width: 900px) {
+    .intro-section {
+        padding: 14px 14px;
+        font-size: 13px;
     }
 }
