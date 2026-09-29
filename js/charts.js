@@ -1,5 +1,13 @@
-
 /* =========================================================
+   Mountain Route Compare — Charts (modern style)
+
+   Design language (matches the "calculations" page):
+     - accent blue  #4d8bc9 / #315f8c
+     - clean transparent canvas, dotted horizontal grid only
+     - monospace numerals (like the formula blocks)
+     - route colors identical to the numbered map markers
+     - hover tooltips styled as small cards
+
    Combined elevation chart ("تحلیل و مقایسه مسیر")
 
    Mode:
@@ -17,6 +25,211 @@ const elevationChartState = {
     summitCenter: false
 };
 
+
+/* =========================================================
+   Shared style helpers
+   ========================================================= */
+
+/*
+ * Same colors (and same order) as the numbered route
+ * markers on the 2D / 3D maps.
+ */
+
+const CHART_ROUTE_COLORS = [
+    "#e53935",
+    "#1e88e5",
+    "#43a047",
+    "#fb8c00",
+    "#8e24aa",
+    "#00acc1",
+    "#6d4c41",
+    "#3949ab",
+    "#f4511e",
+    "#00897b"
+];
+
+const CHART_SLOPE_COLORS = [
+    "#8fd19e",   // خیلی آسان
+    "#cde27a",   // آسان
+    "#f6d55c",   // متوسط
+    "#f5a34b",   // شیب‌دار
+    "#e5603f",   // خیلی شیب‌دار
+    "#a4242f"    // بسیار شدید
+];
+
+const CHART_SERIES_COLORS = {
+    estimated: "#4d8bc9",
+    actual: "#f2a03d",
+    total: "#8c7bc7",
+    gain: "#4d8bc9",
+    maxElevation: "#2fa79a"
+};
+
+const CHART_FONT_SANS =
+    "Tahoma, Arial, sans-serif";
+
+const CHART_FONT_MONO =
+    "Consolas, 'Courier New', monospace";
+
+
+function chartRouteColor(index) {
+    return CHART_ROUTE_COLORS[
+        index % CHART_ROUTE_COLORS.length
+    ];
+}
+
+
+function hexToRgba(hex, alpha) {
+
+    const value =
+        hex.replace("#", "");
+
+    const r = parseInt(value.substring(0, 2), 16);
+    const g = parseInt(value.substring(2, 4), 16);
+    const b = parseInt(value.substring(4, 6), 16);
+
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+
+}
+
+
+function getChartPalette() {
+
+    const base =
+        getPlotTheme();
+
+    const dark =
+        document.body.classList.contains("dark-mode");
+
+    return {
+
+        ...base,
+
+        dark: dark,
+
+        muted:
+            dark ? "#9aa1a8" : "#68707a",
+
+        grid:
+            dark
+                ? "rgba(255, 255, 255, 0.09)"
+                : "rgba(32, 36, 42, 0.09)",
+
+        axisLine:
+            dark
+                ? "rgba(255, 255, 255, 0.22)"
+                : "rgba(32, 36, 42, 0.22)",
+
+        hoverBg:
+            dark ? "#2b2e30" : "#ffffff",
+
+        hoverBorder:
+            dark ? "#484b4d" : "#dfe4ea",
+
+        /* colour of the card behind the chart */
+        surface:
+            dark ? "#202324" : "#ffffff",
+
+        accent: "#4d8bc9"
+
+    };
+
+}
+
+
+function getChartConfig(interactive) {
+
+    return {
+
+        responsive: true,
+
+        displaylogo: false,
+
+        displayModeBar:
+            interactive ? "hover" : false,
+
+        modeBarButtonsToRemove: [
+            "lasso2d",
+            "select2d",
+            "autoScale2d",
+            "toggleSpikelines"
+        ]
+
+    };
+
+}
+
+
+/*
+ * [min, max] with a little padding for a list of numbers.
+ */
+
+function paddedRange(min, max, padFraction) {
+
+    if (
+        !Number.isFinite(min) ||
+        !Number.isFinite(max)
+    ) {
+        return null;
+    }
+
+    const span =
+        (max - min) || 1;
+
+    return [
+        min - span * padFraction,
+        max + span * padFraction
+    ];
+
+}
+
+
+function getArrayMinMax(values) {
+
+    let min = Infinity;
+    let max = -Infinity;
+
+    for (let i = 0; i < values.length; i++) {
+
+        const v = values[i];
+
+        if (!Number.isFinite(v)) {
+            continue;
+        }
+
+        if (v < min) {
+            min = v;
+        }
+
+        if (v > max) {
+            max = v;
+        }
+
+    }
+
+    return { min, max };
+
+}
+
+
+function getSummitIndex(values) {
+
+    let summitIndex = 0;
+
+    for (let i = 1; i < values.length; i++) {
+        if (values[i] > values[summitIndex]) {
+            summitIndex = i;
+        }
+    }
+
+    return summitIndex;
+
+}
+
+
+/* =========================================================
+   Elevation chart state / controls
+   ========================================================= */
 
 function setElevationChartMode(mode) {
     elevationChartState.mode = mode;
@@ -142,15 +355,17 @@ function getSummitDistanceKm(distances, elevations) {
 
 function addSummitReferenceLines(layout, vertical, horizontal) {
 
-    const theme = getPlotTheme();
+    const palette = getChartPalette();
 
     const lineStyle = {
-        color: theme.tickColor,
-        width: 1.5,
-        dash: "dash"
+        color: palette.muted,
+        width: 1.2,
+        dash: "dot"
     };
 
-    layout.shapes = [];
+    layout.shapes = [
+        ...(layout.shapes || [])
+    ];
 
     if (vertical) {
         layout.shapes.push({
@@ -191,175 +406,257 @@ function addSummitReferenceLines(layout, vertical, horizontal) {
 }
 
 
+/* =========================================================
+   Legend / layout
+   ========================================================= */
+
+/*
+ * Horizontal legend above the plot area on every screen.
+ * (Cleaner than a tall vertical legend eating the chart width.)
+ */
+
 function getResponsiveLegend() {
 
     const isMobile = window.innerWidth <= 900;
 
-    if (isMobile) {
-
-        return {
-            orientation: "h",
-
-            x: 0.5,
-            xanchor: "center",
-
-            y: 1.08,
-            yanchor: "bottom",
-
-            font: {
-                size: 11
-            }
-        };
-
-    }
-
     return {
-        orientation: "v",
 
-        x: 1.02,
+        orientation: "h",
+
+        x: 0,
         xanchor: "left",
 
         y: 1,
-        yanchor: "top"
+        yanchor: "bottom",
+
+        bgcolor: "rgba(0,0,0,0)",
+
+        itemsizing: "constant",
+
+        font: {
+            size: isMobile ? 11 : 12
+        }
+
     };
 
 }
 
 
+/*
+ * Base layout shared by all charts.
+ *
+ * opts.legendItems : number of legend entries (reserves the
+ *                    correct amount of room above the plot)
+ * opts.perRow      : legend entries that fit in one row
+ */
+
 function buildPlotLayout(
     title,
     yTitle,
-    xTitle = ""
+    xTitle = "",
+    opts = {}
 ) {
 
-    const theme = getPlotTheme();
+    const palette = getChartPalette();
 
     const isMobile =
         window.innerWidth <= 900;
 
+    const legendItems =
+        opts.legendItems || 0;
 
-    return {
+    const perRow =
+        opts.perRow ||
+        (isMobile ? 2 : 5);
 
-        title: {
+    const legendRows =
+        legendItems > 0
+            ? Math.ceil(legendItems / perRow)
+            : 0;
 
-            text: title,
+    const topMargin =
+        (title ? 44 : 26) +
+        legendRows * 24;
 
-            font: {
-                color: theme.textColor
-            }
-
-        },
-
+    const layout = {
 
         paper_bgcolor:
-            theme.paperBg,
+            "rgba(0,0,0,0)",
 
         plot_bgcolor:
-            theme.plotBg,
-
+            "rgba(0,0,0,0)",
 
         font: {
-
-            color:
-                theme.textColor
-
+            family: CHART_FONT_SANS,
+            size: 12,
+            color: palette.textColor
         },
-
 
         xaxis: {
 
             title: {
-
-                text:
-                    xTitle,
-
+                text: xTitle,
+                standoff: 12,
                 font: {
-
-                    color:
-                        theme.textColor
-
+                    size: 12,
+                    color: palette.muted
                 }
-
             },
 
-            color:
-                theme.textColor,
+            color: palette.textColor,
 
-            gridcolor:
-                theme.gridColor
+            showgrid: false,
+            zeroline: false,
+
+            showline: true,
+            linecolor: palette.axisLine,
+            linewidth: 1,
+
+            ticks: "outside",
+            ticklen: 4,
+            tickcolor: palette.axisLine,
+
+            tickfont: {
+                family: CHART_FONT_MONO,
+                size: 11,
+                color: palette.muted
+            },
+
+            automargin: true
 
         },
-
 
         yaxis: {
 
             title: {
-
-                text:
-                    yTitle,
-
+                text: yTitle,
+                standoff: 10,
                 font: {
-
-                    color:
-                        theme.textColor
-
+                    size: 12,
+                    color: palette.muted
                 }
-
             },
 
-            color:
-                theme.textColor,
+            color: palette.textColor,
 
-            gridcolor:
-                theme.gridColor
+            showgrid: true,
+            gridcolor: palette.grid,
+            gridwidth: 1,
+            griddash: "dot",
+
+            zeroline: false,
+            showline: false,
+
+            ticks: "",
+
+            tickfont: {
+                family: CHART_FONT_MONO,
+                size: 11,
+                color: palette.muted
+            },
+
+            automargin: true
 
         },
-
 
         margin: {
-
-            /*
-             * در موبایل Legend افقی بالای
-             * نمودار قرار می‌گیرد، بنابراین
-             * فضای بیشتری در بالا نیاز داریم.
-             */
-
-            t:
-                isMobile
-                    ? 90
-                    : 60,
-
-            r:
-                isMobile
-                    ? 20
-                    : 30,
-
-            b: 70,
-
-            l:
-                isMobile
-                    ? 60
-                    : 70
-
+            t: topMargin,
+            r: isMobile ? 14 : 22,
+            b: 52,
+            l: isMobile ? 52 : 60
         },
 
+        hovermode: "x unified",
 
-        hovermode:
-            "x unified",
-
+        hoverlabel: {
+            bgcolor: palette.hoverBg,
+            bordercolor: palette.hoverBorder,
+            font: {
+                family: CHART_FONT_SANS,
+                size: 12,
+                color: palette.textColor
+            }
+        },
 
         legend: {
-
             ...getResponsiveLegend(),
-
             font: {
-
-                color:
-                    theme.textColor
-
+                size: isMobile ? 11 : 12,
+                color: palette.textColor
             }
+        },
 
+        bargap: 0.38,
+        bargroupgap: 0.06,
+
+        /* rounded bar corners (ignored by older Plotly builds) */
+        barcornerradius: 6
+
+    };
+
+    if (title) {
+        layout.title = {
+            text: title,
+            x: 0.01,
+            xanchor: "left",
+            font: {
+                size: 14,
+                color: palette.textColor
+            }
+        };
+    }
+
+    return layout;
+
+}
+
+
+/*
+ * Category x axis (route names) — sans-serif labels,
+ * no vertical ticks.
+ */
+
+function applyCategoryAxis(layout) {
+
+    const palette = getChartPalette();
+
+    layout.xaxis = {
+
+        ...layout.xaxis,
+
+        type: "category",
+
+        ticks: "",
+
+        tickfont: {
+            family: CHART_FONT_SANS,
+            size: 12,
+            color: palette.textColor
         }
+
+    };
+
+}
+
+
+/*
+ * Vertical guide following the cursor on line charts.
+ */
+
+function applySpikeLine(layout) {
+
+    const palette = getChartPalette();
+
+    layout.xaxis = {
+
+        ...layout.xaxis,
+
+        showspikes: true,
+        spikemode: "across",
+        spikesnap: "cursor",
+        spikethickness: 1,
+        spikedash: "dot",
+        spikecolor: palette.muted
 
     };
 
@@ -391,64 +688,148 @@ function drawElevationProfile(
 
     }
 
+    const palette = getChartPalette();
 
-    const traces =
-        results.map(
-            result => {
+    /*
+     * Soft area under each line is used only in the plain
+     * elevation view, where "below the line" is real ground.
+     */
 
-                const profile =
-                    isGain
-                        ? result.profiles.elevation_gain
-                        : result.profiles.elevation;
+    const useFill = !isGain && !isSummit;
 
-                const distances =
-                    profile.distance_km;
+    let yMin = Infinity;
+    let yMax = -Infinity;
 
-                const values =
-                    isGain
-                        ? profile.elevation_gain_m
-                        : profile.elevation_m;
+    const traces = [];
 
-                // Horizontal shift: summit distance -> 0
-                const shiftX =
-                    state.summitCenter
-                        ? getSummitDistanceKm(distances, values)
-                        : 0;
+    results.forEach(
+        (result, index) => {
 
-                // Vertical shift: summit height -> 0
-                let shiftY = 0;
+            const color =
+                chartRouteColor(index);
 
-                if (isSummit && values.length > 0) {
-                    shiftY = values.reduce(
-                        (max, v) => v > max ? v : max,
-                        -Infinity
+            const profile =
+                isGain
+                    ? result.profiles.elevation_gain
+                    : result.profiles.elevation;
+
+            const distances =
+                profile.distance_km;
+
+            const values =
+                isGain
+                    ? profile.elevation_gain_m
+                    : profile.elevation_m;
+
+            // Horizontal shift: summit distance -> 0
+            const shiftX =
+                state.summitCenter
+                    ? getSummitDistanceKm(distances, values)
+                    : 0;
+
+            // Vertical shift: summit height -> 0
+            let shiftY = 0;
+
+            if (isSummit && values.length > 0) {
+                shiftY = values.reduce(
+                    (max, v) => v > max ? v : max,
+                    -Infinity
+                );
+            }
+
+            const x =
+                distances.map(d => d - shiftX);
+
+            const y =
+                values.map(v => v - shiftY);
+
+            const range =
+                getArrayMinMax(y);
+
+            yMin = Math.min(yMin, range.min);
+            yMax = Math.max(yMax, range.max);
+
+            const trace = {
+
+                x: x,
+                y: y,
+
+                type: "scatter",
+                mode: "lines",
+
+                name: result.route,
+                legendgroup: result.route,
+
+                line: {
+                    color: color,
+                    width: 2.6,
+                    shape: "linear"
+                },
+
+                hovertemplate:
+                    "%{y:.0f} m<extra>%{fullData.name}</extra>"
+
+            };
+
+            if (useFill) {
+                trace.fill = "tozeroy";
+                trace.fillcolor =
+                    hexToRgba(
+                        color,
+                        palette.dark ? 0.12 : 0.09
                     );
-                }
+            }
 
-                const trace = {
-                    x: distances.map(d => d - shiftX),
-                    y: values.map(v => v - shiftY),
-                    type: "scatter",
-                    mode: "lines",
-                    name: result.route,
-                    line: { width: 2 }
-                };
+            if (isSummit) {
 
-                if (isSummit) {
+                trace.customdata = values;
 
-                    trace.customdata = values;
-
-                    trace.hovertemplate =
-                        "%{y:.0f} m" +
-                        " (ارتفاع واقعی: %{customdata:.0f} m)" +
-                        "<extra>%{fullData.name}</extra>";
-
-                }
-
-                return trace;
+                trace.hovertemplate =
+                    "%{y:.0f} m" +
+                    " (ارتفاع واقعی: %{customdata:.0f} m)" +
+                    "<extra>%{fullData.name}</extra>";
 
             }
-        );
+
+            traces.push(trace);
+
+            /*
+             * Summit marker (triangle on the highest point)
+             */
+
+            if (y.length > 0) {
+
+                const summitIndex =
+                    getSummitIndex(y);
+
+                traces.push({
+
+                    x: [x[summitIndex]],
+                    y: [y[summitIndex]],
+
+                    type: "scatter",
+                    mode: "markers",
+
+                    legendgroup: result.route,
+                    showlegend: false,
+                    hoverinfo: "skip",
+
+                    marker: {
+                        symbol: "triangle-up",
+                        size: 11,
+                        color: color,
+                        line: {
+                            color: palette.surface,
+                            width: 1.5
+                        }
+                    }
+
+                });
+
+            }
+
+        }
+    );
 
 
     let yTitle;
@@ -468,8 +849,31 @@ function drawElevationProfile(
             yTitle,
             state.summitCenter
                 ? "مسافت نسبت به قله (km)"
-                : "مسافت (km)"
+                : "مسافت (km)",
+            {
+                legendItems: results.length
+            }
         );
+
+    applySpikeLine(layout);
+
+
+    /*
+     * With a filled area the fill goes down to y = 0.
+     * A fixed range keeps the chart focused on the real
+     * elevation window instead of stretching down to zero.
+     */
+
+    if (useFill) {
+
+        const range =
+            paddedRange(yMin, yMax, 0.08);
+
+        if (range) {
+            layout.yaxis.range = range;
+        }
+
+    }
 
 
     if (state.summitCenter || isSummit) {
@@ -485,21 +889,18 @@ function drawElevationProfile(
         containerId,
         traces,
         layout,
-        {
-            responsive: true,
-            displaylogo: false
-        }
+        getChartConfig(true)
     );
 
 }
 
 
 // --------------------------------------------------
-// پروفایل ارتفاعی نرمال‌شده
+// پروفایل ترتیبی
 // --------------------------------------------------
 
 /* =========================================================
-   3. Ordered elevation profile
+   Ordered elevation profile
    ========================================================= */
 
 function drawOrderedElevationProfile(
@@ -507,199 +908,176 @@ function drawOrderedElevationProfile(
     containerId = "ordered-elevation-chart"
 ) {
 
-    const theme =
-        getPlotTheme();
-
+    const palette =
+        getChartPalette();
 
     const traces = [];
+
+    const shapes = [];
+
+
+    /*
+     * Global vertical range across ALL routes
+     */
+
+    let globalMin = Infinity;
+    let globalMax = -Infinity;
+
+    results.forEach(
+        result => {
+
+            const elevations =
+                result.profiles?.elevation?.elevation_m;
+
+            if (!elevations || elevations.length === 0) {
+                return;
+            }
+
+            const range =
+                getArrayMinMax(elevations);
+
+            globalMin =
+                Math.min(globalMin, range.min);
+
+            globalMax =
+                Math.max(globalMax, range.max);
+
+        }
+    );
 
 
     let offset = 0;
 
 
-    let globalMin =
-        Infinity;
-
-
-    let globalMax =
-        -Infinity;
-
-
     /*
-     * مسیرها دقیقاً به همان ترتیبی که
-     * در analysisResults قرار دارند رسم می‌شوند.
-     *
-     * ترتیب analysisResults نیز در index.html
-     * با ترتیب "مسیرهای انتخاب‌شده" هماهنگ می‌شود.
+     * Routes are drawn in the same order as analysisResults,
+     * which follows the "selected routes" list in the sidebar.
      */
 
     results.forEach(
         (result, index) => {
 
+            const color =
+                chartRouteColor(index);
+
             const profile =
                 result.profiles.elevation;
-
 
             const distances =
                 profile.distance_km;
 
-
             const elevations =
                 profile.elevation_m;
-
 
             if (
                 !distances ||
                 !elevations ||
                 distances.length === 0
             ) {
-
                 return;
-
             }
-
-
-            /*
-             * برای تعیین محدوده عمودی
-             * کل نمودار
-             */
-
-            globalMin =
-                Math.min(
-                    globalMin,
-                    ...elevations
-                );
-
-
-            globalMax =
-                Math.max(
-                    globalMax,
-                    ...elevations
-                );
-
-
-            /*
-             * انتقال مسیر به انتهای مسیر قبلی
-             */
 
             const x =
                 distances.map(
-                    distance =>
-                        distance + offset
+                    distance => distance + offset
                 );
 
+            const routeName =
+                result.route || "مسیر";
 
             traces.push({
 
-                x:
-                    x,
+                x: x,
+                y: elevations,
 
-                y:
-                    elevations,
+                type: "scatter",
+                mode: "lines",
 
-                type:
-                    "scatter",
-
-                mode:
-                    "lines",
-
-                name:
-                    result.route ||
-                    "مسیر",
+                name: routeName,
+                legendgroup: routeName,
 
                 line: {
-
-                    width:
-                        2
-
+                    color: color,
+                    width: 2.6
                 },
 
+                fill: "tozeroy",
+
+                fillcolor:
+                    hexToRgba(
+                        color,
+                        palette.dark ? 0.12 : 0.09
+                    ),
+
+                customdata: distances,
+
                 hovertemplate:
-
-                    `مسیر: ${
-                        result.route ||
-                        "مسیر"
-                    }` +
-
-                    `<br>مسافت مسیر: %{customdata:.2f} km` +
-
-                    `<br>ارتفاع: %{y:.0f} m` +
-
-                    `<extra></extra>`,
-
-                customdata:
-                    distances
+                    `<b>${routeName}</b>` +
+                    "<br>مسافت مسیر: %{customdata:.2f} km" +
+                    "<br>ارتفاع: %{y:.0f} m" +
+                    "<extra></extra>"
 
             });
 
-
             /*
-             * خط جداکننده بین دو مسیر
+             * Summit marker
              */
 
-            if (
-                index <
-                results.length - 1
-            ) {
+            const summitIndex =
+                getSummitIndex(elevations);
 
-                const lastX =
-                    x[
-                        x.length - 1
-                    ];
+            traces.push({
 
+                x: [x[summitIndex]],
+                y: [elevations[summitIndex]],
 
-                traces.push({
+                type: "scatter",
+                mode: "markers",
 
-                    x: [
+                legendgroup: routeName,
+                showlegend: false,
+                hoverinfo: "skip",
 
-                        lastX,
-                        lastX
-
-                    ],
-
-                    y: [
-
-                        globalMin,
-                        globalMax
-
-                    ],
-
-                    type:
-                        "scatter",
-
-                    mode:
-                        "lines",
-
+                marker: {
+                    symbol: "triangle-up",
+                    size: 11,
+                    color: color,
                     line: {
+                        color: palette.surface,
+                        width: 1.5
+                    }
+                }
 
-                        dash:
-                            "dash",
+            });
 
-                        width:
-                            1
+            /*
+             * Separator between two routes
+             */
 
-                    },
+            const lastX =
+                x[x.length - 1];
 
-                    showlegend:
-                        false,
+            if (index < results.length - 1) {
 
-                    hoverinfo:
-                        "skip"
-
+                shapes.push({
+                    type: "line",
+                    xref: "x",
+                    yref: "paper",
+                    x0: lastX,
+                    x1: lastX,
+                    y0: 0,
+                    y1: 1,
+                    line: {
+                        color: palette.muted,
+                        width: 1,
+                        dash: "dot"
+                    }
                 });
 
             }
 
-
-            /*
-             * offset مسیر بعدی
-             * برابر طول مسیر فعلی است.
-             */
-
             offset +=
-                distances[
-                    distances.length - 1
-                ] || 0;
+                distances[distances.length - 1] || 0;
 
         }
     );
@@ -707,38 +1085,30 @@ function drawOrderedElevationProfile(
 
     const layout =
         buildPlotLayout(
-
             "",
-
             "ارتفاع (m)",
-
-            "مسافت تجمعی (km)"
-
+            "مسافت تجمعی (km)",
+            {
+                legendItems: results.length
+            }
         );
 
+    layout.hovermode = "closest";
 
-    layout.hovermode =
-        "closest";
+    layout.shapes = shapes;
 
+    const range =
+        paddedRange(globalMin, globalMax, 0.08);
+
+    if (range) {
+        layout.yaxis.range = range;
+    }
 
     Plotly.react(
-
         containerId,
-
         traces,
-
         layout,
-
-        {
-
-            responsive:
-                true,
-
-            displaylogo:
-                false
-
-        }
-
+        getChartConfig(true)
     );
 
 }
@@ -753,6 +1123,9 @@ function drawSlopeDistribution(
     results,
     containerId = "slope-chart"
 ) {
+
+    const palette =
+        getChartPalette();
 
     const categories = [
 
@@ -800,7 +1173,6 @@ function drawSlopeDistribution(
                 const profile =
                     result.profiles?.elevation;
 
-
                 if (
                     !profile ||
                     !profile.distance_km ||
@@ -809,204 +1181,100 @@ function drawSlopeDistribution(
                 ) {
 
                     return {
-
-                        route:
-                            result.route,
-
-                        values:
-                            categories.map(
-                                () => 0
-                            ),
-
-                        distance:
-                            0
-
+                        route: result.route,
+                        values: categories.map(() => 0),
+                        distance: 0
                     };
 
                 }
 
-
                 const distances =
                     profile.distance_km;
-
 
                 const elevations =
                     profile.elevation_m;
 
-
                 // نقطه رسیدن به بیشترین ارتفاع
 
-                let summitIndex =
-                    0;
-
-
-                for (
-                    let i = 1;
-                    i < elevations.length;
-                    i++
-                ) {
-
-                    if (
-                        elevations[i] >
-                        elevations[summitIndex]
-                    ) {
-
-                        summitIndex =
-                            i;
-
-                    }
-
-                }
-
+                const summitIndex =
+                    getSummitIndex(elevations);
 
                 const values =
-                    categories.map(
-                        () => 0
-                    );
-
+                    categories.map(() => 0);
 
                 /*
                  * محاسبه شیب هر قطعه از مسیر
                  * فقط از شروع تا summitIndex
                  */
 
-                for (
-                    let i = 1;
-                    i <= summitIndex;
-                    i++
-                ) {
+                for (let i = 1; i <= summitIndex; i++) {
 
                     const distance =
-                        distances[i] -
-                        distances[i - 1];
-
+                        distances[i] - distances[i - 1];
 
                     const elevationChange =
-                        elevations[i] -
-                        elevations[i - 1];
-
+                        elevations[i] - elevations[i - 1];
 
                     if (
-                        !Number.isFinite(
-                            distance
-                        ) ||
+                        !Number.isFinite(distance) ||
                         distance <= 0 ||
-                        !Number.isFinite(
-                            elevationChange
-                        )
+                        !Number.isFinite(elevationChange)
                     ) {
-
                         continue;
-
                     }
 
-
                     const slope =
-                        (
-                            elevationChange /
-                            (distance * 1000)
-                        ) * 100;
-
+                        (elevationChange / (distance * 1000)) * 100;
 
                     /*
                      * فقط شیب‌های صعودی
-                     * بخش‌های نزولی در این نمودار نمایش داده نمی‌شوند.
                      */
 
-                    if (
-                        slope <= 0
-                    ) {
-
+                    if (slope <= 0) {
                         continue;
-
                     }
 
+                    let categoryIndex;
 
-                    let categoryIndex =
-                        -1;
-
-
-                    if (
-                        slope < 5
-                    ) {
-
-                        categoryIndex =
-                            0;
-
-                    }
-                    else if (
-                        slope < 10
-                    ) {
-
-                        categoryIndex =
-                            1;
-
-                    }
-                    else if (
-                        slope < 15
-                    ) {
-
-                        categoryIndex =
-                            2;
-
-                    }
-                    else if (
-                        slope < 20
-                    ) {
-
-                        categoryIndex =
-                            3;
-
-                    }
-                    else if (
-                        slope < 25
-                    ) {
-
-                        categoryIndex =
-                            4;
-
-                    }
-                    else {
-
-                        categoryIndex =
-                            5;
-
+                    if (slope < 5) {
+                        categoryIndex = 0;
+                    } else if (slope < 10) {
+                        categoryIndex = 1;
+                    } else if (slope < 15) {
+                        categoryIndex = 2;
+                    } else if (slope < 20) {
+                        categoryIndex = 3;
+                    } else if (slope < 25) {
+                        categoryIndex = 4;
+                    } else {
+                        categoryIndex = 5;
                     }
 
-
-                    values[
-                        categoryIndex
-                    ] +=
-                        distance;
+                    values[categoryIndex] += distance;
 
                 }
 
-
-                /*
-                 * طول مسیر رفت:
-                 * از نقطه شروع تا رسیدن به قله
-                 */
-
-                const uphillDistance =
-                    distances[
-                        summitIndex
-                    ] || 0;
-
-
                 return {
-
-                    route:
-                        result.route,
-
-                    values:
-                        values,
-
-                    distance:
-                        uphillDistance
-
+                    route: result.route,
+                    values: values,
+                    distance: distances[summitIndex] || 0
                 };
 
             }
+        );
+
+
+    /*
+     * مجموع هر ستون (برای درصد در tooltip)
+     */
+
+    const stackTotals =
+        uphillData.map(
+            item =>
+                item.values.reduce(
+                    (sum, value) => sum + value,
+                    0
+                )
         );
 
 
@@ -1016,66 +1284,58 @@ function drawSlopeDistribution(
 
     const traces =
         categories.map(
-            (
-                category,
-                categoryIndex
-            ) => ({
+            (category, categoryIndex) => ({
 
                 x:
-                    uphillData.map(
-                        item =>
-                            item.route
-                    ),
+                    uphillData.map(item => item.route),
 
                 y:
                     uphillData.map(
-                        item =>
-                            item.values[
-                                categoryIndex
-                            ]
+                        item => item.values[categoryIndex]
                     ),
 
-                type:
-                    "bar",
+                /* درصد سهم هر دسته از مسیر رفت */
+                customdata:
+                    uphillData.map(
+                        (item, itemIndex) =>
+                            stackTotals[itemIndex] > 0
+                                ? (
+                                    item.values[categoryIndex] /
+                                    stackTotals[itemIndex]
+                                ) * 100
+                                : 0
+                    ),
 
-                name:
-                    labels[
-                        categoryIndex
-                    ],
+                type: "bar",
+
+                name: labels[categoryIndex],
+
+                marker: {
+                    color: CHART_SLOPE_COLORS[categoryIndex],
+                    line: {
+                        color: palette.surface,
+                        width: 1.5
+                    }
+                },
 
                 hovertemplate:
-
-                    `مسیر: %{x}` +
-
-                    `<br>مسافت: %{y:.2f} km` +
-
-                    `<extra></extra>`
+                    "%{y:.2f} km (%{customdata:.0f}%)" +
+                    "<extra>" + labels[categoryIndex] + "</extra>"
 
             })
         );
 
 
     /*
-     * نوشته‌ی طول مسیر بالای خود ستون
+     * نوشته‌ی طول کل مسیر بالای ستون
      *
-     * ارتفاع نوشته = مجموع واقعی قطعات شیب
-     * نه طول کل مسیر.
+     * جای نوشته = ارتفاع واقعی ستون،
+     * متن = طول کل مسیر.
      */
 
     const annotations =
         uphillData.map(
             (item, index) => {
-
-                const stackHeight =
-                    item.values.reduce(
-                        (
-                            sum,
-                            value
-                        ) =>
-                            sum + value,
-                        0
-                    );
-
 
                 const totalDistance =
                     Number(
@@ -1084,33 +1344,22 @@ function drawSlopeDistribution(
                         ]
                     ) || 0;
 
-
                 return {
 
-                    x:
-                        item.route,
+                    x: item.route,
 
-                    // جای نوشته فقط بر اساس ارتفاع خود ستون
+                    y: stackTotals[index],
 
-                    y:
-                        stackHeight,
+                    text: `${totalDistance.toFixed(1)} km`,
 
-                    // اما متن، طول کل مسیر است
+                    showarrow: false,
 
-                    text:
-                        `${totalDistance.toFixed(1)} km`,
-
-                    showarrow:
-                        false,
-
-                    yshift:
-                        8,
+                    yshift: 10,
 
                     font: {
-
-                        size:
-                            12
-
+                        family: CHART_FONT_MONO,
+                        size: 11,
+                        color: palette.muted
                     }
 
                 };
@@ -1121,99 +1370,177 @@ function drawSlopeDistribution(
 
     const layout =
         buildPlotLayout(
-
             "",
-
-            "مسافت (km)"
-
+            "مسافت مسیر رفت (km)",
+            "",
+            {
+                legendItems: categories.length,
+                perRow: window.innerWidth <= 900 ? 3 : 6
+            }
         );
 
+    layout.barmode = "stack";
 
-    layout.barmode =
-        "stack";
+    applyCategoryAxis(layout);
 
+    layout.annotations = annotations;
 
-    layout.xaxis = {
+    /* headroom for the distance labels */
 
-        ...layout.xaxis,
+    const maxStack =
+        Math.max(0, ...stackTotals);
 
-        type:
-            "category"
-
-    };
-
-
-    layout.annotations =
-        annotations;
-
-
-    /*
-     * در موبایل:
-     *
-     * Legend در بالای نمودار قرار دارد.
-     * برای جلوگیری از برخورد Legend با عنوان
-     * داخلی نمودار، فضای بیشتری در بالا ایجاد
-     * می‌کنیم و Legend را کمی پایین‌تر می‌آوریم.
-     */
-
-    const isMobile =
-        window.innerWidth <= 900;
-
-
-    layout.margin = {
-
-        ...layout.margin,
-
-        t:
-            isMobile
-                ? 120
-                : 55
-
-    };
-
-
-    if (isMobile) {
-
-        layout.legend = {
-
-            ...layout.legend,
-
-            y:
-                1.02,
-
-            yanchor:
-                "bottom"
-
-        };
-
+    if (maxStack > 0) {
+        layout.yaxis.range = [0, maxStack * 1.14];
     }
 
-
     Plotly.react(
-
         containerId,
-
         traces,
-
         layout,
-
-        {
-
-            responsive:
-                true,
-
-            displaylogo:
-                false
-
-        }
-
+        getChartConfig(false)
     );
 
 }
 
 
 // --------------------------------------------------
-// نمودارهای میله‌ای مقایسه مسیرها
+// Helper: grouped bar chart with value labels
+// --------------------------------------------------
+
+/*
+ * series: [{ name, color, getter(result), unit, digits, textSuffix }]
+ */
+
+function drawGroupedBarChart(
+    results,
+    containerId,
+    series,
+    yTitle
+) {
+
+    const palette =
+        getChartPalette();
+
+    const names =
+        results.map(result => result.route);
+
+    /* value labels become unreadable with many bars */
+    const showLabels =
+        results.length * series.length <= 12;
+
+    let maxValue = 0;
+
+    const traces =
+        series.map(
+            item => {
+
+                const values =
+                    results.map(
+                        result => {
+
+                            const value =
+                                Number(item.getter(result));
+
+                            return Number.isFinite(value)
+                                ? value
+                                : null;
+
+                        }
+                    );
+
+                values.forEach(
+                    value => {
+                        if (
+                            value !== null &&
+                            value > maxValue
+                        ) {
+                            maxValue = value;
+                        }
+                    }
+                );
+
+                const trace = {
+
+                    x: names,
+                    y: values,
+
+                    type: "bar",
+
+                    name: item.name,
+
+                    marker: {
+                        color: item.color,
+                        line: { width: 0 }
+                    },
+
+                    hovertemplate:
+                        `%{y:.${item.digits}f} ${item.unit}` +
+                        "<extra>" + item.name + "</extra>"
+
+                };
+
+                if (showLabels) {
+
+                    trace.text =
+                        values.map(
+                            value =>
+                                value === null
+                                    ? ""
+                                    : value.toFixed(item.digits) +
+                                      (item.textSuffix || "")
+                        );
+
+                    trace.textposition = "outside";
+
+                    trace.cliponaxis = false;
+
+                    trace.textfont = {
+                        family: CHART_FONT_MONO,
+                        size: 10,
+                        color: palette.muted
+                    };
+
+                }
+
+                return trace;
+
+            }
+        );
+
+
+    const layout =
+        buildPlotLayout(
+            "",
+            yTitle,
+            "",
+            {
+                legendItems: series.length,
+                perRow: window.innerWidth <= 900 ? 2 : 4
+            }
+        );
+
+    layout.barmode = "group";
+
+    applyCategoryAxis(layout);
+
+    if (maxValue > 0) {
+        layout.yaxis.range =
+            [0, maxValue * (showLabels ? 1.15 : 1.06)];
+    }
+
+    Plotly.react(
+        containerId,
+        traces,
+        layout,
+        getChartConfig(false)
+    );
+
+}
+
+
+// --------------------------------------------------
+// نمودارهای میله‌ای مقایسه مسیرها (تک‌سری)
 // --------------------------------------------------
 
 function drawRouteBarChart(
@@ -1223,72 +1550,73 @@ function drawRouteBarChart(
     yTitle
 ) {
 
-    const names =
-        results.map(
-            result =>
-                result.route
-        );
+    const palette =
+        getChartPalette();
 
+    const names =
+        results.map(result => result.route);
 
     const values =
-        results.map(
-            result =>
-                valueGetter(result)
-        );
-
+        results.map(result => valueGetter(result));
 
     const trace = {
 
-        x:
-            names,
+        x: names,
+        y: values,
 
-        y:
-            values,
+        type: "bar",
 
-        type:
-            "bar"
+        marker: {
+            color:
+                results.map(
+                    (result, index) =>
+                        chartRouteColor(index)
+                ),
+            line: { width: 0 }
+        },
+
+        text:
+            values.map(
+                value =>
+                    Number.isFinite(value)
+                        ? value.toFixed(1)
+                        : ""
+            ),
+
+        textposition: "outside",
+
+        cliponaxis: false,
+
+        textfont: {
+            family: CHART_FONT_MONO,
+            size: 11,
+            color: palette.muted
+        },
+
+        hovertemplate:
+            "%{y:.2f}<extra>%{x}</extra>"
 
     };
-
 
     const layout =
-        buildPlotLayout(
+        buildPlotLayout("", yTitle);
 
-            "",
+    layout.showlegend = false;
 
-            yTitle
+    applyCategoryAxis(layout);
 
-        );
+    const range =
+        getArrayMinMax(values);
 
-
-    layout.xaxis = {
-
-        ...layout.xaxis,
-
-        type:
-            "category"
-
-    };
-
+    if (range.max > 0) {
+        layout.yaxis.range = [0, range.max * 1.15];
+    }
 
     Plotly.react(
-
         containerId,
-
         [trace],
-
         layout,
-
-        {
-
-            responsive:
-                true,
-
-            displaylogo:
-                false
-
-        }
-
+        getChartConfig(false)
     );
 
 }
@@ -1302,145 +1630,39 @@ function drawRouteMetricsComparisonChart(
     results
 ) {
 
-    const names =
-        results.map(
-            result =>
-                result.route
-        );
+    drawGroupedBarChart(
 
-
-    const elevationGain =
-        results.map(
-            result =>
-                result.metrics[
-                    "Maximum Elevation Gain (m)"
-                ]
-        );
-
-
-    const maxElevation =
-        results.map(
-            result =>
-                result.metrics[
-                    "Maximum Elevation (m)"
-                ]
-        );
-
-
-    const traces = [
-
-        {
-
-            x:
-                names,
-
-            y:
-                elevationGain,
-
-            type:
-                "bar",
-
-            name:
-                "حداکثر ارتفاع‌گیری",
-
-            hovertemplate:
-
-                "مسیر: %{x}" +
-
-                "<br>حداکثر ارتفاع‌گیری: %{y:.2f} m" +
-
-                "<extra></extra>"
-
-        },
-
-
-        {
-
-            x:
-                names,
-
-            y:
-                maxElevation,
-
-            type:
-                "bar",
-
-            name:
-                "حداکثر ارتفاع",
-
-            hovertemplate:
-
-                "مسیر: %{x}" +
-
-                "<br>حداکثر ارتفاع: %{y:.2f} m" +
-
-                "<extra></extra>"
-
-        }
-
-    ];
-
-
-    const layout =
-        buildPlotLayout(
-
-            "",
-
-            "مقدار شاخص"
-
-        );
-
-
-    layout.barmode =
-        "group";
-
-
-    layout.xaxis = {
-
-        ...layout.xaxis,
-
-        type:
-            "category"
-
-    };
-
-
-    /*
-     * Legend به صورت Responsive
-     *
-     * دسکتاپ:
-     * عمودی در سمت راست
-     *
-     * موبایل:
-     * افقی در بالای نمودار
-     */
-
-    layout.legend = {
-
-        ...layout.legend,
-
-        ...getResponsiveLegend()
-
-    };
-
-
-    Plotly.react(
+        results,
 
         "route-metrics-comparison-chart",
 
-        traces,
+        [
 
-        layout,
+            {
+                name: "حداکثر ارتفاع‌گیری",
+                color: CHART_SERIES_COLORS.gain,
+                getter: result =>
+                    result.metrics[
+                        "Maximum Elevation Gain (m)"
+                    ],
+                unit: "m",
+                digits: 0
+            },
 
-        {
+            {
+                name: "حداکثر ارتفاع",
+                color: CHART_SERIES_COLORS.maxElevation,
+                getter: result =>
+                    result.metrics[
+                        "Maximum Elevation (m)"
+                    ],
+                unit: "m",
+                digits: 0
+            }
 
-            responsive:
-                true,
+        ],
 
-            displaylogo:
-                false
-
-        }
+        "ارتفاع (m)"
 
     );
 
@@ -1455,173 +1677,53 @@ function drawAscentTimeComparisonChart(
     results
 ) {
 
-    const names =
-        results.map(
-            result =>
-                result.route
-        );
+    drawGroupedBarChart(
 
-
-    const estimatedValues =
-        results.map(
-            result =>
-                result.difficulty[
-                    "Estimated Ascent Time (h)"
-                ]
-        );
-
-
-    const actualValues =
-        results.map(
-            result =>
-                result.metrics[
-                    "Ascent Time (h)"
-                ]
-        );
-
-
-    const totalTimeValues =
-        results.map(
-            result =>
-                result.metrics[
-                    "Total Time (h)"
-                ]
-        );
-
-
-    const traces = [
-
-        {
-
-            x:
-                names,
-
-            y:
-                estimatedValues,
-
-            type:
-                "bar",
-
-            name:
-                "زمان تقریبی صعود",
-
-            hovertemplate:
-
-                "مسیر: %{x}" +
-
-                "<br>زمان تقریبی صعود: %{y:.2f} ساعت" +
-
-                "<extra></extra>"
-
-        },
-
-
-        {
-
-            x:
-                names,
-
-            y:
-                actualValues,
-
-            type:
-                "bar",
-
-            name:
-                "زمان واقعی صعود",
-
-            hovertemplate:
-
-                "مسیر: %{x}" +
-
-                "<br>زمان واقعی صعود: %{y:.2f} ساعت" +
-
-                "<extra></extra>"
-
-        },
-
-
-        {
-
-            x:
-                names,
-
-            y:
-                totalTimeValues,
-
-            type:
-                "bar",
-
-            name:
-                "زمان کل مسیر",
-
-            hovertemplate:
-
-                "مسیر: %{x}" +
-
-                "<br>زمان کل مسیر: %{y:.2f} ساعت" +
-
-                "<extra></extra>"
-
-        }
-
-    ];
-
-
-    const layout =
-        buildPlotLayout(
-
-            "",
-
-            "زمان (ساعت)"
-
-        );
-
-
-    layout.barmode =
-        "group";
-
-
-    layout.xaxis = {
-
-        ...layout.xaxis,
-
-        type:
-            "category"
-
-    };
-
-
-    /*
-     * Legend به صورت Responsive
-     */
-
-    layout.legend = {
-
-        ...layout.legend,
-
-        ...getResponsiveLegend()
-
-    };
-
-
-    Plotly.react(
+        results,
 
         "estimated-ascent-time-chart",
 
-        traces,
+        [
 
-        layout,
+            {
+                name: "زمان تقریبی صعود",
+                color: CHART_SERIES_COLORS.estimated,
+                getter: result =>
+                    result.difficulty[
+                        "Estimated Ascent Time (h)"
+                    ],
+                unit: "ساعت",
+                digits: 2,
+                textSuffix: "h"
+            },
 
-        {
+            {
+                name: "زمان واقعی صعود",
+                color: CHART_SERIES_COLORS.actual,
+                getter: result =>
+                    result.metrics[
+                        "Ascent Time (h)"
+                    ],
+                unit: "ساعت",
+                digits: 2,
+                textSuffix: "h"
+            },
 
-            responsive:
-                true,
+            {
+                name: "زمان کل مسیر",
+                color: CHART_SERIES_COLORS.total,
+                getter: result =>
+                    result.metrics[
+                        "Total Time (h)"
+                    ],
+                unit: "ساعت",
+                digits: 2,
+                textSuffix: "h"
+            }
 
-            displaylogo:
-                false
+        ],
 
-        }
+        "زمان (ساعت)"
 
     );
 
@@ -1680,9 +1782,9 @@ function drawTotalTimeChart(
 }
 
 
-
 // --------------------------------------------------
 // امتیاز سختی مسیرها
+// رنگ هر ستون بر اساس مقدار امتیاز (آبی → نارنجی → قرمز)
 // --------------------------------------------------
 
 function drawDifficultyScoreChart(
@@ -1690,33 +1792,45 @@ function drawDifficultyScoreChart(
     containerId = "difficulty-score-chart"
 ) {
 
+    const palette =
+        getChartPalette();
+
     const names =
-        results.map(
-            result =>
-                result.route
-        );
+        results.map(result => result.route);
 
     const scores =
         results.map(
             result =>
-                result.difficulty[
-                    "Difficulty Score"
-                ]
+                result.difficulty["Difficulty Score"]
         );
 
     const trace = {
 
-        x:
-            names,
+        x: names,
+        y: scores,
 
-        y:
-            scores,
+        type: "bar",
 
-        type:
-            "bar",
+        name: "امتیاز سختی",
 
-        name:
-            "امتیاز سختی",
+        marker: {
+
+            color: scores,
+
+            colorscale: [
+                [0, "#4d8bc9"],
+                [0.5, "#f2a03d"],
+                [1, "#d64545"]
+            ],
+
+            cmin: 0,
+            cmax: 100,
+
+            showscale: false,
+
+            line: { width: 0 }
+
+        },
 
         text:
             scores.map(
@@ -1726,19 +1840,18 @@ function drawDifficultyScoreChart(
                         : ""
             ),
 
-        textposition:
-            "outside",
+        textposition: "outside",
 
-        cliponaxis:
-            false,
+        cliponaxis: false,
+
+        textfont: {
+            family: CHART_FONT_MONO,
+            size: 11,
+            color: palette.muted
+        },
 
         hovertemplate:
-
-            "مسیر: %{x}" +
-
-            "<br>امتیاز سختی: %{y:.2f}" +
-
-            "<extra></extra>"
+            "%{y:.2f} از ۱۰۰<extra>%{x}</extra>"
 
     };
 
@@ -1748,35 +1861,22 @@ function drawDifficultyScoreChart(
             "امتیاز سختی"
         );
 
-    layout.showlegend =
-        false;
+    layout.showlegend = false;
 
-    layout.xaxis = {
+    applyCategoryAxis(layout);
 
-        ...layout.xaxis,
+    const range =
+        getArrayMinMax(scores);
 
-        type:
-            "category"
-
-    };
-
-    layout.margin = {
-
-        ...layout.margin,
-
-        t:
-            55
-
-    };
+    if (range.max > 0) {
+        layout.yaxis.range = [0, range.max * 1.15];
+    }
 
     Plotly.react(
         containerId,
         [trace],
         layout,
-        {
-            responsive: true,
-            displaylogo: false
-        }
+        getChartConfig(false)
     );
 
 }
