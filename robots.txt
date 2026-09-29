@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /data/
 
-Sitemap: https://jrafiee.github.io/gpx-route-analyzer/sitemap.xml
+Sitemap: https://YOUR-DOMAIN.com/sitemap.xml
