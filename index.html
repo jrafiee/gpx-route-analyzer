@@ -366,48 +366,63 @@
     >
 
         <div class="chart-title">
-            پروفایل ارتفاعی مسیرها
+            تحلیل و مقایسه مسیر
+        </div>
+
+        <div class="chart-toolbar">
+
+            <div class="chart-mode-buttons">
+
+                <button
+                    type="button"
+                    id="chart-mode-elevation"
+                    class="map-view-button active"
+                    onclick="setElevationChartMode('elevation')"
+                >
+                    پروفایل ارتفاعی مسیرها
+                </button>
+
+                <button
+                    type="button"
+                    id="chart-mode-gain"
+                    class="map-view-button"
+                    onclick="setElevationChartMode('gain')"
+                >
+                    هم‌ترازی بر اساس ارتفاع شروع
+                </button>
+
+                <button
+                    type="button"
+                    id="chart-mode-summit"
+                    class="map-view-button"
+                    onclick="setElevationChartMode('summit')"
+                >
+                    هم‌ترازی بر اساس ارتفاع قله
+                </button>
+
+                <button
+                    type="button"
+                    id="chart-mode-ordered"
+                    class="map-view-button"
+                    onclick="setElevationChartMode('ordered')"
+                >
+                    پروفایل ترتیبی
+                </button>
+
+                <label class="chart-option">
+                    <input
+                        type="checkbox"
+                        id="option-summit-center"
+                        onchange="setSummitCenter(this.checked)"
+                    >
+                    <span>قله در مرکز</span>
+                </label>
+
+            </div>
+
         </div>
 
         <div id="elevation-chart"></div>
-
-    </div>
-
-
-    <!-- =====================================================
-         Elevation gain
-         ===================================================== -->
-
-    <div
-        id="elevation-gain-container"
-        class="chart-container"
-        style="display:none;"
-    >
-
-        <div class="chart-title">
-            افزایش ارتفاع
-        </div>
-
-        <div id="elevation-gain-chart"></div>
-
-    </div>
-
-
-    <!-- =====================================================
-         Ordered elevation
-         ===================================================== -->
-
-    <div
-        id="ordered-elevation-container"
-        class="chart-container"
-        style="display:none;"
-    >
-
-        <div class="chart-title">
-            پروفایل ارتفاعی ترتیبی
-        </div>
-
-        <div id="ordered-elevation-chart"></div>
 
     </div>
 

@@ -1,136 +1,110 @@
 
 /* =========================================================
-   Summit alignment mode
-   (elevation profile + elevation gain charts)
+   Combined elevation chart ("تحلیل و مقایسه مسیر")
 
-   When enabled, the horizontal axis becomes the distance
-   relative to the summit:
-       summit = 0
-       before the summit (left)  = negative
-       after the summit (right)  = positive
+   Mode:
+     "elevation" -> elevation profile
+     "gain"      -> aligned by start elevation (gain relative to start)
+     "summit"    -> aligned by summit elevation (all summit tips at y = 0)
+     "ordered"   -> routes placed one after another (cumulative distance)
+
+   Options:
+     summitCenter : summit distance = 0 on the x axis
    ========================================================= */
 
-const summitAlignState = {
-
-    "elevation-chart": false,
-
-    "elevation-gain-chart": false
-
+const elevationChartState = {
+    mode: "elevation",
+    summitCenter: false
 };
 
 
-function injectSummitAlignStyles() {
+function setElevationChartMode(mode) {
+    elevationChartState.mode = mode;
+    redrawElevationChart();
+}
 
-    if (document.getElementById("summit-align-styles")) {
-        return;
+
+function setSummitCenter(checked) {
+    elevationChartState.summitCenter = !!checked;
+    redrawElevationChart();
+}
+
+
+function redrawElevationChart() {
+
+    if (
+        typeof analysisResults !== "undefined" &&
+        analysisResults.length > 0
+    ) {
+        drawElevationProfile(analysisResults);
+    } else {
+        syncElevationChartControls();
     }
-
-    const style = document.createElement("style");
-
-    style.id = "summit-align-styles";
-
-    style.textContent = `
-
-    .chart-option {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        margin: 2px 10px 8px;
-        padding: 6px 12px;
-        border: 1px solid #ccc;
-        border-radius: 7px;
-        background: #f3f3f3;
-        color: #333;
-        font-size: 13px;
-        cursor: pointer;
-        user-select: none;
-    }
-
-    .chart-option:hover {
-        background: #e7e7e7;
-    }
-
-    .chart-option input {
-        margin: 0;
-        cursor: pointer;
-        accent-color: #4d8bc9;
-    }
-
-    body.dark-mode .chart-option {
-        background: #2b2e30;
-        border-color: #484b4d;
-        color: #eee;
-    }
-
-    body.dark-mode .chart-option:hover {
-        background: #35383a;
-    }
-
-    `;
-
-    document.head.appendChild(style);
 
 }
 
 
-/*
- * Creates the "align by summit" checkbox once,
- * right above the chart.
- */
+function syncElevationChartControls() {
 
-function ensureSummitAlignToggle(containerId, onChange) {
+    const state = elevationChartState;
 
-    injectSummitAlignStyles();
+    const elevationButton =
+        document.getElementById("chart-mode-elevation");
 
-    const chartDiv = document.getElementById(containerId);
+    const gainButton =
+        document.getElementById("chart-mode-gain");
 
-    if (!chartDiv || !chartDiv.parentNode) {
-        return;
-    }
-
-    const existing =
-        chartDiv.parentNode.querySelector(
-            `.chart-option[data-chart="${containerId}"]`
+    if (elevationButton) {
+        elevationButton.classList.toggle(
+            "active",
+            state.mode === "elevation"
         );
-
-    if (existing) {
-
-        existing.querySelector("input").checked =
-            summitAlignState[containerId];
-
-        return;
-
     }
 
-    const label = document.createElement("label");
+    if (gainButton) {
+        gainButton.classList.toggle(
+            "active",
+            state.mode === "gain"
+        );
+    }
 
-    label.className = "chart-option";
+    const summitButton =
+        document.getElementById("chart-mode-summit");
 
-    label.dataset.chart = containerId;
+    if (summitButton) {
+        summitButton.classList.toggle(
+            "active",
+            state.mode === "summit"
+        );
+    }
 
-    label.innerHTML = `
-        <input type="checkbox">
-        <span>هم‌ترازی مسیرها بر اساس قله (قله = ۰)</span>
-    `;
+    const orderedButton =
+        document.getElementById("chart-mode-ordered");
 
-    const input = label.querySelector("input");
+    if (orderedButton) {
+        orderedButton.classList.toggle(
+            "active",
+            state.mode === "ordered"
+        );
+    }
 
-    input.checked = summitAlignState[containerId];
+    const centerInput =
+        document.getElementById("option-summit-center");
 
-    input.addEventListener("change", () => {
+    if (centerInput) {
+        centerInput.checked = state.summitCenter;
 
-        summitAlignState[containerId] = input.checked;
+        // "Summit at center" is meaningless in the ordered mode
+        const isOrdered = state.mode === "ordered";
 
-        if (
-            typeof analysisResults !== "undefined" &&
-            analysisResults.length > 0
-        ) {
-            onChange(analysisResults);
+        centerInput.disabled = isOrdered;
+
+        const centerLabel = centerInput.closest(".chart-option");
+
+        if (centerLabel) {
+            centerLabel.classList.toggle("disabled", isOrdered);
         }
-
-    });
-
-    chartDiv.parentNode.insertBefore(label, chartDiv);
+    }
 
 }
 
@@ -163,47 +137,55 @@ function getSummitDistanceKm(distances, elevations) {
 
 
 /*
- * Vertical reference line at summit (x = 0).
+ * Reference lines through the summit (x = 0 and/or y = 0).
  */
 
-function addSummitReferenceLine(layout) {
+function addSummitReferenceLines(layout, vertical, horizontal) {
 
     const theme = getPlotTheme();
 
-    layout.shapes = [{
+    const lineStyle = {
+        color: theme.tickColor,
+        width: 1.5,
+        dash: "dash"
+    };
 
-        type: "line",
+    layout.shapes = [];
 
-        xref: "x",
+    if (vertical) {
+        layout.shapes.push({
+            type: "line",
+            xref: "x",
+            yref: "paper",
+            x0: 0,
+            x1: 0,
+            y0: 0,
+            y1: 1,
+            line: lineStyle
+        });
+    }
 
-        yref: "paper",
-
-        x0: 0,
-
-        x1: 0,
-
-        y0: 0,
-
-        y1: 1,
-
-        line: {
-
-            color: theme.tickColor,
-
-            width: 1.5,
-
-            dash: "dash"
-
-        }
-
-    }];
+    if (horizontal) {
+        layout.shapes.push({
+            type: "line",
+            xref: "paper",
+            yref: "y",
+            x0: 0,
+            x1: 1,
+            y0: 0,
+            y1: 0,
+            line: lineStyle
+        });
+    }
 
     layout.xaxis = {
-
         ...layout.xaxis,
-
         zeroline: false
+    };
 
+    layout.yaxis = {
+        ...layout.yaxis,
+        zeroline: false
     };
 
 }
@@ -393,222 +375,120 @@ function drawElevationProfile(
     containerId = "elevation-chart"
 ) {
 
-    ensureSummitAlignToggle(
-        containerId,
-        drawElevationProfile
-    );
+    const state = elevationChartState;
 
-    const aligned =
-        summitAlignState[containerId];
+    const isGain = state.mode === "gain";
+
+    const isSummit = state.mode === "summit";
+
+    syncElevationChartControls();
+
+    if (state.mode === "ordered") {
+
+        drawOrderedElevationProfile(results, containerId);
+
+        return;
+
+    }
 
 
     const traces =
         results.map(
             result => {
 
+                const profile =
+                    isGain
+                        ? result.profiles.elevation_gain
+                        : result.profiles.elevation;
+
                 const distances =
-                    result.profiles.elevation.distance_km;
+                    profile.distance_km;
 
-                const elevations =
-                    result.profiles.elevation.elevation_m;
+                const values =
+                    isGain
+                        ? profile.elevation_gain_m
+                        : profile.elevation_m;
 
-                const shift =
-                    aligned
-                        ? getSummitDistanceKm(
-                            distances,
-                            elevations
-                        )
+                // Horizontal shift: summit distance -> 0
+                const shiftX =
+                    state.summitCenter
+                        ? getSummitDistanceKm(distances, values)
                         : 0;
 
-                return {
+                // Vertical shift: summit height -> 0
+                let shiftY = 0;
 
-                    x:
-                        distances.map(
-                            d => d - shift
-                        ),
+                if (isSummit && values.length > 0) {
+                    shiftY = values.reduce(
+                        (max, v) => v > max ? v : max,
+                        -Infinity
+                    );
+                }
 
-                    y:
-                        elevations,
-
-                    type:
-                        "scatter",
-
-                    mode:
-                        "lines",
-
-                    name:
-                        result.route,
-
-                    line: {
-
-                        width:
-                            2
-
-                    }
-
+                const trace = {
+                    x: distances.map(d => d - shiftX),
+                    y: values.map(v => v - shiftY),
+                    type: "scatter",
+                    mode: "lines",
+                    name: result.route,
+                    line: { width: 2 }
                 };
+
+                if (isSummit) {
+
+                    trace.customdata = values;
+
+                    trace.hovertemplate =
+                        "%{y:.0f} m" +
+                        " (ارتفاع واقعی: %{customdata:.0f} m)" +
+                        "<extra>%{fullData.name}</extra>";
+
+                }
+
+                return trace;
 
             }
         );
 
 
-    const layout =
-        buildPlotLayout(
+    let yTitle;
 
-            "",
-
-            "ارتفاع (m)",
-
-            aligned
-                ? "مسافت نسبت به قله (km)"
-                : "مسافت (km)"
-
-        );
-
-
-    if (aligned) {
-        addSummitReferenceLine(layout);
+    if (isSummit) {
+        yTitle = "ارتفاع نسبت به قله (m)";
+    } else if (isGain) {
+        yTitle = "ارتفاع‌گیری نسبت به نقطه شروع (m)";
+    } else {
+        yTitle = "ارتفاع (m)";
     }
-
-
-    Plotly.react(
-
-        containerId,
-
-        traces,
-
-        layout,
-
-        {
-
-            responsive:
-                true,
-
-            displaylogo:
-                false
-
-        }
-
-    );
-
-}
-
-
-// --------------------------------------------------
-// پروفایل ارتفاع‌گیری
-// --------------------------------------------------
-
-function drawElevationGainProfile(
-    results,
-    containerId = "elevation-gain-chart"
-) {
-
-    ensureSummitAlignToggle(
-        containerId,
-        drawElevationGainProfile
-    );
-
-    const aligned =
-        summitAlignState[containerId];
-
-
-    const traces =
-        results.map(
-            result => {
-
-                const distances =
-                    result.profiles
-                        .elevation_gain
-                        .distance_km;
-
-                const gains =
-                    result.profiles
-                        .elevation_gain
-                        .elevation_gain_m;
-
-                /*
-                 * Gain is relative to the start elevation,
-                 * so the summit is the maximum of the gain
-                 * series (same point as the highest elevation).
-                 */
-
-                const shift =
-                    aligned
-                        ? getSummitDistanceKm(
-                            distances,
-                            gains
-                        )
-                        : 0;
-
-                return {
-
-                    x:
-                        distances.map(
-                            d => d - shift
-                        ),
-
-                    y:
-                        gains,
-
-                    type:
-                        "scatter",
-
-                    mode:
-                        "lines",
-
-                    name:
-                        result.route,
-
-                    line: {
-
-                        width:
-                            2
-
-                    }
-
-                };
-
-            }
-        );
 
 
     const layout =
         buildPlotLayout(
-
             "",
-
-            "ارتفاع‌گیری نسبت به نقطه شروع (m)",
-
-            aligned
+            yTitle,
+            state.summitCenter
                 ? "مسافت نسبت به قله (km)"
                 : "مسافت (km)"
-
         );
 
 
-    if (aligned) {
-        addSummitReferenceLine(layout);
+    if (state.summitCenter || isSummit) {
+        addSummitReferenceLines(
+            layout,
+            state.summitCenter,
+            isSummit
+        );
     }
 
 
     Plotly.react(
-
         containerId,
-
         traces,
-
         layout,
-
         {
-
-            responsive:
-                true,
-
-            displaylogo:
-                false
-
+            responsive: true,
+            displaylogo: false
         }
-
     );
 
 }

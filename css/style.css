@@ -2690,3 +2690,93 @@ body.dark-mode .weather-error-message {
     }
 
 }
+
+/* =========================================================
+   Elevation chart toolbar (buttons + checkboxes)
+   ========================================================= */
+
+.chart-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    padding: 4px 10px 10px;
+}
+
+.chart-mode-buttons,
+.chart-options {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.chart-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-radius: 7px;
+    background: #f3f3f3;
+    color: #333;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.chart-option:hover {
+    background: #e7e7e7;
+}
+
+.chart-option input {
+    margin: 0;
+    cursor: pointer;
+    accent-color: #4d8bc9;
+}
+
+body.dark-mode .chart-option {
+    background: #2b2e30;
+    border-color: #484b4d;
+    color: #eee;
+}
+
+body.dark-mode .chart-option:hover {
+    background: #35383a;
+}
+
+@media (max-width: 900px) {
+
+    .chart-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .chart-option,
+    .chart-mode-buttons .map-view-button {
+        font-size: 12px;
+    }
+}
+
+
+.chart-toolbar {
+    justify-content: flex-start;
+}
+
+.chart-option.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.chart-option.disabled:hover {
+    background: #f3f3f3;
+}
+
+.chart-option.disabled input {
+    cursor: not-allowed;
+}
+
+body.dark-mode .chart-option.disabled:hover {
+    background: #2b2e30;
+}

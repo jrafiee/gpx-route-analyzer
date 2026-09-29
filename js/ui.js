@@ -151,16 +151,6 @@ function showAnalysisCharts() {
 
 
     document.getElementById(
-        "elevation-gain-container"
-    ).style.display = "block";
-
-
-    document.getElementById(
-        "ordered-elevation-container"
-    ).style.display = "block";
-
-
-    document.getElementById(
         "slope-container"
     ).style.display = "block";
 
@@ -211,16 +201,6 @@ function hideAnalysisCharts() {
 
 
     document.getElementById(
-        "elevation-gain-container"
-    ).style.display = "none";
-
-
-    document.getElementById(
-        "ordered-elevation-container"
-    ).style.display = "none";
-
-
-    document.getElementById(
         "slope-container"
     ).style.display = "none";
 
@@ -263,16 +243,6 @@ function redrawAllCharts() {
 
 
     drawElevationProfile(
-        analysisResults
-    );
-
-
-    drawElevationGainProfile(
-        analysisResults
-    );
-
-
-    drawOrderedElevationProfile(
         analysisResults
     );
 
