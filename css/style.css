@@ -2780,3 +2780,34 @@ body.dark-mode .chart-option:hover {
 body.dark-mode .chart-option.disabled:hover {
     background: #2b2e30;
 }
+
+
+/* =========================================================
+   Difficulty score chart (beside slope distribution)
+   ========================================================= */
+
+#slope-chart,
+#difficulty-score-chart {
+
+    width: 100%;
+
+    height: 500px;
+}
+
+@media (max-width: 900px) {
+
+    #slope-chart,
+    #difficulty-score-chart {
+
+        height: 400px;
+    }
+}
+
+@media (max-width: 480px) {
+
+    #slope-chart,
+    #difficulty-score-chart {
+
+        height: 340px;
+    }
+}

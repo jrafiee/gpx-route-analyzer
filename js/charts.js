@@ -1327,15 +1327,6 @@ function drawRouteMetricsComparisonChart(
         );
 
 
-    const difficulty =
-        results.map(
-            result =>
-                result.difficulty[
-                    "Difficulty Score"
-                ]
-        );
-
-
     const traces = [
 
         {
@@ -1382,31 +1373,6 @@ function drawRouteMetricsComparisonChart(
                 "مسیر: %{x}" +
 
                 "<br>حداکثر ارتفاع: %{y:.2f} m" +
-
-                "<extra></extra>"
-
-        },
-
-
-        {
-
-            x:
-                names,
-
-            y:
-                difficulty,
-
-            type:
-                "bar",
-
-            name:
-                "امتیاز سختی نهایی",
-
-            hovertemplate:
-
-                "مسیر: %{x}" +
-
-                "<br>امتیاز سختی نهایی: %{y:.2f}" +
 
                 "<extra></extra>"
 
@@ -1713,3 +1679,104 @@ function drawTotalTimeChart(
 
 }
 
+
+
+// --------------------------------------------------
+// امتیاز سختی مسیرها
+// --------------------------------------------------
+
+function drawDifficultyScoreChart(
+    results,
+    containerId = "difficulty-score-chart"
+) {
+
+    const names =
+        results.map(
+            result =>
+                result.route
+        );
+
+    const scores =
+        results.map(
+            result =>
+                result.difficulty[
+                    "Difficulty Score"
+                ]
+        );
+
+    const trace = {
+
+        x:
+            names,
+
+        y:
+            scores,
+
+        type:
+            "bar",
+
+        name:
+            "امتیاز سختی",
+
+        text:
+            scores.map(
+                value =>
+                    Number.isFinite(value)
+                        ? value.toFixed(1)
+                        : ""
+            ),
+
+        textposition:
+            "outside",
+
+        cliponaxis:
+            false,
+
+        hovertemplate:
+
+            "مسیر: %{x}" +
+
+            "<br>امتیاز سختی: %{y:.2f}" +
+
+            "<extra></extra>"
+
+    };
+
+    const layout =
+        buildPlotLayout(
+            "",
+            "امتیاز سختی"
+        );
+
+    layout.showlegend =
+        false;
+
+    layout.xaxis = {
+
+        ...layout.xaxis,
+
+        type:
+            "category"
+
+    };
+
+    layout.margin = {
+
+        ...layout.margin,
+
+        t:
+            55
+
+    };
+
+    Plotly.react(
+        containerId,
+        [trace],
+        layout,
+        {
+            responsive: true,
+            displaylogo: false
+        }
+    );
+
+}

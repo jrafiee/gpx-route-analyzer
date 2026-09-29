@@ -151,8 +151,8 @@ function showAnalysisCharts() {
 
 
     document.getElementById(
-        "slope-container"
-    ).style.display = "block";
+        "slope-difficulty-grid"
+    ).style.display = "grid";
 
 
     document.getElementById(
@@ -201,7 +201,7 @@ function hideAnalysisCharts() {
 
 
     document.getElementById(
-        "slope-container"
+        "slope-difficulty-grid"
     ).style.display = "none";
 
 
@@ -248,6 +248,11 @@ function redrawAllCharts() {
 
 
     drawSlopeDistribution(
+        analysisResults
+    );
+
+
+    drawDifficultyScoreChart(
         analysisResults
     );
 
