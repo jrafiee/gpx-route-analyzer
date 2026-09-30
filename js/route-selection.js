@@ -153,6 +153,8 @@ async function addGpxFile(file) {
             result
         );
 
+        saveRouteToStorage(file);
+
 
         redrawAllCharts();
 
@@ -475,6 +477,9 @@ function removeSelectedRoute(
     route
 ) {
 
+    deleteRouteFromStorage(route);
+
+
     selectedFiles =
         selectedFiles.filter(
             file =>
@@ -731,6 +736,9 @@ function handleDragEnd(event) {
    ========================================================= */
 
 function syncAnalysisOrder() {
+
+    saveRouteOrder();
+
 
     const routeItems =
         Array.from(
