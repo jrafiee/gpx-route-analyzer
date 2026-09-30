@@ -589,8 +589,49 @@
         class="chart-container"
     >
 
-        <div class="chart-title">
-            نقشه مسیرها
+        <div class="chart-title map-title-row">
+
+            <span>نقشه مسیرها</span>
+
+            <div
+                class="map-direction-options"
+                role="radiogroup"
+                aria-label="انتخاب جهت مسیر روی نقشه"
+            >
+
+                <label class="map-direction-option">
+                    <input
+                        type="radio"
+                        name="map-direction"
+                        value="both"
+                        checked
+                        onchange="setMapDirection(this.value)"
+                    >
+                    <span>مسیر رفت و برگشت</span>
+                </label>
+
+                <label class="map-direction-option">
+                    <input
+                        type="radio"
+                        name="map-direction"
+                        value="outbound"
+                        onchange="setMapDirection(this.value)"
+                    >
+                    <span>مسیر رفت</span>
+                </label>
+
+                <label class="map-direction-option">
+                    <input
+                        type="radio"
+                        name="map-direction"
+                        value="return"
+                        onchange="setMapDirection(this.value)"
+                    >
+                    <span>مسیر برگشت</span>
+                </label>
+
+            </div>
+
         </div>
 
 

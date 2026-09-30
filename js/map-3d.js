@@ -231,12 +231,16 @@ function routeToGeoJSON(result) {
         );
 
 
+    const range =
+        getDirectionPointRange(points);
+
+
     const features = [];
 
 
     for (
-        let i = 0;
-        i < points.length - 1;
+        let i = range.start;
+        i < range.end;
         i++
     ) {
 
@@ -451,8 +455,12 @@ function drawRoutesOn3DMap(results) {
             }
 
 
+            const range =
+                getDirectionPointRange(points);
+
+
             const firstPoint =
-                points[0];
+                points[range.markerIndex];
 
 
             if (
@@ -900,6 +908,11 @@ function drawRoutesOn3DMap(results) {
     }
 
 
+    if (!map3d._routeEventsBound) {
+
+    map3d._routeEventsBound = true;
+
+
     /* =====================================================
        Route hover cursor
        ===================================================== */
@@ -1109,6 +1122,9 @@ function drawRoutesOn3DMap(results) {
     );
 
 
+    }
+
+
     /* =====================================================
        Speed legend
        ===================================================== */
@@ -1171,7 +1187,7 @@ function fit3DMapToRoutes(results) {
             }
 
 
-            points.forEach(
+            getDirectionPoints(points).forEach(
                 point => {
 
                     if (

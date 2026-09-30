@@ -171,3 +171,85 @@ function initializeTheme() {
     applyTheme();
 
 }
+
+
+/* =========================================================
+   Map direction (outbound / return / both)
+
+   Outbound = start -> summit (highest point)
+   Return   = summit -> end
+   ========================================================= */
+
+let mapDirectionMode = "both";
+
+
+/*
+ * Point index range (inclusive) that is visible for the
+ * current direction mode, plus the index used for the
+ * numbered route marker.
+ */
+
+function getDirectionPointRange(points) {
+
+    const last = points.length - 1;
+
+    let summitIndex = 0;
+
+    for (let i = 1; i < points.length; i++) {
+
+        if (
+            Number.isFinite(points[i].elevation) &&
+            points[i].elevation > points[summitIndex].elevation
+        ) {
+            summitIndex = i;
+        }
+
+    }
+
+    if (mapDirectionMode === "outbound") {
+        return { start: 0, end: summitIndex, markerIndex: 0 };
+    }
+
+    if (mapDirectionMode === "return") {
+        return { start: summitIndex, end: last, markerIndex: summitIndex };
+    }
+
+    return { start: 0, end: last, markerIndex: 0 };
+
+}
+
+
+function getDirectionPoints(points) {
+
+    const range = getDirectionPointRange(points);
+
+    return points.slice(range.start, range.end + 1);
+
+}
+
+
+function setMapDirection(mode) {
+
+    if (!["both", "outbound", "return"].includes(mode)) {
+        return;
+    }
+
+    mapDirectionMode = mode;
+
+    if (analysisResults.length === 0) {
+        return;
+    }
+
+    if (map && typeof drawRoutesOnMap === "function") {
+        drawRoutesOnMap(analysisResults);
+    }
+
+    if (
+        map3d &&
+        map3dInitialized &&
+        typeof drawRoutesOn3DMap === "function"
+    ) {
+        drawRoutesOn3DMap(analysisResults);
+    }
+
+}

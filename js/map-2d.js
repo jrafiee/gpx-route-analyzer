@@ -203,9 +203,13 @@ function drawRoutesOnMap(results) {
                 );
 
 
+            const range =
+                getDirectionPointRange(points);
+
+
             for (
-                let i = 0;
-                i < points.length - 1;
+                let i = range.start;
+                i < range.end;
                 i++
             ) {
 
@@ -330,7 +334,7 @@ function drawRoutesOnMap(results) {
 
 
             const firstPoint =
-                points[0];
+                points[range.markerIndex];
 
 
             const startLatLng = [
