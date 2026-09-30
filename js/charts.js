@@ -1,11 +1,14 @@
 /* =========================================================
-   Mountain Route Compare — Charts (modern style)
+   Mountain Route Compare — Charts
 
    Design language (matches the "calculations" page):
-     - accent blue  #4d8bc9 / #315f8c
-     - clean transparent canvas, dotted horizontal grid only
-     - monospace numerals (like the formula blocks)
-     - route colors identical to the numbered map markers
+     - one colour theme: blue #4d8bc9 / #315f8c + a single amber
+       accent #f2a03d + neutral slate
+     - technical look: thin axes with ticks, dotted horizontal
+       grid, monospace numerals, sharp bar corners, formula
+       captions under the bar charts
+     - line charts keep the route colours of the numbered
+       map markers
      - hover tooltips styled as small cards
 
    Combined elevation chart ("تحلیل و مقایسه مسیر")
@@ -18,6 +21,9 @@
 
    Options:
      summitCenter : summit distance = 0 on the x axis
+
+   GPX waypoints (camps, springs, ...) are drawn as diamonds on
+   the line charts; hovering them shows their name / description.
    ========================================================= */
 
 const elevationChartState = {
@@ -32,7 +38,7 @@ const elevationChartState = {
 
 /*
  * Same colors (and same order) as the numbered route
- * markers on the 2D / 3D maps.
+ * markers on the 2D / 3D maps. Used by the line charts only.
  */
 
 const CHART_ROUTE_COLORS = [
@@ -48,22 +54,33 @@ const CHART_ROUTE_COLORS = [
     "#00897b"
 ];
 
+/*
+ * Slope categories: light blue (easy) -> deep blue (steep),
+ * and the one amber accent for the extreme category.
+ */
+
 const CHART_SLOPE_COLORS = [
-    "#8fd19e",   // خیلی آسان
-    "#cde27a",   // آسان
-    "#f6d55c",   // متوسط
-    "#f5a34b",   // شیب‌دار
-    "#e5603f",   // خیلی شیب‌دار
-    "#a4242f"    // بسیار شدید
+    "#d5e5f4",   // خیلی آسان
+    "#a9c8e8",   // آسان
+    "#7aa9d8",   // متوسط
+    "#4d8bc9",   // شیب‌دار
+    "#2f6aa3",   // خیلی شیب‌دار
+    "#f2a03d"    // بسیار شدید
 ];
 
 const CHART_SERIES_COLORS = {
     estimated: "#4d8bc9",
     actual: "#f2a03d",
-    total: "#8c7bc7",
+    total: "#a3b3c4",
     gain: "#4d8bc9",
-    maxElevation: "#2fa79a"
+    maxElevation: "#f2a03d"
 };
+
+const CHART_DIFFICULTY_COLORSCALE = [
+    [0, "#a9c8e8"],
+    [0.5, "#4d8bc9"],
+    [1, "#22456b"]
+];
 
 const CHART_FONT_SANS =
     "Tahoma, Arial, sans-serif";
@@ -117,8 +134,8 @@ function getChartPalette() {
 
         axisLine:
             dark
-                ? "rgba(255, 255, 255, 0.22)"
-                : "rgba(32, 36, 42, 0.22)",
+                ? "rgba(255, 255, 255, 0.28)"
+                : "rgba(32, 36, 42, 0.30)",
 
         hoverBg:
             dark ? "#2b2e30" : "#ffffff",
@@ -223,6 +240,285 @@ function getSummitIndex(values) {
     }
 
     return summitIndex;
+
+}
+
+
+/* =========================================================
+   GPX waypoints on the profile charts
+   ========================================================= */
+
+function chartEscapeText(value) {
+
+    return String(value).replace(
+        /[<>&]/g,
+        character => ({
+            "<": "&lt;",
+            ">": "&gt;",
+            "&": "&amp;"
+        })[character]
+    );
+
+}
+
+
+/*
+ * Wrap long text into lines (Plotly does not wrap hover text).
+ * Returns an array of plain-text lines.
+ */
+
+function chartWrapText(text, maxChars) {
+
+    const lines = [];
+
+    String(text)
+        .split(/\r?\n/)
+        .forEach(paragraph => {
+
+            const words =
+                paragraph.split(/\s+/).filter(Boolean);
+
+            let line = "";
+
+            words.forEach(word => {
+
+                if (
+                    line &&
+                    (line + " " + word).length > maxChars
+                ) {
+                    lines.push(line);
+                    line = word;
+                } else {
+                    line = line ? line + " " + word : word;
+                }
+
+            });
+
+            if (line) {
+                lines.push(line);
+            }
+
+        });
+
+    return lines;
+
+}
+
+
+/*
+ * Snap the waypoints of one route to the elevation profile.
+ *
+ * The profile skips points with zero horizontal distance
+ * (see extractRouteProfile), so the same rule is repeated here
+ * to keep the indexes aligned with profile.distance_km.
+ *
+ * Result (cached on the analysis result):
+ *   [{ index, offsetM, html }]
+ */
+
+function getRouteWaypointProfilePoints(
+    result,
+    maxOffsetM = 1000
+) {
+
+    if (result._waypointProfilePoints) {
+        return result._waypointProfilePoints;
+    }
+
+    const list = [];
+
+    result._waypointProfilePoints = list;
+
+    const route =
+        result.routeData;
+
+    const waypoints =
+        route && route.waypoints;
+
+    const points =
+        route && route.points;
+
+    if (
+        !Array.isArray(waypoints) ||
+        waypoints.length === 0 ||
+        !Array.isArray(points) ||
+        points.length < 2
+    ) {
+        return list;
+    }
+
+    const keptIndexes = [0];
+
+    for (let i = 0; i < points.length - 1; i++) {
+
+        const d =
+            distance2D(points[i], points[i + 1]);
+
+        if (d === null || d <= 0) {
+            continue;
+        }
+
+        keptIndexes.push(i + 1);
+
+    }
+
+    const profile =
+        result.profiles?.elevation;
+
+    const distancesKm =
+        profile?.distance_km;
+
+    const elevations =
+        profile?.elevation_m;
+
+    if (
+        !distancesKm ||
+        !elevations ||
+        distancesKm.length !== keptIndexes.length
+    ) {
+        return list;
+    }
+
+    waypoints.forEach(waypoint => {
+
+        let bestIndex = -1;
+        let bestDistance = Infinity;
+
+        for (let k = 0; k < keptIndexes.length; k++) {
+
+            const d =
+                distance2D(
+                    waypoint,
+                    points[keptIndexes[k]]
+                );
+
+            if (d !== null && d < bestDistance) {
+                bestDistance = d;
+                bestIndex = k;
+            }
+
+        }
+
+        if (
+            bestIndex < 0 ||
+            bestDistance > maxOffsetM
+        ) {
+            return;
+        }
+
+        const name =
+            waypoint.name || "نقطه راهنما";
+
+        const label =
+            waypoint.type || waypoint.symbol || "";
+
+        const elevation =
+            Number.isFinite(waypoint.elevation)
+                ? waypoint.elevation
+                : elevations[bestIndex];
+
+        const parts = [
+            `<b>${chartEscapeText(name)}</b>`
+        ];
+
+        if (label) {
+            parts.push(chartEscapeText(label));
+        }
+
+        if (waypoint.description) {
+
+            chartWrapText(
+                waypoint.description.substring(0, 300),
+                40
+            ).forEach(line => {
+                parts.push(chartEscapeText(line));
+            });
+
+        }
+
+        parts.push(
+            `ارتفاع: ${Math.round(elevation)} m` +
+            ` · مسافت: ${distancesKm[bestIndex].toFixed(2)} km`
+        );
+
+        list.push({
+            index: bestIndex,
+            offsetM: bestDistance,
+            html: parts.join("<br>")
+        });
+
+    });
+
+    list.sort((a, b) => a.index - b.index);
+
+    return list;
+
+}
+
+
+/*
+ * Diamond markers for the waypoints of a route.
+ * x / y are the (already shifted) coordinates of the route line.
+ */
+
+function buildWaypointTrace(result, color, x, y) {
+
+    const waypoints =
+        getRouteWaypointProfilePoints(result);
+
+    const palette =
+        getChartPalette();
+
+    const xs = [];
+    const ys = [];
+    const info = [];
+
+    waypoints.forEach(waypoint => {
+
+        if (waypoint.index >= x.length) {
+            return;
+        }
+
+        xs.push(x[waypoint.index]);
+        ys.push(y[waypoint.index]);
+        info.push(waypoint.html);
+
+    });
+
+    if (xs.length === 0) {
+        return null;
+    }
+
+    return {
+
+        x: xs,
+        y: ys,
+
+        type: "scatter",
+        mode: "markers",
+
+        name: result.route,
+        legendgroup: result.route,
+        showlegend: false,
+
+        customdata: info,
+
+        hovertemplate:
+            "%{customdata}<extra>" +
+            chartEscapeText(result.route || "") +
+            "</extra>",
+
+        marker: {
+            symbol: "diamond",
+            size: 11,
+            color: color,
+            line: {
+                color: palette.surface,
+                width: 1.8
+            }
+        }
+
+    };
 
 }
 
@@ -412,7 +708,6 @@ function addSummitReferenceLines(layout, vertical, horizontal) {
 
 /*
  * Horizontal legend above the plot area on every screen.
- * (Cleaner than a tall vertical legend eating the chart width.)
  */
 
 function getResponsiveLegend() {
@@ -568,6 +863,8 @@ function buildPlotLayout(
 
         hovermode: "x unified",
 
+        hoverdistance: 30,
+
         hoverlabel: {
             bgcolor: palette.hoverBg,
             bordercolor: palette.hoverBorder,
@@ -586,11 +883,11 @@ function buildPlotLayout(
             }
         },
 
-        bargap: 0.38,
+        bargap: 0.4,
         bargroupgap: 0.06,
 
-        /* rounded bar corners (ignored by older Plotly builds) */
-        barcornerradius: 6
+        /* sharp, technical bars (ignored by older Plotly builds) */
+        barcornerradius: 2
 
     };
 
@@ -640,6 +937,75 @@ function applyCategoryAxis(layout) {
 
 
 /*
+ * "Computational" look for the bar charts:
+ *   - measured y axis (thin line + outside ticks)
+ *   - a monospace formula caption under the chart
+ *     (hidden on narrow screens where it would not fit)
+ */
+
+function applyTechnicalAxes(layout, formula) {
+
+    const palette = getChartPalette();
+
+    const isMobile =
+        window.innerWidth <= 900;
+
+    layout.yaxis = {
+
+        ...layout.yaxis,
+
+        showline: true,
+        linecolor: palette.axisLine,
+        linewidth: 1,
+
+        ticks: "outside",
+        ticklen: 4,
+        tickcolor: palette.axisLine
+
+    };
+
+    layout.xaxis = {
+
+        ...layout.xaxis,
+
+        title: {
+            text: isMobile ? "" : (formula || ""),
+            standoff: 16,
+            font: {
+                family: CHART_FONT_MONO,
+                size: 11,
+                color: palette.muted
+            }
+        }
+
+    };
+
+}
+
+
+/*
+ * Keep bars slim: bar width is fixed as a fraction of one
+ * category slot, and the axis always has room for at least
+ * `minSlots` routes so one or two routes do not get fat bars.
+ */
+
+function applySlimBars(layout, routeCount, minSlots = 4) {
+
+    layout.xaxis = {
+
+        ...layout.xaxis,
+
+        range: [
+            -0.5,
+            Math.max(routeCount, minSlots) - 0.5
+        ]
+
+    };
+
+}
+
+
+/*
  * Vertical guide following the cursor on line charts.
  */
 
@@ -661,6 +1027,9 @@ function applySpikeLine(layout) {
     };
 
 }
+
+
+const CHART_SLIM_BAR_WIDTH = 0.34;
 
 
 // --------------------------------------------------
@@ -826,6 +1195,17 @@ function drawElevationProfile(
 
                 });
 
+            }
+
+            /*
+             * GPX waypoints (camps, ...)
+             */
+
+            const waypointTrace =
+                buildWaypointTrace(result, color, x, y);
+
+            if (waypointTrace) {
+                traces.push(waypointTrace);
             }
 
         }
@@ -1049,6 +1429,22 @@ function drawOrderedElevationProfile(
                 }
 
             });
+
+            /*
+             * GPX waypoints (camps, ...)
+             */
+
+            const waypointTrace =
+                buildWaypointTrace(
+                    result,
+                    color,
+                    x,
+                    elevations
+                );
+
+            if (waypointTrace) {
+                traces.push(waypointTrace);
+            }
 
             /*
              * Separator between two routes
@@ -1294,6 +1690,8 @@ function drawSlopeDistribution(
                         item => item.values[categoryIndex]
                     ),
 
+                width: CHART_SLIM_BAR_WIDTH,
+
                 /* درصد سهم هر دسته از مسیر رفت */
                 customdata:
                     uphillData.map(
@@ -1328,9 +1726,6 @@ function drawSlopeDistribution(
 
     /*
      * نوشته‌ی طول کل مسیر بالای ستون
-     *
-     * جای نوشته = ارتفاع واقعی ستون،
-     * متن = طول کل مسیر.
      */
 
     const annotations =
@@ -1383,6 +1778,13 @@ function drawSlopeDistribution(
 
     applyCategoryAxis(layout);
 
+    applyTechnicalAxes(
+        layout,
+        "grade (%) = Δh / Δd × 100"
+    );
+
+    applySlimBars(layout, results.length);
+
     layout.annotations = annotations;
 
     /* headroom for the distance labels */
@@ -1409,14 +1811,19 @@ function drawSlopeDistribution(
 // --------------------------------------------------
 
 /*
- * series: [{ name, color, getter(result), unit, digits, textSuffix }]
+ * series: [{ name, color, getter(result), unit, digits,
+ *            textSuffix, hatch }]
+ *
+ * hatch: true -> diagonal hatching (used for model estimates,
+ *                as opposed to measured values)
  */
 
 function drawGroupedBarChart(
     results,
     containerId,
     series,
-    yTitle
+    yTitle,
+    formula = ""
 ) {
 
     const palette =
@@ -1460,6 +1867,27 @@ function drawGroupedBarChart(
                     }
                 );
 
+                const marker = {
+                    color: item.color,
+                    line: {
+                        color: item.color,
+                        width: 1.2
+                    }
+                };
+
+                if (item.hatch) {
+
+                    marker.pattern = {
+                        shape: "/",
+                        size: 7,
+                        solidity: 0.42,
+                        bgcolor:
+                            hexToRgba(item.color, 0.10),
+                        fgcolor: item.color
+                    };
+
+                }
+
                 const trace = {
 
                     x: names,
@@ -1469,10 +1897,7 @@ function drawGroupedBarChart(
 
                     name: item.name,
 
-                    marker: {
-                        color: item.color,
-                        line: { width: 0 }
-                    },
+                    marker: marker,
 
                     hovertemplate:
                         `%{y:.${item.digits}f} ${item.unit}` +
@@ -1524,6 +1949,8 @@ function drawGroupedBarChart(
 
     applyCategoryAxis(layout);
 
+    applyTechnicalAxes(layout, formula);
+
     if (maxValue > 0) {
         layout.yaxis.range =
             [0, maxValue * (showLabels ? 1.15 : 1.06)];
@@ -1567,12 +1994,11 @@ function drawRouteBarChart(
         type: "bar",
 
         marker: {
-            color:
-                results.map(
-                    (result, index) =>
-                        chartRouteColor(index)
-                ),
-            line: { width: 0 }
+            color: CHART_SERIES_COLORS.estimated,
+            line: {
+                color: CHART_SERIES_COLORS.estimated,
+                width: 1.2
+            }
         },
 
         text:
@@ -1604,6 +2030,8 @@ function drawRouteBarChart(
     layout.showlegend = false;
 
     applyCategoryAxis(layout);
+
+    applyTechnicalAxes(layout, "");
 
     const range =
         getArrayMinMax(values);
@@ -1662,7 +2090,9 @@ function drawRouteMetricsComparisonChart(
 
         ],
 
-        "ارتفاع (m)"
+        "ارتفاع (m)",
+
+        "Gain = Max Elevation − Min Elevation"
 
     );
 
@@ -1694,7 +2124,8 @@ function drawAscentTimeComparisonChart(
                     ],
                 unit: "ساعت",
                 digits: 2,
-                textSuffix: "h"
+                textSuffix: "h",
+                hatch: true
             },
 
             {
@@ -1723,7 +2154,9 @@ function drawAscentTimeComparisonChart(
 
         ],
 
-        "زمان (ساعت)"
+        "زمان (ساعت)",
+
+        "T = (D3D / 5 + Ascent / 600) × SlopeFactor"
 
     );
 
@@ -1784,7 +2217,7 @@ function drawTotalTimeChart(
 
 // --------------------------------------------------
 // امتیاز سختی مسیرها
-// رنگ هر ستون بر اساس مقدار امتیاز (آبی → نارنجی → قرمز)
+// رنگ هر ستون بر اساس مقدار امتیاز (آبی روشن → آبی تیره)
 // --------------------------------------------------
 
 function drawDifficultyScoreChart(
@@ -1809,6 +2242,8 @@ function drawDifficultyScoreChart(
         x: names,
         y: scores,
 
+        width: CHART_SLIM_BAR_WIDTH,
+
         type: "bar",
 
         name: "امتیاز سختی",
@@ -1817,18 +2252,20 @@ function drawDifficultyScoreChart(
 
             color: scores,
 
-            colorscale: [
-                [0, "#4d8bc9"],
-                [0.5, "#f2a03d"],
-                [1, "#d64545"]
-            ],
+            colorscale: CHART_DIFFICULTY_COLORSCALE,
 
             cmin: 0,
             cmax: 100,
 
             showscale: false,
 
-            line: { width: 0 }
+            line: {
+                color: scores,
+                colorscale: CHART_DIFFICULTY_COLORSCALE,
+                cmin: 0,
+                cmax: 100,
+                width: 1.2
+            }
 
         },
 
@@ -1864,6 +2301,13 @@ function drawDifficultyScoreChart(
     layout.showlegend = false;
 
     applyCategoryAxis(layout);
+
+    applyTechnicalAxes(
+        layout,
+        "Score = 0.40·Climb + 0.35·Slope + 0.15·Alt + 0.10·Descent"
+    );
+
+    applySlimBars(layout, results.length);
 
     const range =
         getArrayMinMax(scores);

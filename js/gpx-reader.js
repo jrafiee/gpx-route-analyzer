@@ -123,7 +123,96 @@ function extractRoutePoints(xml) {
 
 
 /**
- * Read a GPX File and extract its valid track points.
+ * Extract waypoints (<wpt>) such as camps, springs, shelters, ...
+ *
+ * Returned items:
+ * {
+ *     latitude, longitude,
+ *     elevation   (number | null),
+ *     name, description, type, symbol   (strings, may be empty)
+ * }
+ *
+ * @param {Document} xml
+ * @returns {Array}
+ */
+function extractWaypoints(xml) {
+    const waypoints = [];
+
+    xml.querySelectorAll("wpt").forEach(waypoint => {
+
+        const latitude = parseFloat(
+            waypoint.getAttribute("lat")
+        );
+
+        const longitude = parseFloat(
+            waypoint.getAttribute("lon")
+        );
+
+        if (
+            !Number.isFinite(latitude) ||
+            !Number.isFinite(longitude)
+        ) {
+            return;
+        }
+
+        const readText = tag => {
+
+            const element = Array.from(
+                waypoint.children
+            ).find(
+                child => child.localName === tag
+            );
+
+            return element
+                ? element.textContent.trim()
+                : "";
+
+        };
+
+        const elevationText =
+            readText("ele");
+
+        const elevation =
+            elevationText === ""
+                ? NaN
+                : parseFloat(elevationText);
+
+        const description =
+            readText("desc");
+
+        const comment =
+            readText("cmt");
+
+        let combined = description;
+
+        if (comment && comment !== description) {
+            combined = combined
+                ? `${combined}\n${comment}`
+                : comment;
+        }
+
+        waypoints.push({
+            latitude,
+            longitude,
+            elevation:
+                Number.isFinite(elevation)
+                    ? elevation
+                    : null,
+            name: readText("name"),
+            description: combined,
+            type: readText("type"),
+            symbol: readText("sym")
+        });
+
+    });
+
+    return waypoints;
+}
+
+
+/**
+ * Read a GPX File and extract its valid track points
+ * and waypoints.
  *
  * @param {File} file
  * @returns {Promise<Object>}
@@ -133,9 +222,21 @@ async function loadGpxFile(file) {
 
     const points = extractRoutePoints(xml);
 
+    let waypoints = [];
+
+    try {
+        waypoints = extractWaypoints(xml);
+    } catch (error) {
+        console.warn(
+            "Waypoint extraction failed:",
+            error
+        );
+    }
+
     return {
         name: file.name,
-        points
+        points,
+        waypoints
     };
 }
 
@@ -242,4 +343,3 @@ function distance3D(point1, point2) {
         elevationDifference ** 2
     );
 }
-
