@@ -40,6 +40,11 @@
 
 <body>
 
+<!-- Header image (desktop only, scrolls away) -->
+<div class="site-hero" aria-hidden="true">
+    <img src="images/header.jpg" alt="" onerror="this.parentNode.style.display='none'">
+</div>
+
 <!-- Top Bar -->
 <header class="app-topbar">
     <div class="brand-zone">
@@ -377,7 +382,7 @@
                     <span class="route-count-label" style="font-size: 11px; color: var(--text-muted);">۰ مسیر</span>
                 </div>
                 <div class="selected-routes-container" id="selected-routes">
-                    <div class="empty-message">هنوز مسیری انتخاب نشده است</div>
+                    <div id="empty-message" class="empty-message">هنوز مسیری انتخاب نشده است</div>
                 </div>
             </div>
 

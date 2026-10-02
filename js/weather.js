@@ -817,6 +817,36 @@ function injectDailyWeatherStyles() {
             padding: 4px 8px 12px;
         }
     }
+
+    /* Sticky model selector (stays below the top bar while scrolling) */
+    .weather-model-selector {
+        position: sticky;
+        top: 60px;
+        z-index: 90;
+    }
+
+    /* Summit info line under each peak name: smaller, not bold */
+    .weather-summit-info {
+        font-size: 11px;
+        font-weight: 400;
+    }
+
+    .weather-summit-info span,
+    .weather-summit-info strong {
+        font-size: inherit;
+        font-weight: 400;
+    }
+
+    @media (max-width: 900px) {
+        .weather-model-selector {
+            top: 56px;
+            padding: 8px 10px;
+            margin-bottom: 12px;
+        }
+        .weather-model-selector-title {
+            margin-bottom: 6px;
+        }
+    }
     `;
     document.head.appendChild(style);
 }

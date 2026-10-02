@@ -1676,3 +1676,56 @@ body.dark-mode .temp-val-warm {
     background: rgba(239, 83, 80, 0.12);
 }
 
+
+
+/* =========================================================
+   2D map route-number markers (round, like the 3D map)
+   ========================================================= */
+
+.route-map-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 2px solid #ffffff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    box-sizing: border-box;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* =========================================================
+   Desktop header image (scrolls away, top bar stays)
+   ========================================================= */
+
+.site-hero {
+    position: relative;
+    width: 100%;
+    height: 220px;
+    overflow: hidden;
+    background: #1e3349;
+}
+
+.site-hero img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 40%;
+}
+
+@media (max-width: 900px) {
+    .site-hero {
+        display: none;
+    }
+}
+
+/* the fixed sidebar follows the visible part of the header */
+.sidebar {
+    top: calc(60px + var(--hero-offset, 0px));
+    height: calc(100vh - 60px - var(--hero-offset, 0px));
+}

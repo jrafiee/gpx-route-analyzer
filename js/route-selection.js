@@ -323,9 +323,7 @@ function addSelectedRoute(file) {
 
 
     const emptyMessage =
-        document.getElementById(
-            "empty-message"
-        );
+        container.querySelector(".empty-message");
 
 
     if (emptyMessage) {

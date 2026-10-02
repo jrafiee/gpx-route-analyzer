@@ -534,3 +534,21 @@ body.dark-mode .map-location-group .map-view-button:disabled:hover {
         padding: 4px 6px 10px;
     }
 }
+
+
+/* =========================================================
+   Chart mode buttons: no frame and no "chart type" label
+   ========================================================= */
+
+.chart-mode-buttons,
+body.dark-mode .chart-mode-buttons {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+}
+
+.chart-mode-buttons::before {
+    content: none;
+    display: none;
+}

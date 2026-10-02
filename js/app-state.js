@@ -205,6 +205,9 @@ function setActiveSection(sectionId) {
             if (map && typeof map.invalidateSize === "function") {
                 map.invalidateSize();
             }
+            if (typeof applyPendingMapFit === "function") {
+                applyPendingMapFit();
+            }
             if (map3d && map3dInitialized && typeof map3d.resize === "function") {
                 map3d.resize();
             }
@@ -245,7 +248,18 @@ function updateRouteWorkspaceBadges() {
     });
 }
 
+/*
+ * On mobile the sheet owns one history entry, so the browser /
+ * phone Back button closes the sheet instead of leaving the app.
+ */
+
+let workspaceHistoryPushed = false;
+
 function openRouteWorkspace() {
+    if (isWorkspaceOpen) {
+        return;
+    }
+
     isWorkspaceOpen = true;
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("workspace-overlay");
@@ -261,9 +275,18 @@ function openRouteWorkspace() {
     }
 
     document.body.classList.add("drawer-open");
+
+    if (window.innerWidth <= 900 && !workspaceHistoryPushed) {
+        try {
+            history.pushState({ routeWorkspace: true }, "");
+            workspaceHistoryPushed = true;
+        } catch (e) {
+            workspaceHistoryPushed = false;
+        }
+    }
 }
 
-function closeRouteWorkspace() {
+function hideRouteWorkspaceUI() {
     isWorkspaceOpen = false;
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("workspace-overlay");
@@ -280,6 +303,25 @@ function closeRouteWorkspace() {
 
     document.body.classList.remove("drawer-open");
 }
+
+function closeRouteWorkspace() {
+    const needBack = workspaceHistoryPushed;
+
+    hideRouteWorkspaceUI();
+
+    if (needBack) {
+        workspaceHistoryPushed = false;
+        history.back();
+    }
+}
+
+window.addEventListener("popstate", function () {
+    workspaceHistoryPushed = false;
+
+    if (isWorkspaceOpen) {
+        hideRouteWorkspaceUI();
+    }
+});
 
 function toggleRouteWorkspace() {
     if (isWorkspaceOpen) {

@@ -413,17 +413,13 @@ function drawRoutesOnMap(results) {
     );
 
 
-    if (
-        bounds.isValid()
-    ) {
+    if (bounds.isValid()) {
 
-        map.fitBounds(
-            bounds,
-            {
-                padding:
-                    [30, 30]
-            }
-        );
+        fitMapToBounds(bounds);
+
+    } else {
+
+        map._needsFit = false;
 
     }
 
@@ -440,5 +436,59 @@ function drawRoutesOnMap(results) {
         },
         100
     );
+
+}
+
+
+/* =========================================================
+   Fit map to routes
+   When the map section is hidden (e.g. right after a page
+   refresh) the container has zero size and fitBounds would
+   compute a wrong zoom. In that case the fit is postponed
+   until the map section is shown (applyPendingMapFit).
+   ========================================================= */
+
+function fitMapToBounds(bounds) {
+
+    if (!map || !bounds || !bounds.isValid()) {
+        return;
+    }
+
+    map._routeBounds = bounds;
+
+    const size = map.getSize();
+
+    if (size.x > 0 && size.y > 0) {
+
+        map.fitBounds(bounds, { padding: [30, 30] });
+
+        map._needsFit = false;
+
+    } else {
+
+        map._needsFit = true;
+
+    }
+
+}
+
+
+function applyPendingMapFit() {
+
+    if (!map || !map._needsFit || !map._routeBounds) {
+        return;
+    }
+
+    map.invalidateSize();
+
+    const size = map.getSize();
+
+    if (size.x > 0 && size.y > 0) {
+
+        map.fitBounds(map._routeBounds, { padding: [30, 30] });
+
+        map._needsFit = false;
+
+    }
 
 }
