@@ -173,9 +173,9 @@
 
         group.appendChild(toggle);
         group.appendChild(center);
-        group.appendChild(status);
 
         toolbar.appendChild(group);
+        toolbar.appendChild(status);
 
         createPanel(toolbar);
 

@@ -376,22 +376,161 @@ body.dark-mode .ulp-track {
     color: #eee;
 }
 
+/* ---------------------------------------------------------
+   Mobile: clear framed list, one distinct row per value
+   --------------------------------------------------------- */
+
 @media (max-width: 900px) {
 
     .user-location-panel {
-        margin: 0 6px 10px;
-        padding: 8px 10px;
+        margin: 0 6px 12px;
+        padding: 10px;
+        border-width: 2px;
+        border-color: var(--tb-location);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
     }
 
-    .ulp-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .ulp-value {
-        font-size: 16px;
+    .ulp-header {
+        padding-bottom: 8px;
+        border-bottom: 1px solid color-mix(in srgb, var(--tb-location) 40%, #ccc);
     }
 
     .ulp-track {
         flex: 1 1 100%;
+    }
+
+    .ulp-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+        border: 1px solid #cfd6dd;
+        border-radius: 8px;
+        overflow: hidden;
+        background: #fff;
+    }
+
+    .ulp-item {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 12px;
+        border: 0;
+        border-radius: 0;
+        border-inline-start: 4px solid var(--tb-chart);
+        background: #fff;
+    }
+
+    .ulp-item + .ulp-item {
+        border-top: 1px solid #e1e5ea;
+    }
+
+    .ulp-item:nth-child(even) {
+        background: #f4f7fa;
+    }
+
+    /* distances along the track get the location accent */
+    #ulp-item-origin,
+    #ulp-item-end {
+        border-inline-start-color: var(--tb-location);
+    }
+
+    .ulp-label {
+        font-size: 13px;
+        color: #444;
+    }
+
+    .ulp-value {
+        font-size: 17px;
+    }
+
+    body.dark-mode .ulp-grid {
+        border-color: #3a3d3f;
+        background: #2b2e30;
+    }
+
+    body.dark-mode .ulp-item {
+        background: #2b2e30;
+    }
+
+    body.dark-mode .ulp-item + .ulp-item {
+        border-top-color: #3a3d3f;
+    }
+
+    body.dark-mode .ulp-item:nth-child(even) {
+        background: #323537;
+    }
+
+    body.dark-mode .ulp-label {
+        color: #ccc;
+    }
+
+    body.dark-mode .ulp-header {
+        border-bottom-color: #3a3d3f;
+    }
+}
+
+
+/* =========================================================
+   Map toolbar: the four map buttons share one grid
+     desktop : 1 row x 4
+     mobile  : 2 x 2
+   The two groups are "transparent" (display: contents); the
+   groups stay distinguishable by colour
+   (map = purple, my location = green).
+   ========================================================= */
+
+.map-toolbar {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 170px));
+    justify-content: start;
+    gap: 8px;
+    padding: 6px 10px 12px;
+}
+
+.map-view-buttons,
+.map-location-group {
+    display: contents;
+}
+
+.map-view-buttons::before,
+.map-location-group::before {
+    content: none;
+    display: none;
+}
+
+.map-view-buttons .map-view-button,
+.map-location-group .map-view-button {
+    width: 100%;
+    min-height: 42px;
+    padding: 6px 8px;
+    white-space: normal;
+    background: color-mix(in srgb, var(--grp) 10%, #fff);
+    border-color: color-mix(in srgb, var(--grp) 70%, #fff);
+}
+
+body.dark-mode .map-view-buttons .map-view-button,
+body.dark-mode .map-location-group .map-view-button {
+    background: color-mix(in srgb, var(--grp) 18%, #2b2e30);
+    border-color: color-mix(in srgb, var(--grp) 70%, #2b2e30);
+}
+
+.map-location-group .map-view-button:disabled:hover {
+    background: color-mix(in srgb, var(--grp) 10%, #fff);
+}
+
+body.dark-mode .map-location-group .map-view-button:disabled:hover {
+    background: color-mix(in srgb, var(--grp) 18%, #2b2e30);
+}
+
+.map-toolbar .user-location-status {
+    grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+
+    .map-toolbar {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+        padding: 4px 6px 10px;
     }
 }
