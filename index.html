@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="fa" dir="rtl">
 
 <head>
@@ -11,848 +10,499 @@
 </script>
 
 <meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
 
 <title>تحلیل و مقایسه مسیرهای کوهستانی | Mountain Route Compare</title>
 
 <meta name="description" content="مسیرهای صعود و پیمایش را از نظر مسافت، ارتفاع، شیب و سرعت تحلیل و با هم مقایسه کنید. بارگذاری فایل GPX، پروفایل ارتفاعی، امتیاز سختی، زمان تخمینی صعود، نقشه سه‌بعدی و هواشناسی قله.">
-<meta name="keywords" content="مقایسه مسیر کوهنوردی, تحلیل GPX, پروفایل ارتفاعی, شیب مسیر, سختی مسیر, زمان صعود, نای‌اسمیت, نقشه سه‌بعدی, هواشناسی قله, دماوند, توچال, صعود">
-<meta name="author" content="javad rafiee">
-<meta name="robots" content="index, follow, max-image-preview:large">
-<meta name="theme-color" content="#4d8bc9">
+<meta name="theme-color" content="#315f8c">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<link rel="canonical" href="https://YOUR-DOMAIN.com/">
-<link rel="alternate" hreflang="fa" href="https://YOUR-DOMAIN.com/">
-<link rel="alternate" hreflang="x-default" href="https://YOUR-DOMAIN.com/">
-
-<!-- Open Graph -->
-<meta property="og:type" content="website">
-<meta property="og:locale" content="fa_IR">
-<meta property="og:site_name" content="Mountain Route Compare">
-<meta property="og:title" content="تحلیل و مقایسه مسیرهای کوهستانی">
-<meta property="og:description" content="مسیرهای صعود و پیمایش را از نظر مسافت، ارتفاع، شیب و سرعت تحلیل و با هم مقایسه کنید.">
-<meta property="og:url" content="https://YOUR-DOMAIN.com/">
-<meta property="og:image" content="https://YOUR-DOMAIN.com/images/og-image.png">
-
-<!-- Twitter -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="تحلیل و مقایسه مسیرهای کوهستانی">
-<meta name="twitter:description" content="مسیرهای صعود و پیمایش را از نظر مسافت، ارتفاع، شیب و سرعت تحلیل و با هم مقایسه کنید.">
-<meta name="twitter:image" content="https://YOUR-DOMAIN.com/images/og-image.png">
-
-<link rel="preload" as="image" href="images/header.jpg" fetchpriority="high">
-
-<!-- Structured data -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  "name": "تحلیل و مقایسه مسیرهای کوهستانی",
-  "alternateName": "Mountain Route Compare",
-  "url": "https://YOUR-DOMAIN.com/",
-  "description": "مسیرهای صعود و پیمایش را از نظر مسافت، ارتفاع، شیب و سرعت تحلیل و با هم مقایسه کنید. بارگذاری فایل GPX، پروفایل ارتفاعی، امتیاز سختی، زمان تخمینی صعود، نقشه سه‌بعدی و هواشناسی قله.",
-  "inLanguage": "fa",
-  "applicationCategory": "SportsApplication",
-  "operatingSystem": "Web",
-  "isAccessibleForFree": true,
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "IRR" },
-  "author": { "@type": "Person", "name": "javad rafiee" }
-}
-</script>
-
-
-<!-- =========================================================
-     External libraries
-     ========================================================= -->
 
 <!-- Plotly -->
-<script
-    src="https://cdn.plot.ly/plotly-2.35.2.min.js"
-></script>
-
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 
 <!-- Leaflet -->
-<link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
->
-
-<script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-></script>
-
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <!-- MapLibre GL JS -->
-<link
-    rel="stylesheet"
-    href="https://unpkg.com/maplibre-gl@6.9.0/dist/maplibre-gl.css"
->
-
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.9.0/dist/maplibre-gl.css">
 <script type="module">
-
-    import * as maplibregl
-        from "https://unpkg.com/maplibre-gl@6.9.0/dist/maplibre-gl.mjs";
-
+    import * as maplibregl from "https://unpkg.com/maplibre-gl@6.9.0/dist/maplibre-gl.mjs";
     window.maplibregl = maplibregl;
-
 </script>
 
-
-<!-- =========================================================
-     Project CSS
-     ========================================================= -->
-
-<link
-    rel="stylesheet"
-    href="css/style.css"
->
-
-<link
-    rel="stylesheet"
-    href="css/responsive.css"
->
-   <link rel="stylesheet" href="css/toolbar.css">
-
-
-
-
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/toolbar.css">
+<link rel="stylesheet" href="css/responsive.css">
 </head>
-
 
 <body>
 
-
-<!-- =========================================================
-     Mobile menu button
-     ========================================================= -->
-
-<button
-    class="menu-button"
-    id="menu-button"
-    onclick="toggleMenu()"
-    aria-label="بستن منوی مسیرها"
-    aria-expanded="true"
-    aria-controls="sidebar"
->
-    ☰
-</button>
-
-
-<!-- =========================================================
-     Sidebar
-     ========================================================= -->
-
-<aside
-    class="sidebar"
-    id="sidebar"
->
-
-    <div class="sidebar-header">
-
-        <h2>
-            -
-        </h2>
-
+<!-- Top Bar -->
+<header class="app-topbar">
+    <div class="brand-zone">
+        <span class="brand-icon">🏔️</span>
+        <h1 class="brand-title">تحلیل و مقایسه مسیرهای کوهستانی</h1>
     </div>
 
-
-    <div class="section-title">
-        مسیرهای پیش‌فرض
-    </div>
-
-
-    <div id="default-routes">
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="صفه"
-                data-file="data/sample/صفه.gpx"
-            >
-            صفه
-        </label>
-
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="کرکس"
-                data-file="data/sample/کرکس.gpx"
-            >
-            کرکس
-        </label>
-
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="دالان کوه"
-                data-file="data/sample/دالان کوه.gpx"
-            >
-            دالان کوه
-        </label>
-
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="کلار چیرو"
-                data-file="data/sample/کلار چیرو.gpx"
-            >
-            کلار چیرو
-        </label>
-
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="شاهانکوه"
-                data-file="data/sample/شاهانکوه.gpx"
-            >
-            شاهانکوه
-        </label>
-
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="شاه کوه"
-                data-file="data/sample/شاه کوه.gpx"
-            >
-            شاه کوه
-        </label>
-
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="حوض دال دنا"
-                data-file="data/sample/حوض دال دنا.gpx"
-            >
-            حوض دال دنا
-        </label>
-
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="دماوند"
-                data-file="data/sample/دماوند.gpx"
-            >
-            دماوند
-        </label>
-
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="دماوند از بارگاه سوم"
-                data-file="data/sample/دماوند از بارگاه سوم.gpx"
-            >
-            دماوند از بارگاه سوم
-        </label>
-
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="سبلان"
-                data-file="data/sample/سبلان.gpx"
-            >
-            سبلان
-        </label>
-
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="سنبران"
-                data-file="data/sample/سنبران.gpx"
-            >
-            سنبران
-        </label>
-
-
-        <label>
-            <input
-                type="checkbox"
-                class="default-route"
-                data-name="علم کوه"
-                data-file="data/sample/علم کوه.gpx"
-            >
-            علم کوه
-        </label>
-
-    </div>
-
-
-    <div class="section-title">
-        افزودن فایل GPX
-    </div>
-
-
-    <input
-        type="file"
-        id="gpx-file-input"
-        class="gpx-input"
-        accept=".gpx,application/gpx+xml"
-        multiple
-    >
-
-
-    <div class="gpx-help">
-        یک یا چند فایل GPX را از کامپیوتر خود انتخاب کنید.
-    </div>
-
-
-    <div class="section-title">
-        مسیرهای انتخاب‌شده
-    </div>
-
-
-    <div
-        id="selected-routes"
-        class="selected-routes"
-    >
-
-        <div
-            id="empty-message"
-            class="empty-message"
-        >
-            هنوز مسیری انتخاب نشده است
-        </div>
-
-    </div>
-
-</aside>
-
-
-<!-- =========================================================
-     Main
-     ========================================================= -->
-
-<main class="main">
-
-
-    <header class="page-header site-hero">
-
-        <img
-            class="site-hero-image"
-            src="images/header.jpg"
-            width="1584"
-            height="672"
-            alt="مسیرهای کوهستانی؛ تحلیل و مقایسه مسیرهای صعود و پیمایش"
-            fetchpriority="high"
-            decoding="async"
-        >
-
-        <div class="site-hero-content">
-
-            <div class="page-header-actions">
-
-            <a
-                href="mountain-route-calculations-fa.html"
-                class="calculations-link"
-                title="راهنمای محاسبات مسیر"
-            >
-
-                ⚙️
-
-                <span>
-                    محاسبات
-                </span>
-
-            </a>
-
-
-            <a
-                href="https://irimo.ir/far/wd/10823-%D8%A8%D9%88%D9%84%D8%AA%D9%86-%DA%A9%D9%88%D9%87%D8%B3%D8%AA%D8%A7%D9%86.html"
-                class="calculations-link"
-                title="بولتن پیش‌بینی کوهستان"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-
-                🏔️
-
-                <span>
-                    بولتن پیش‌بینی کوهستان
-                </span>
-
-            </a>
-
-
-            <button
-                class="theme-toggle"
-                id="theme-toggle"
-                onclick="toggleTheme()"
-                aria-label="تغییر به حالت تاریک"
-                title="حالت تاریک"
-            >
-                🌙
-            </button>
-
-        </div>
-
-            <div class="page-heading">
-
-            <h1 class="page-title">
-                تحلیل و مقایسه مسیرهای کوهستانی
-            </h1>
-
-            <p class="page-subtitle">
-                مسیرهای صعود و پیمایش را از نظر مسافت، ارتفاع، شیب و سرعت تحلیل و با هم مقایسه کنید.
-            </p>
-
-        </div>
-
-        </div>
-
-    </header>
-
-
-    <!-- =====================================================
-         Elevation
-         ===================================================== -->
-
-    <div
-        id="elevation-container"
-        class="chart-container"
-        style="display:none;"
-    >
-
-        <div class="chart-title">
-            تحلیل و مقایسه مسیر
-        </div>
-
-        <div class="chart-toolbar">
-
-            <div class="chart-mode-buttons">
-
-                <button
-                    type="button"
-                    id="chart-mode-elevation"
-                    class="map-view-button active"
-                    onclick="setElevationChartMode('elevation')"
-                >
-                    پروفایل ارتفاعی مسیرها
-                </button>
-
-                <button
-                    type="button"
-                    id="chart-mode-gain"
-                    class="map-view-button"
-                    onclick="setElevationChartMode('gain')"
-                >
-                    هم‌ترازی بر اساس ارتفاع شروع
-                </button>
-
-                <button
-                    type="button"
-                    id="chart-mode-summit"
-                    class="map-view-button"
-                    onclick="setElevationChartMode('summit')"
-                >
-                    هم‌ترازی بر اساس ارتفاع قله
-                </button>
-
-                <button
-                    type="button"
-                    id="chart-mode-ordered"
-                    class="map-view-button"
-                    onclick="setElevationChartMode('ordered')"
-                >
-                    پروفایل ترتیبی
-                </button>
-
-                <label class="chart-option">
-                    <input
-                        type="checkbox"
-                        id="option-summit-center"
-                        onchange="setSummitCenter(this.checked)"
-                    >
-                    <span>قله در مرکز</span>
-                </label>
-
-            </div>
-
-        </div>
-
-        <div id="elevation-chart"></div>
-
-    </div>
-
-
-    <!-- =====================================================
-         Slope
-         ===================================================== -->
-
-    <div
-        id="slope-difficulty-grid"
-        class="bar-charts-grid"
-        style="display:none;"
-    >
-
-        <div
-            id="slope-container"
-            class="chart-container"
-        >
-
-            <div class="chart-title">
-                توزیع شیب مسیر رفت
-            </div>
-
-            <div id="slope-chart"></div>
-
-        </div>
-
-
-        <div
-            id="difficulty-score-container"
-            class="chart-container"
-        >
-
-            <div class="chart-title">
-                امتیاز سختی
-            </div>
-
-            <div id="difficulty-score-chart"></div>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         Bar charts
-         ===================================================== -->
-
-    <div
-        id="bar-charts-grid"
-        class="bar-charts-grid"
-        style="display:none;"
-    >
-
-        <div
-            id="estimated-ascent-time-container"
-            class="chart-container"
-        >
-
-            <div class="chart-title">
-                زمان صعود
-            </div>
-
-            <div id="estimated-ascent-time-chart"></div>
-
-        </div>
-
-
-        <div
-            id="route-metrics-container"
-            class="chart-container"
-        >
-
-            <div class="chart-title">
-                مقایسه شاخص مسیرها
-            </div>
-
-            <div id="route-metrics-comparison-chart"></div>
-
-        </div>
-
-    </div>
-
-
-    <!-- =====================================================
-         Maps
-         ===================================================== -->
-
-    <div
-        id="map-container"
-        class="chart-container"
-    >
-
-        <div class="chart-title map-title-row">
-
+    <!-- Desktop Navigation Tabs -->
+    <nav class="desktop-nav-tabs" aria-label="بخش‌های اصلی برنامه">
+        <button type="button" class="desktop-nav-item" data-target="guide">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+            <span>راهنما</span>
+        </button>
+        <button type="button" class="desktop-nav-item active" data-target="analysis">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            <span>تحلیل مسیر</span>
+        </button>
+        <button type="button" class="desktop-nav-item" data-target="map">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
             <span>نقشه مسیرها</span>
+        </button>
+        <button type="button" class="desktop-nav-item" data-target="weather">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <span>هواشناسی قله</span>
+        </button>
+    </nav>
 
-            <div
-                class="map-direction-options"
-                role="radiogroup"
-                aria-label="انتخاب جهت مسیر روی نقشه"
-            >
+    <div class="topbar-actions">
+        <button type="button" class="workspace-trigger-btn workspace-trigger" aria-label="مدیریت مسیرها">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+            <span class="route-count-label">مسیرها</span>
+            <span class="route-count-badge badge-zero">۰</span>
+        </button>
 
-                <label class="map-direction-option">
-                    <input
-                        type="radio"
-                        name="map-direction"
-                        value="both"
-                        checked
-                        onchange="setMapDirection(this.value)"
-                    >
-                    <span>مسیر رفت و برگشت</span>
-                </label>
-
-                <label class="map-direction-option">
-                    <input
-                        type="radio"
-                        name="map-direction"
-                        value="outbound"
-                        onchange="setMapDirection(this.value)"
-                    >
-                    <span>مسیر رفت</span>
-                </label>
-
-                <label class="map-direction-option">
-                    <input
-                        type="radio"
-                        name="map-direction"
-                        value="return"
-                        onchange="setMapDirection(this.value)"
-                    >
-                    <span>مسیر برگشت</span>
-                </label>
-
-            </div>
-
-        </div>
-
-
-        <div class="map-view-buttons">
-
-            <button
-                id="map-2d-button"
-                class="map-view-button active"
-                onclick="show2DMap()"
-            >
-                🗺️ نقشه دوبعدی
-            </button>
-
-
-            <button
-                id="map-3d-button"
-                class="map-view-button"
-                onclick="show3DMap()"
-            >
-                🏔️ نمایش سه‌بعدی
-            </button>
-
-        </div>
-
-
-        <div id="map"></div>
-
-
-        <div id="map-3d-container">
-
-            <div id="map-3d"></div>
-
-        </div>
-
-    </div>
-<!-- =====================================================
-     Mountain Summit Weather
-     ===================================================== -->
-
-<div
-    id="weather-container"
-    class="weather-container"
-    style="display:none;"
->
-
-    <div class="weather-section-header">
-
-        <div class="weather-section-title">
-            هواشناسی قله
-        </div>
-
-
-        <a
-            href="https://irimo.ir/far/wd/10823-%D8%A8%D9%88%D9%84%D8%AA%D9%86-%DA%A9%D9%88%D9%87%D8%B3%D8%AA%D8%A7%D9%86.html"
-            class="weather-bulletin-link"
-            title="بولتن پیش‌بینی کوهستان"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-
-            🏔️
-
-            <span>
-                بولتن پیش‌بینی کوهستان
-            </span>
-
+        <a href="mountain-route-calculations-fa.html" class="calculations-link" title="راهنمای محاسبات ریاضی مسیر">
+            <span>⚙️ محاسبات</span>
         </a>
 
+        <div class="header-install-slot"></div>
+
+        <button type="button" class="icon-btn theme-toggle" onclick="toggleTheme()" aria-label="تغییر به حالت تاریک" title="حالت تاریک">
+            🌙
+        </button>
     </div>
+</header>
 
+<div class="workspace-overlay" id="workspace-overlay" aria-hidden="true"></div>
 
-    <div id="weather-cards"></div>
+<div class="app-layout">
+    <main class="main-content" id="main-content">
+        <!-- SECTION 1: راهنما -->
+        <section id="section-guide" class="app-section" aria-labelledby="guide-heading">
+            <div class="section-header-row">
+                <div class="section-title-group">
+                    <span style="font-size: 24px;">📖</span>
+                    <div>
+                        <h2 id="guide-heading" class="section-title">راهنمای استفاده و معرفی سامانه</h2>
+                        <p class="section-subtitle">نحوه بارگذاری فایل GPX، مقایسه شاخص‌ها و تحلیل فنی مسیرها</p>
+                    </div>
+                </div>
+                <button type="button" class="workspace-trigger-btn workspace-trigger">
+                    <span>مدیریت مسیرها</span>
+                    <span class="route-count-badge badge-zero">۰</span>
+                </button>
+            </div>
 
+            <div class="guide-hero">
+                <h2>تحلیل و مقایسه مسیرهای کوهستانی</h2>
+                <p>
+                    این ابزار رایگان، فایل‌های خام GPX صعودها و پیمایش‌ها را به شاخص‌های دقیق، بصری و قابل‌مقایسه تبدیل می‌کند.
+                    تمام پردازش‌ها به صورت کاملاً محلی در مرورگر شما انجام شده و هیچ فایلی به سرور ارسال نمی‌شود.
+                </p>
+            </div>
+
+            <div class="guide-grid">
+                <div class="guide-feature-card">
+                    <span class="guide-feature-icon">📈</span>
+                    <div class="guide-feature-text">
+                        <h4>پروفایل‌های ارتفاعی هم‌تراز</h4>
+                        <p>امکان هم‌ترازی مسیرها بر اساس نقطه شروع، نقطه قله، یا اتصال ترتیبی برای پیمایش‌های چند روزه و خط‌الرأس‌ها.</p>
+                    </div>
+                </div>
+                <div class="guide-feature-card">
+                    <span class="guide-feature-icon">📐</span>
+                    <div class="guide-feature-text">
+                        <h4>تحلیل توزیع شیب</h4>
+                        <p>دسته‌بندی خودکار شیب‌های مسیر رفت در دسته‌های ۶ گانه (خیلی آسان تا شیب‌های بسیار شدید و دیواره‌ای).</p>
+                    </div>
+                </div>
+                <div class="guide-feature-card">
+                    <span class="guide-feature-icon">⚡</span>
+                    <div class="guide-feature-text">
+                        <h4>امتیاز سختی جامع (Difficulty Score)</h4>
+                        <p>محاسبه شاخص سختی ترکیبی از ترکیب مسافت ۳ بعدی، ارتفاع‌گیری، بار شیب، ارتفاع مطلق از سطح دریا و فرود.</p>
+                    </div>
+                </div>
+                <div class="guide-feature-card">
+                    <span class="guide-feature-icon">⏱️</span>
+                    <div class="guide-feature-text">
+                        <h4>زمان تخمینی نای‌اسمیت اصلاح‌شده</h4>
+                        <p>برآورد زمان لازم برای صعود با فرمول نای‌اسمیت بهبودیافته با ضریب شیب، در کنار زمان واقعی ثبت‌شده در GPX.</p>
+                    </div>
+                </div>
+                <div class="guide-feature-card">
+                    <span class="guide-feature-icon">🗺️</span>
+                    <div class="guide-feature-text">
+                        <h4>نقشه‌های ۲بعدی و ۳بعدی ماهواره‌ای</h4>
+                        <p>نمایش مسیرها با رنگ‌بندی سرعت حرکت، خطوط توپوگرافی، زمین ناهموار سه‌بعدی و موقعیت‌یاب زنده GPS.</p>
+                    </div>
+                </div>
+                <div class="guide-feature-card">
+                    <span class="guide-feature-icon">☀️</span>
+                    <div class="guide-feature-text">
+                        <h4>هواشناسی نقطه‌ای قله</h4>
+                        <p>پیش‌بینی ۷ روزه و ساعتی بالاترین نقطه مسیر با مدل‌های جهانی معتبر هواشناسی (ECMWF, GFS, ICON).</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="guide-accordion-group">
+                <details class="guide-accordion" open>
+                    <summary>چگونه مسیرهای جدید اضافه کنم؟</summary>
+                    <div class="guide-accordion-content">
+                        <ol>
+                            <li>دکمه <strong>«مسیرها»</strong> را در نوار بالای صفحه لمس کنید تا پنجره مدیریت مسیرها باز شود.</li>
+                            <li>می‌توانید از بخش «مسیرهای پیش‌فرض» قله‌های معروف ایران (صفه، کرکس، دماوند، سبلان، علم‌کوه و...) را انتخاب کنید.</li>
+                            <li>یا با زدن دکمه <strong>«افزودن فایل GPX»</strong>، فایل‌های ضبط‌شده توسط ساعت ورزشی، گارمین یا اپلیکیشن‌های Wikiloc و Strava را بارگذاری کنید.</li>
+                        </ol>
+                    </div>
+                </details>
+                <details class="guide-accordion">
+                    <summary>حریم خصوصی و ذخیره داده‌ها چگونه است؟</summary>
+                    <div class="guide-accordion-content">
+                        <p>
+                            تمام پردازش‌های محاسباتی فایل GPX در داخل حافظه مرورگر شما انجام می‌شود.
+                            فایل‌های انتخابی شما در پایگاه‌داده داخلی مرورگر (IndexedDB) ذخیره می‌شوند تا با بستن یا رفرش مرورگر مسیرهای شما پاک نشوند.
+                        </p>
+                    </div>
+                </details>
+                <details class="guide-accordion">
+                    <summary>چگونه از زمان صعود و امتیاز سختی استفاده کنیم؟</summary>
+                    <div class="guide-accordion-content">
+                        <p>
+                            مدل تخمینی زمان بر پایه فرمول کلاسیک نای‌اسمیت به همراه ضریب اصلاح شیب (Slope Factor) محاسبه می‌شود.
+                            برای مشاهده تمام جزئیات روابط ریاضی و جدول وزن‌دهی، صفحه <a href="mountain-route-calculations-fa.html">راهنمای محاسبات</a> را مطالعه کنید.
+                        </p>
+                    </div>
+                </details>
+            </div>
+
+            <div class="guide-links-bar">
+                <a href="mountain-route-calculations-fa.html" class="calculations-link">
+                    ⚙️ مشاهده راهنمای کامل فرمول‌ها و محاسبات
+                </a>
+                <a href="https://irimo.ir/far/wd/10823-%D8%A8%D9%88%D9%84%D8%AA%D9%86-%DA%A9%D9%88%D9%87%D8%B3%D8%AA%D8%A7%D9%86.html" class="calculations-link" target="_blank" rel="noopener noreferrer">
+                    🏔️ بولتن رسمی پیش‌بینی کوهستان کشور
+                </a>
+            </div>
+        </section>
+
+        <!-- SECTION 2: تحلیل مسیر -->
+        <section id="section-analysis" class="app-section active-section" aria-labelledby="analysis-heading">
+            <div class="section-header-row">
+                <div class="section-title-group">
+                    <span style="font-size: 24px;">📊</span>
+                    <div>
+                        <h2 id="analysis-heading" class="section-title">تحلیل و مقایسه مسیرها</h2>
+                        <p class="section-subtitle">پروفایل ارتفاعی، الگوی شیب، سختی و زمان صعود</p>
+                    </div>
+                </div>
+                <button type="button" class="workspace-trigger-btn workspace-trigger">
+                    <span>مدیریت مسیرها</span>
+                    <span class="route-count-badge badge-zero">۰</span>
+                </button>
+            </div>
+
+            <div id="analysis-empty-state" class="empty-state-card" style="display: none;">
+                <div class="empty-state-icon">🏔️</div>
+                <h3 class="empty-state-title">هنوز مسیری انتخاب نشده است</h3>
+                <p class="empty-state-desc">
+                    برای مشاهده نمودارهای مقایسه‌ای و تحلیل ارتفاع، حداقل یک یا چند مسیر پیش‌فرض را تیک بزنید یا فایل GPX خود را بارگذاری کنید.
+                </p>
+                <button type="button" class="primary-cta-btn workspace-trigger">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    <span>انتخاب مسیرها</span>
+                </button>
+            </div>
+
+            <div id="routes-summary-section">
+                <div class="active-routes-pill-list" id="active-routes-pill-list"></div>
+                <div class="quick-stats-grid" id="quick-stats-grid"></div>
+            </div>
+
+            <div id="analysis-charts-wrapper">
+                <div id="elevation-container" class="chart-container">
+                    <div class="chart-title">پروفایل ارتفاعی مسیرها</div>
+                    <div class="chart-toolbar">
+                        <div class="chart-mode-buttons">
+                            <button type="button" id="chart-mode-elevation" class="map-view-button active" onclick="setElevationChartMode('elevation')">
+                                پروفایل واقعی
+                            </button>
+                            <button type="button" id="chart-mode-gain" class="map-view-button" onclick="setElevationChartMode('gain')">
+                                هم‌ترازی با شروع
+                            </button>
+                            <button type="button" id="chart-mode-summit" class="map-view-button" onclick="setElevationChartMode('summit')">
+                                هم‌ترازی با قله
+                            </button>
+                            <button type="button" id="chart-mode-ordered" class="map-view-button" onclick="setElevationChartMode('ordered')">
+                                پروفایل ترتیبی
+                            </button>
+                            <label class="chart-option">
+                                <input type="checkbox" id="option-summit-center" onchange="setSummitCenter(this.checked)">
+                                <span>قله در مرکز</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="elevation-chart"></div>
+                </div>
+
+                <div id="slope-difficulty-grid" class="bar-charts-grid">
+                    <div id="slope-container" class="chart-container">
+                        <div class="chart-title">توزیع شیب مسیر رفت</div>
+                        <div id="slope-chart"></div>
+                    </div>
+                    <div id="difficulty-score-container" class="chart-container">
+                        <div class="chart-title">امتیاز سختی مسیر (Difficulty Score)</div>
+                        <div id="difficulty-score-chart"></div>
+                    </div>
+                </div>
+
+                <div id="bar-charts-grid" class="bar-charts-grid">
+                    <div id="estimated-ascent-time-container" class="chart-container">
+                        <div class="chart-title">زمان صعود (تخمینی نای‌اسمیت در برابر واقعی)</div>
+                        <div id="estimated-ascent-time-chart"></div>
+                    </div>
+                    <div id="route-metrics-container" class="chart-container">
+                        <div class="chart-title">مقایسه شاخص‌های ارتفاعی</div>
+                        <div id="route-metrics-comparison-chart"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: نقشه مسیرها -->
+        <section id="section-map" class="app-section" aria-labelledby="map-heading">
+            <div class="section-header-row">
+                <div class="section-title-group">
+                    <span style="font-size: 24px;">🗺️</span>
+                    <div>
+                        <h2 id="map-heading" class="section-title">نقشه مسیرها</h2>
+                        <p class="section-subtitle">نمایش دوبعدی و سه‌بعدی مسیرها، سرعت حرکت و موقعیت زنده</p>
+                    </div>
+                </div>
+                <button type="button" class="workspace-trigger-btn workspace-trigger">
+                    <span>مدیریت مسیرها</span>
+                    <span class="route-count-badge badge-zero">۰</span>
+                </button>
+            </div>
+
+            <div class="map-card-wrapper" id="map-container">
+                <div class="map-title-row">
+                    <div class="map-view-buttons">
+                        <button type="button" id="map-2d-button" class="map-view-button active" onclick="show2DMap()">
+                            🗺️ نقشه دوبعدی
+                        </button>
+                        <button type="button" id="map-3d-button" class="map-view-button" onclick="show3DMap()">
+                            🏔️ زمین سه‌بعدی
+                        </button>
+                    </div>
+
+                    <div class="map-direction-options" role="radiogroup" aria-label="جهت مسیر">
+                        <label class="map-direction-option">
+                            <input type="radio" name="map-direction" value="both" checked onchange="setMapDirection(this.value)">
+                            <span>رفت و برگشت</span>
+                        </label>
+                        <label class="map-direction-option">
+                            <input type="radio" name="map-direction" value="outbound" onchange="setMapDirection(this.value)">
+                            <span>فقط رفت</span>
+                        </label>
+                        <label class="map-direction-option">
+                            <input type="radio" name="map-direction" value="return" onchange="setMapDirection(this.value)">
+                            <span>فقط برگشت</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="map"></div>
+                <div id="map-3d-container">
+                    <div id="map-3d"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: هواشناسی قله -->
+        <section id="section-weather" class="app-section" aria-labelledby="weather-heading">
+            <div class="section-header-row">
+                <div class="section-title-group">
+                    <span style="font-size: 24px;">☀️</span>
+                    <div>
+                        <h2 id="weather-heading" class="section-title">هواشناسی قله</h2>
+                        <p class="section-subtitle">پیش‌بینی نقطه‌ای ۷ روزه و ساعتی در بالاترین ارتفاع هر مسیر</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <a href="https://irimo.ir/far/wd/10823-%D8%A8%D9%88%D9%84%D8%AA%D9%86-%DA%A9%D9%88%D9%87%D8%B3%D8%AA%D8%A7%D9%86.html" class="calculations-link" target="_blank" rel="noopener noreferrer">
+                        <span>🏔️ بولتن کوهستان</span>
+                    </a>
+                    <button type="button" class="workspace-trigger-btn workspace-trigger">
+                        <span>مدیریت مسیرها</span>
+                        <span class="route-count-badge badge-zero">۰</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="weather-container" class="weather-container">
+                <div id="weather-cards"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Route Workspace Sidebar / Drawer -->
+    <aside class="sidebar" id="sidebar" aria-label="مدیریت مسیرهای انتخابی">
+        <div class="sidebar-header">
+            <h3 class="sidebar-title">
+                <span>📍 مدیریت مسیرها</span>
+                <span class="route-count-badge badge-zero">۰</span>
+            </h3>
+            <button type="button" class="workspace-close-btn" aria-label="بستن پنجره">×</button>
+        </div>
+
+        <div class="sidebar-body">
+            <div class="workspace-section">
+                <div class="workspace-section-header">
+                    <span>مسیرهای فعال برای مقایسه</span>
+                    <span class="route-count-label" style="font-size: 11px; color: var(--text-muted);">۰ مسیر</span>
+                </div>
+                <div class="selected-routes-container" id="selected-routes">
+                    <div class="empty-message">هنوز مسیری انتخاب نشده است</div>
+                </div>
+            </div>
+
+            <div class="workspace-section">
+                <div class="workspace-section-header">
+                    <span>افزودن فایل GPX دلخواه</span>
+                </div>
+                <div class="gpx-upload-box">
+                    <input type="file" id="gpx-file-input" accept=".gpx,application/gpx+xml" multiple aria-label="بارگذاری فایل GPX">
+                    <div class="gpx-upload-content">
+                        <span class="gpx-upload-icon">📂</span>
+                        <span class="gpx-upload-title">+ انتخاب فایل GPX</span>
+                        <span class="gpx-upload-hint">پشتیبانی از چندین فایل همزمان</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="workspace-section">
+                <div class="workspace-section-header">
+                    <span>مسیرهای پیش‌فرض کوهستان</span>
+                </div>
+                <input type="text" id="route-search-input" class="route-search-input" placeholder="🔍 جستجوی قله...">
+                <div id="default-routes">
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="صفه" data-file="data/sample/صفه.gpx">
+                        <span>صفه (اصفهان - ۲۲۴۰م)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="کرکس" data-file="data/sample/کرکس.gpx">
+                        <span>کرکس (نطنز - ۳۸۹۵م)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="دالان کوه" data-file="data/sample/دالان کوه.gpx">
+                        <span>دالان کوه (اصفهان - ۳۹۱۵م)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="دماوند" data-file="data/sample/دماوند.gpx">
+                        <span>دماوند - جبهه جنوبی (۵۶۱۰م)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="دماوند از بارگاه سوم" data-file="data/sample/دماوند از بارگاه سوم.gpx">
+                        <span>دماوند از بارگاه سوم (۵۶۱۰م)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="سبلان" data-file="data/sample/سبلان.gpx">
+                        <span>سبلان - شمال‌شرقی (۴۸۱۱م)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="علم کوه" data-file="data/sample/علم کوه.gpx">
+                        <span>علم کوه - حصارچال (۴۸۵۰م)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="سنبران" data-file="data/sample/سنبران.gpx">
+                        <span>سنبران اشترانکوه (۴۱۵۰م)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="شاهانکوه" data-file="data/sample/شاهانکوه.gpx">
+                        <span>شاهانکوه فریدونشهر (۴۰۴۰م)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="حوض دال دنا" data-file="data/sample/حوض دال دنا.gpx">
+                        <span>حوض دال دنا (۴۳۵۰م)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="شاه کوه" data-file="data/sample/شاه کوه.gpx">
+                        <span>شاه کوه اصفهان (۲۴۱۰م)</span>
+                    </label>
+                    <label>
+                        <input type="checkbox" class="default-route" data-name="کلار چیرو" data-file="data/sample/کلار چیرو.gpx">
+                        <span>کلار چیرو (۳۶۲۰م)</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </aside>
 </div>
 
-<!-- =====================================================
-     Intro (معرفی)
-     ===================================================== -->
+<!-- Mobile Bottom Navigation Bar -->
+<nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="ناوبری اصلی موبایل">
+    <div class="bottom-nav-grid">
+        <button type="button" class="bottom-nav-item" data-target="guide">
+            <span class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+            </span>
+            <span class="bottom-nav-label">راهنما</span>
+        </button>
 
-<section
-    id="intro"
-    class="intro-section"
-    aria-labelledby="intro-title"
->
+        <button type="button" class="bottom-nav-item active" data-target="analysis" aria-current="page">
+            <span class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            </span>
+            <span class="bottom-nav-label">تحلیل</span>
+        </button>
 
-    <h2 id="intro-title">
-        معرفی
-    </h2>
+        <button type="button" class="bottom-nav-item" data-target="map">
+            <span class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
+            </span>
+            <span class="bottom-nav-label">نقشه</span>
+        </button>
 
-    <p>
-        <strong>تحلیل و مقایسه مسیرهای کوهستانی</strong>
-        (Mountain Route Compare) یک ابزار رایگان و آنلاین برای کوهنوردان،
-        گروه‌های صعود و پیمایش‌گران است که فایل‌های GPX را به اطلاعات قابل‌مقایسه تبدیل می‌کند.
-        با این ابزار می‌توانید چند مسیر را هم‌زمان بارگذاری کنید و ببینید کدام مسیر
-        طولانی‌تر، پرشیب‌تر، سخت‌تر یا زمان‌برتر است، بدون نیاز به نصب برنامه یا ثبت‌نام.
-    </p>
+        <button type="button" class="bottom-nav-item" data-target="weather">
+            <span class="bottom-nav-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            </span>
+            <span class="bottom-nav-label">هواشناسی</span>
+        </button>
+    </div>
+</nav>
 
-    <h3>امکانات</h3>
-
-    <ul>
-        <li>
-            <strong>پروفایل ارتفاعی:</strong>
-            نمایش و هم‌ترازی مسیرها بر اساس ارتفاع شروع یا ارتفاع قله، و پروفایل ترتیبی برای پیمایش‌های چندمرحله‌ای.
-        </li>
-        <li>
-            <strong>تحلیل شیب:</strong>
-            توزیع شیب مسیر رفت در دسته‌های آسان تا بسیار شدید.
-        </li>
-        <li>
-            <strong>امتیاز سختی:</strong>
-            ترکیبی از مسافت، ارتفاع‌گیری، شیب، ارتفاع مطلق و میزان فرود.
-        </li>
-        <li>
-            <strong>زمان صعود:</strong>
-            زمان تخمینی بر پایه فرمول نای‌اسمیت اصلاح‌شده، در کنار زمان واقعی ثبت‌شده در GPX.
-        </li>
-        <li>
-            <strong>سرعت حرکت:</strong>
-            رنگ‌بندی مسیر روی نقشه بر اساس سرعت در هر بخش.
-        </li>
-        <li>
-            <strong>نقشه دوبعدی و سه‌بعدی:</strong>
-            نمایش مسیرها روی نقشه خیابانی، توپوگرافی، ماهواره‌ای و زمین سه‌بعدی.
-        </li>
-        <li>
-            <strong>هواشناسی قله:</strong>
-            پیش‌بینی هفت‌روزه و ساعتی برای بالاترین نقطه هر مسیر با چند مدل هواشناسی.
-        </li>
-    </ul>
-
-    <h3>روش استفاده</h3>
-
-    <ol>
-        <li>از فهرست مسیرهای پیش‌فرض، مسیر مورد نظر را انتخاب کنید یا فایل GPX خود را بارگذاری کنید.</li>
-        <li>برای مقایسه، یک یا چند مسیر دیگر را اضافه کنید و با کشیدن و رها کردن ترتیب آن‌ها را تغییر دهید.</li>
-        <li>نمودارها، نقشه و هواشناسی قله به‌صورت خودکار به‌روزرسانی می‌شوند.</li>
-    </ol>
-
-    <h3>پرسش‌های متداول</h3>
-
-    <details>
-        <summary>فایل GPX من کجا بارگذاری می‌شود؟</summary>
-        <p>
-            تحلیل‌ها به‌طور کامل در مرورگر شما انجام می‌شود و فایل GPX به سرور ارسال نمی‌شود.
-        </p>
-    </details>
-
-    <details>
-        <summary>آیا امتیاز سختی یک استاندارد رسمی است؟</summary>
-        <p>
-            خیر. این امتیاز یک مدل ترکیبی برای مقایسه مسیرها در همین ابزار است.
-            جزئیات فرمول‌ها در صفحه
-            <a href="mountain-route-calculations-fa.html">راهنمای محاسبات</a>
-            آمده است.
-        </p>
-    </details>
-
-    <details>
-        <summary>زمان تخمینی صعود چقدر دقیق است؟</summary>
-        <p>
-            زمان تخمینی بر پایه مسافت، ارتفاع‌گیری و شیب محاسبه می‌شود و شرایط جوی،
-            آمادگی بدنی، بار کوله و توقف‌ها را در نظر نمی‌گیرد. آن را به‌عنوان برآورد اولیه ببینید.
-        </p>
-    </details>
-
-    <details>
-        <summary>چه فایل‌هایی پشتیبانی می‌شوند؟</summary>
-        <p>
-            فایل‌های GPX که نقاط مسیر (trkpt) همراه با ارتفاع داشته باشند.
-            برای نمایش سرعت و زمان واقعی، نقاط باید زمان (timestamp) هم داشته باشند.
-        </p>
-    </details>
-
-</section>
-</main>
-<!-- =========================================================
-     Project JavaScript
-     ========================================================= -->
-
-<!-- Application state and theme -->
+<!-- Scripts -->
 <script src="js/app-state.js"></script>
-
-<!-- GPX reader -->
 <script src="js/gpx-reader.js"></script>
-
-<!-- Route analysis -->
 <script src="js/route-analysis.js"></script>
-
-<!-- Charts -->
 <script src="js/charts.js"></script>
-
-<!-- UI -->
 <script src="js/ui.js"></script>
-
-<!-- Route selection -->
 <script src="js/route-selection.js"></script>
-
-<!-- Speed calculation -->
 <script src="js/speed.js"></script>
-
-<!-- 2D map -->
 <script src="js/map-2d.js"></script>
-
-<!-- 3D map -->
 <script src="js/map-3d.js"></script>
-
 <script src="js/track-geometry.js"></script>
-   
-<!-- User location -->
 <script src="js/user-location.js"></script>
-
-<!-- weather -->
 <script src="js/weather.js"></script>
-
-
-<!-- PWA + saved routes -->
 <script src="js/pwa.js"></script>
-
-<!-- Application startup -->
 <script src="js/app.js"></script>
-</body>
 
+</body>
 </html>

@@ -1,356 +1,164 @@
 /* =========================================================
-   Mobile menu
+   UI Controller & Navigation Orchestrator
    ========================================================= */
 
 function updateMenuButton() {
-
-    const sidebar =
-        document.getElementById(
-            "sidebar"
-        );
-
-
-    const button =
-        document.getElementById(
-            "menu-button"
-        );
-
-
-    if (
-        !sidebar ||
-        !button
-    ) {
-
-        return;
-
-    }
-
-
-    const isClosed =
-        sidebar.classList.contains(
-            "closed"
-        );
-
-
-    button.setAttribute(
-        "aria-expanded",
-        String(!isClosed)
-    );
-
-
-    button.setAttribute(
-        "aria-label",
-        isClosed
-            ? "باز کردن منوی مسیرها"
-            : "بستن منوی مسیرها"
-    );
-
-
-    button.title =
-        isClosed
-            ? "باز کردن منوی مسیرها"
-            : "بستن منوی مسیرها";
-
+    const isClosed = !isWorkspaceOpen;
+    document.querySelectorAll(".menu-button, .workspace-toggle-btn").forEach(btn => {
+        btn.setAttribute("aria-expanded", String(!isClosed));
+    });
 }
-
 
 function toggleMenu() {
-
-    const sidebar =
-        document.getElementById(
-            "sidebar"
-        );
-
-
-    if (!sidebar) {
-
-        return;
-
-    }
-
-
-    sidebar.classList.toggle(
-        "closed"
-    );
-
-
-    updateMenuButton();
-
+    toggleRouteWorkspace();
 }
-
 
 function closeMobileMenu() {
-
-    if (
-        window.innerWidth >
-        900
-    ) {
-
-        return;
-
-    }
-
-
-    const sidebar =
-        document.getElementById(
-            "sidebar"
-        );
-
-
-    if (!sidebar) {
-
-        return;
-
-    }
-
-
-    sidebar.classList.add(
-        "closed"
-    );
-
-
-    updateMenuButton();
-
+    closeRouteWorkspace();
 }
-
 
 function initializeMobileMenu() {
-
-    const sidebar =
-        document.getElementById(
-            "sidebar"
-        );
-
-
-    if (!sidebar) {
-
-        return;
-
+    const overlay = document.getElementById("workspace-overlay");
+    if (overlay) {
+        overlay.addEventListener("click", closeRouteWorkspace);
     }
 
+    document.querySelectorAll(".workspace-close-btn").forEach(btn => {
+        btn.addEventListener("click", closeRouteWorkspace);
+    });
 
-    sidebar.classList.remove(
-        "closed"
-    );
-
-
-    updateMenuButton();
-
+    document.querySelectorAll(".workspace-trigger").forEach(btn => {
+        btn.addEventListener("click", openRouteWorkspace);
+    });
 }
-
-
-/* =========================================================
-   Show / hide analysis charts
-   ========================================================= */
 
 function showAnalysisCharts() {
+    const eleCont = document.getElementById("elevation-container");
+    const slopeCont = document.getElementById("slope-difficulty-grid");
+    const barCont = document.getElementById("bar-charts-grid");
+    const mapCont = document.getElementById("map-container");
 
-    document.getElementById(
-        "elevation-container"
-    ).style.display = "block";
+    if (eleCont) eleCont.style.display = "block";
+    if (slopeCont) slopeCont.style.display = "grid";
+    if (barCont) barCont.style.display = "grid";
+    if (mapCont) mapCont.style.display = "block";
 
-
-    document.getElementById(
-        "slope-difficulty-grid"
-    ).style.display = "grid";
-
-
-    document.getElementById(
-        "bar-charts-grid"
-    ).style.display = "grid";
-
-
-    document.getElementById(
-        "map-container"
-    ).style.display = "block";
-
-
-    setTimeout(
-        () => {
-
-            window.dispatchEvent(
-                new Event("resize")
-            );
-
-
-            if (map) {
-
-                map.invalidateSize();
-
-            }
-
-
-            if (map3d) {
-
-                map3d.resize();
-
-            }
-
-        },
-        50
-    );
-
+    setTimeout(() => {
+        window.dispatchEvent(new Event("resize"));
+        if (map && typeof map.invalidateSize === "function") {
+            map.invalidateSize();
+        }
+        if (map3d && typeof map3d.resize === "function") {
+            map3d.resize();
+        }
+    }, 50);
 }
-
 
 function hideAnalysisCharts() {
+    const eleCont = document.getElementById("elevation-container");
+    const slopeCont = document.getElementById("slope-difficulty-grid");
+    const barCont = document.getElementById("bar-charts-grid");
+    const mapCont = document.getElementById("map-container");
 
-    document.getElementById(
-        "elevation-container"
-    ).style.display = "none";
-
-
-    document.getElementById(
-        "slope-difficulty-grid"
-    ).style.display = "none";
-
-
-    document.getElementById(
-        "bar-charts-grid"
-    ).style.display = "none";
-
-
-    document.getElementById(
-        "map-container"
-    ).style.display = "none";
-
+    if (eleCont) eleCont.style.display = "none";
+    if (slopeCont) slopeCont.style.display = "none";
+    if (barCont) barCont.style.display = "none";
+    if (mapCont) mapCont.style.display = "none";
 }
 
-
-/* =========================================================
-   Redraw all charts and maps
-   ========================================================= */
 function redrawAllCharts() {
-
-    if (
-        analysisResults.length === 0
-    ) {
-
-        hideAnalysisCharts();
-
-        clearMap();
-
-        clear3DMap();
-
-        clearWeatherForecasts();
-
-        return;
-
+    updateRouteWorkspaceBadges();
+    if (typeof updateRouteSummary === "function") {
+        updateRouteSummary();
     }
 
+    if (analysisResults.length === 0) {
+        hideAnalysisCharts();
+        clearMap();
+        clear3DMap();
+        clearWeatherForecasts();
+        return;
+    }
 
     showAnalysisCharts();
 
-
-    drawElevationProfile(
-        analysisResults
-    );
-
-
-    drawSlopeDistribution(
-        analysisResults
-    );
-
-
-    drawDifficultyScoreChart(
-        analysisResults
-    );
-
-
-    drawAscentTimeComparisonChart(
-        analysisResults
-    );
-
-
-    drawRouteMetricsComparisonChart(
-        analysisResults
-    );
-
-
-    drawRoutesOnMap(
-        analysisResults
-    );
-
-
-    if (
-        currentMapMode === "3d" &&
-        map3d
-    ) {
-
-        drawRoutesOn3DMap(
-            analysisResults
-        );
-
+    if (typeof drawElevationProfile === "function") {
+        drawElevationProfile(analysisResults);
     }
 
+    if (typeof drawSlopeDistribution === "function") {
+        drawSlopeDistribution(analysisResults);
+    }
 
-    /* =========================
-       Weather
-       بعد از نقشه‌ها
-       ========================= */
+    if (typeof drawDifficultyScoreChart === "function") {
+        drawDifficultyScoreChart(analysisResults);
+    }
 
-    drawWeatherForecasts(
-        analysisResults
-    );
+    if (typeof drawAscentTimeComparisonChart === "function") {
+        drawAscentTimeComparisonChart(analysisResults);
+    }
 
+    if (typeof drawRouteMetricsComparisonChart === "function") {
+        drawRouteMetricsComparisonChart(analysisResults);
+    }
+
+    if (typeof drawRoutesOnMap === "function") {
+        drawRoutesOnMap(analysisResults);
+    }
+
+    if (currentMapMode === "3d" && map3d && typeof drawRoutesOn3DMap === "function") {
+        drawRoutesOn3DMap(analysisResults);
+    }
+
+    if (typeof drawWeatherForecasts === "function") {
+        drawWeatherForecasts(analysisResults);
+    }
 }
 
-
-/* =========================================================
-   Main click closes mobile menu
-   ========================================================= */
-
 function initializeUIEvents() {
+    document.querySelectorAll(".bottom-nav-item").forEach(item => {
+        item.addEventListener("click", () => {
+            const targetSection = item.dataset.target;
+            setActiveSection(targetSection);
+        });
+    });
 
-    const main =
-        document.querySelector(
-            ".main"
-        );
+    document.querySelectorAll(".desktop-nav-item").forEach(item => {
+        item.addEventListener("click", () => {
+            const targetSection = item.dataset.target;
+            setActiveSection(targetSection);
+        });
+    });
 
-
-    if (main) {
-
-        main.addEventListener(
-            "click",
-            function() {
-
-                closeMobileMenu();
-
-            }
-        );
-
+    const searchInput = document.getElementById("route-search-input");
+    if (searchInput) {
+        searchInput.addEventListener("input", function() {
+            const query = this.value.trim().toLowerCase();
+            document.querySelectorAll("#default-routes label").forEach(label => {
+                const text = label.textContent.toLowerCase();
+                label.style.display = text.includes(query) ? "flex" : "none";
+            });
+        });
     }
 
-
-    window.addEventListener(
-        "resize",
-        function() {
-
-            if (
-                window.innerWidth >
-                900
-            ) {
-
-                const sidebar =
-                    document.getElementById(
-                        "sidebar"
-                    );
-
-
-                if (sidebar) {
-
-                    sidebar.classList.remove(
-                        "closed"
-                    );
-
-                }
-
-            }
-
-
-            updateMenuButton();
-
+    window.addEventListener("keydown", function(e) {
+        if (e.key === "Escape" && isWorkspaceOpen) {
+            closeRouteWorkspace();
         }
-    );
+    });
 
+    window.addEventListener("resize", function() {
+        if (window.innerWidth > 900) {
+            const sidebar = document.getElementById("sidebar");
+            const overlay = document.getElementById("workspace-overlay");
+            if (sidebar) {
+                sidebar.classList.remove("closed", "open");
+            }
+            if (overlay) {
+                overlay.classList.remove("active");
+            }
+            document.body.classList.remove("drawer-open");
+            isWorkspaceOpen = false;
+        }
+    });
 }
