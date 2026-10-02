@@ -1,5 +1,5 @@
 /* Service Worker - Mountain Route Compare */
-const VERSION = "v1";
+const VERSION = "v3";
 const SHELL_CACHE = "mrc-shell-" + VERSION;
 const RUNTIME_CACHE = "mrc-runtime-" + VERSION;
 
@@ -9,7 +9,7 @@ const SHELL_FILES = [
   "js/app-state.js", "js/gpx-reader.js", "js/route-analysis.js", "js/charts.js",
   "js/ui.js", "js/route-selection.js", "js/speed.js", "js/map-2d.js",
   "js/map-3d.js", "js/weather.js", "js/app.js", "js/pwa.js",
-  "images/header.jpg", "icons/icon-192.png", "icons/icon-512.png"
+  "images/header.jpg", "icons/icon-192.png", "icons/icon-512.png","js/user-location.js","css/toolbar.css"
 ];
 
 /* کتابخانه‌های خارجی که باید برای استفاده آفلاین کش شوند */

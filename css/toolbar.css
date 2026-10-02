@@ -1,0 +1,397 @@
+/* =========================================================
+   Toolbar groups (chart modes / map view / user location)
+
+   - All buttons share one size
+   - Each group has its own frame, label and accent colour
+       chart modes  -> blue
+       map 2D / 3D  -> purple
+       my location  -> green
+   - Load AFTER style.css and responsive.css
+   ========================================================= */
+
+:root {
+    --tb-chart: #4d8bc9;
+    --tb-map: #7e57c2;
+    --tb-location: #2e9e5b;
+}
+
+
+/* ---------------------------------------------------------
+   Layout of the group containers
+   --------------------------------------------------------- */
+
+.chart-toolbar {
+    padding: 4px 10px 12px;
+}
+
+.map-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 6px 10px 12px;
+}
+
+.chart-mode-buttons,
+.map-view-buttons,
+.map-location-group {
+    --grp: var(--tb-chart);
+
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 6px;
+    padding: 24px 8px 8px;
+    margin: 0;
+    border: 1px solid var(--grp);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--grp) 7%, transparent);
+}
+
+.map-view-buttons {
+    --grp: var(--tb-map);
+}
+
+.map-location-group {
+    --grp: var(--tb-location);
+}
+
+/* group label */
+
+.chart-mode-buttons::before,
+.map-view-buttons::before,
+.map-location-group::before {
+    position: absolute;
+    top: 4px;
+    right: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1.6;
+    color: var(--grp);
+}
+
+.chart-mode-buttons::before { content: "نوع نمودار"; }
+.map-view-buttons::before   { content: "نوع نقشه"; }
+.map-location-group::before { content: "موقعیت من"; }
+
+
+/* ---------------------------------------------------------
+   Buttons: same size everywhere
+   --------------------------------------------------------- */
+
+.chart-mode-buttons .map-view-button,
+.map-view-buttons .map-view-button,
+.map-location-group .map-view-button,
+.chart-mode-buttons .chart-option {
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    min-height: 38px;
+    padding: 6px 14px;
+
+    border: 1px solid color-mix(in srgb, var(--grp) 45%, #ccc);
+    border-radius: 8px;
+
+    background: #fff;
+    color: #333;
+
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.chart-mode-buttons .map-view-button:hover,
+.map-view-buttons .map-view-button:hover,
+.map-location-group .map-view-button:hover,
+.chart-mode-buttons .chart-option:hover {
+    background: color-mix(in srgb, var(--grp) 14%, #fff);
+}
+
+.chart-mode-buttons .map-view-button.active,
+.map-view-buttons .map-view-button.active,
+.map-location-group .map-view-button.active {
+    background: var(--grp);
+    border-color: var(--grp);
+    color: #fff;
+}
+
+.chart-mode-buttons .chart-option input {
+    accent-color: var(--grp);
+}
+
+.map-location-group .map-view-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.map-location-group .map-view-button:disabled:hover {
+    background: #fff;
+}
+
+.user-location-status {
+    flex: 1 0 100%;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #666;
+}
+
+.user-location-status:empty {
+    display: none;
+}
+
+
+/* ---------------------------------------------------------
+   Dark mode
+   --------------------------------------------------------- */
+
+body.dark-mode .chart-mode-buttons,
+body.dark-mode .map-view-buttons,
+body.dark-mode .map-location-group {
+    background: color-mix(in srgb, var(--grp) 12%, transparent);
+}
+
+body.dark-mode .chart-mode-buttons .map-view-button,
+body.dark-mode .map-view-buttons .map-view-button,
+body.dark-mode .map-location-group .map-view-button,
+body.dark-mode .chart-mode-buttons .chart-option {
+    background: #2b2e30;
+    border-color: color-mix(in srgb, var(--grp) 55%, #484b4d);
+    color: #eee;
+}
+
+body.dark-mode .chart-mode-buttons .map-view-button:hover,
+body.dark-mode .map-view-buttons .map-view-button:hover,
+body.dark-mode .map-location-group .map-view-button:hover,
+body.dark-mode .chart-mode-buttons .chart-option:hover {
+    background: color-mix(in srgb, var(--grp) 25%, #2b2e30);
+}
+
+body.dark-mode .chart-mode-buttons .map-view-button.active,
+body.dark-mode .map-view-buttons .map-view-button.active,
+body.dark-mode .map-location-group .map-view-button.active {
+    background: var(--grp);
+    border-color: var(--grp);
+    color: #fff;
+}
+
+body.dark-mode .map-location-group .map-view-button:disabled:hover {
+    background: #2b2e30;
+}
+
+body.dark-mode .user-location-status {
+    color: #aaa;
+}
+
+
+/* ---------------------------------------------------------
+   Mobile: every group is full width, buttons in 2 equal
+   columns with a comfortable touch height
+   --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+
+    .chart-toolbar {
+        gap: 0;
+        padding: 4px 6px 10px;
+    }
+
+    .chart-mode-buttons,
+    .map-toolbar,
+    .map-view-buttons,
+    .map-location-group {
+        width: 100%;
+    }
+
+    .map-toolbar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 6px 10px;
+    }
+
+    .chart-mode-buttons,
+    .map-view-buttons,
+    .map-location-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    .chart-mode-buttons .map-view-button,
+    .map-view-buttons .map-view-button,
+    .map-location-group .map-view-button,
+    .chart-mode-buttons .chart-option {
+        min-height: 42px;
+        padding: 6px 8px;
+        font-size: 12px;
+        white-space: normal;
+        width: 100%;
+    }
+
+    /* the "summit at center" checkbox takes a full row */
+    .chart-mode-buttons .chart-option {
+        grid-column: 1 / -1;
+    }
+
+    .user-location-status {
+        grid-column: 1 / -1;
+    }
+}
+
+
+@media (max-width: 360px) {
+
+    .chart-mode-buttons .map-view-button,
+    .map-view-buttons .map-view-button,
+    .map-location-group .map-view-button {
+        font-size: 11px;
+        padding: 6px 4px;
+    }
+}
+
+
+/* =========================================================
+   User location info panel
+   ========================================================= */
+
+.user-location-panel {
+    margin: 0 10px 12px;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--tb-location) 45%, #ccc);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--tb-location) 6%, #fff);
+    color: #333;
+}
+
+.user-location-panel [hidden],
+.user-location-panel[hidden] {
+    display: none !important;
+}
+
+.ulp-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+
+.ulp-title {
+    font-weight: bold;
+    color: var(--tb-location);
+}
+
+.ulp-route {
+    color: #666;
+}
+
+.ulp-meta {
+    margin-inline-start: auto;
+    font-size: 12px;
+    color: #666;
+}
+
+.ulp-meta.warn {
+    color: #d9822b;
+    font-weight: bold;
+}
+
+.ulp-track {
+    max-width: 100%;
+    min-height: 30px;
+    padding: 4px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+    color: #333;
+    font-family: inherit;
+    font-size: 12px;
+}
+
+.ulp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+}
+
+.ulp-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 10px;
+    border: 1px solid #e1e5ea;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.ulp-label {
+    font-size: 12px;
+    color: #68707a;
+}
+
+.ulp-value {
+    display: block;
+    text-align: right;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.ulp-note {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #777;
+}
+
+body.dark-mode .user-location-panel {
+    background: color-mix(in srgb, var(--tb-location) 10%, #202324);
+    border-color: color-mix(in srgb, var(--tb-location) 55%, #484b4d);
+    color: #eee;
+}
+
+body.dark-mode .ulp-item {
+    background: #2b2e30;
+    border-color: #3a3d3f;
+}
+
+body.dark-mode .ulp-label,
+body.dark-mode .ulp-route,
+body.dark-mode .ulp-meta,
+body.dark-mode .ulp-note {
+    color: #aaa;
+}
+
+body.dark-mode .ulp-meta.warn {
+    color: #f0a45a;
+}
+
+body.dark-mode .ulp-track {
+    background: #2b2e30;
+    border-color: #484b4d;
+    color: #eee;
+}
+
+@media (max-width: 900px) {
+
+    .user-location-panel {
+        margin: 0 6px 10px;
+        padding: 8px 10px;
+    }
+
+    .ulp-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .ulp-value {
+        font-size: 16px;
+    }
+
+    .ulp-track {
+        flex: 1 1 100%;
+    }
+}
