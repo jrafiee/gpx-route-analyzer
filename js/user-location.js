@@ -604,6 +604,24 @@
 
     }
 
+    function setProgress(prefix, fraction) {
+
+        const fill = document.getElementById(prefix + "-fill");
+        const pct = document.getElementById(prefix + "-pct");
+
+        const ok = Number.isFinite(fraction);
+        const f = ok ? Math.min(1, Math.max(0, fraction)) : 0;
+
+        if (fill) {
+            fill.style.width = (f * 100) + "%";
+        }
+
+        if (pct) {
+            pct.textContent = ok ? Math.round(f * 100) + "%" : "—";
+        }
+
+    }
+
     function panelHide(id, hidden) {
 
         const element = document.getElementById(id);
@@ -644,24 +662,28 @@
                     <span id="ulp-altitude" class="ulp-value" dir="ltr">—</span>
                 </div>
 
-                <div class="ulp-item">
-                    <span class="ulp-label">ارتفاع تا قله</span>
-                    <span id="ulp-to-summit" class="ulp-value" dir="ltr">—</span>
+                <div id="ulp-item-climb" class="ulp-item ulp-progress ulp-climb">
+                    <div class="ulp-prog-head">
+                        <span class="ulp-label">پیشروی ارتفاعی</span>
+                        <span id="ulp-climb-pct" class="ulp-prog-pct" dir="ltr">—</span>
+                    </div>
+                    <div class="ulp-bar" dir="ltr"><div id="ulp-climb-fill" class="ulp-bar-fill"></div></div>
+                    <div class="ulp-prog-foot" dir="ltr">
+                        <span><small dir="rtl">اختلاف از نقطه شروع</small><b id="ulp-from-start">—</b></span>
+                        <span><small dir="rtl">ارتفاع تا قله</small><b id="ulp-to-summit">—</b></span>
+                    </div>
                 </div>
 
-                <div class="ulp-item">
-                    <span class="ulp-label">اختلاف از نقطه شروع</span>
-                    <span id="ulp-from-start" class="ulp-value" dir="ltr">—</span>
-                </div>
-
-                <div id="ulp-item-origin" class="ulp-item" hidden>
-                    <span class="ulp-label">فاصله از مبدا</span>
-                    <span id="ulp-from-origin" class="ulp-value" dir="ltr">—</span>
-                </div>
-
-                <div id="ulp-item-end" class="ulp-item" hidden>
-                    <span class="ulp-label">فاصله تا مقصد</span>
-                    <span id="ulp-to-end" class="ulp-value" dir="ltr">—</span>
+                <div id="ulp-item-origin" class="ulp-item ulp-progress ulp-dist" hidden>
+                    <div class="ulp-prog-head">
+                        <span class="ulp-label">پیشروی مسیر</span>
+                        <span id="ulp-dist-pct" class="ulp-prog-pct" dir="ltr">—</span>
+                    </div>
+                    <div class="ulp-bar" dir="ltr"><div id="ulp-dist-fill" class="ulp-bar-fill"></div></div>
+                    <div class="ulp-prog-foot" dir="ltr">
+                        <span><small dir="rtl">فاصله از مبدا</small><b id="ulp-from-origin">—</b></span>
+                        <span><small dir="rtl">فاصله تا مقصد</small><b id="ulp-to-end">—</b></span>
+                    </div>
                 </div>
 
             </div>
@@ -822,6 +844,16 @@
                 : "—"
         );
 
+        setProgress(
+            "ulp-climb",
+            altitude !== null &&
+            Number.isFinite(summit) &&
+            Number.isFinite(startElevation) &&
+            summit > startElevation
+                ? (altitude - startElevation) / (summit - startElevation)
+                : null
+        );
+
         /* distances along the track */
 
         let projection = null;
@@ -853,11 +885,15 @@
         }
 
         panelHide("ulp-item-origin", !onTrack);
-        panelHide("ulp-item-end", !onTrack);
 
         if (onTrack) {
             panelText("ulp-from-origin", formatDistance(projection.along));
             panelText("ulp-to-end", formatDistance(projection.remaining));
+
+            setProgress(
+                "ulp-dist",
+                projection.total > 0 ? projection.along / projection.total : null
+            );
         }
 
         const note = document.getElementById("ulp-offtrack");

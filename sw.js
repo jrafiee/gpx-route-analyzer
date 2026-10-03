@@ -4,7 +4,7 @@ const SHELL_CACHE = "mrc-shell-" + VERSION;
 const RUNTIME_CACHE = "mrc-runtime-" + VERSION;
 
 const SHELL_FILES = [
-  "./", "index.html", "mountain-route-calculations-fa.html", "manifest.webmanifest",
+  "./", "index.html", "manifest.webmanifest",
   "css/style.css", "css/responsive.css",
   "js/app-state.js", "js/gpx-reader.js", "js/route-analysis.js", "js/charts.js",
   "js/ui.js", "js/route-selection.js", "js/speed.js", "js/map-2d.js",

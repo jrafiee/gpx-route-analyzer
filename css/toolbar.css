@@ -552,3 +552,22 @@ body.dark-mode .chart-mode-buttons {
     content: none;
     display: none;
 }
+
+
+/* Location panel: progress bars (climb / distance) */
+.ulp-progress{grid-column:1 / -1;gap:6px}
+.ulp-prog-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ulp-prog-pct{font-family:Consolas,"Courier New",monospace;font-size:13px;font-weight:bold}
+.ulp-bar{--bar:var(--tb-chart);height:14px;border-radius:7px;overflow:hidden;background:color-mix(in srgb,var(--bar) 14%,transparent);border:1px solid color-mix(in srgb,var(--bar) 40%,transparent)}
+.ulp-bar-fill{height:100%;width:0;background:var(--bar);transition:width .4s ease}
+.ulp-dist .ulp-bar{--bar:var(--tb-location)}
+.ulp-prog-foot{display:flex;justify-content:space-between;gap:12px}
+.ulp-prog-foot span{display:flex;flex-direction:column;gap:1px}
+.ulp-prog-foot span:last-child{align-items:flex-end}
+.ulp-prog-foot small{font-size:11px;color:#68707a}
+.ulp-prog-foot b{font-family:Consolas,"Courier New",monospace;font-size:16px}
+body.dark-mode .ulp-prog-foot small{color:#aaa}
+@media (max-width:900px){
+    .ulp-item.ulp-progress{flex-direction:column;align-items:stretch;gap:6px}
+    .ulp-item.ulp-dist{border-inline-start-color:var(--tb-location)}
+}
