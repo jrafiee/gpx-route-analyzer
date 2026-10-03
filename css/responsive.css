@@ -4,6 +4,12 @@
 
 /* Desktop Breakpoint (> 900px) */
 @media (min-width: 901px) {
+    /* Sidebar is always visible on desktop: route-manager buttons are not needed */
+    .workspace-trigger-btn,
+    .workspace-trigger {
+        display: none !important;
+    }
+
     .mobile-bottom-nav {
         display: none !important;
     }

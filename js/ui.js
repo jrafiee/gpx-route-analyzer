@@ -66,8 +66,31 @@ function hideAnalysisCharts() {
     if (mapCont) mapCont.style.display = "none";
 }
 
+let lastRouteCount = 0;
+
+/*
+ * Desktop only: first route selected -> open the analysis section;
+ * all routes removed -> back to the guide section.
+ */
+function handleDesktopSectionSwitch() {
+    const count = analysisResults.length;
+    const previous = lastRouteCount;
+    lastRouteCount = count;
+
+    if (window.innerWidth <= 900) {
+        return;
+    }
+
+    if (previous === 0 && count > 0) {
+        setActiveSection("analysis");
+    } else if (previous > 0 && count === 0) {
+        setActiveSection("guide");
+    }
+}
+
 function redrawAllCharts() {
     updateRouteWorkspaceBadges();
+    handleDesktopSectionSwitch();
     if (typeof updateRouteSummary === "function") {
         updateRouteSummary();
     }
