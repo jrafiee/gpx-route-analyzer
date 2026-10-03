@@ -1755,3 +1755,11 @@ body.dark-mode .temp-val-warm {
 .calc-doc .legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-top:10px}
 .calc-doc .legend div{border:1px solid var(--border-color);border-radius:8px;padding:8px;background:var(--table-label-bg)}
 @media (max-width:700px){.calc-doc .toc{columns:1}.calc-doc table{font-size:12px}}
+
+/* Desktop: map height follows the window (min 620px) */
+@media (min-width: 901px) {
+    #map,
+    #map-3d {
+        height: max(620px, calc(100vh - 100px));
+    }
+}
