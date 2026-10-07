@@ -1363,17 +1363,17 @@
 
         const topo = L.tileLayer(
             "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-            { maxZoom: 17 }
+            { maxZoom: 17, crossOrigin: true }
         );
 
         const sat = L.tileLayer(
             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-            { maxZoom: 19 }
+            { maxZoom: 19, crossOrigin: true }
         );
 
         const osm = L.tileLayer(
             "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            { maxZoom: 19 }
+            { maxZoom: 19, crossOrigin: true }
         );
 
         topo.addTo(navMap);

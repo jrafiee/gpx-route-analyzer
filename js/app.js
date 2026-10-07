@@ -61,7 +61,49 @@ function loadHeroImage() {
 }
 
 
+/*
+ * Plotly / Leaflet are loaded from vendor/ (own server). If a file
+ * is missing there, the CDN copy is loaded instead.
+ */
+
+const LIBRARY_FALLBACKS = {
+    Plotly: "https://cdn.plot.ly/plotly-basic-2.35.2.min.js",
+    L: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+};
+
+function loadScriptOnce(src) {
+
+    return new Promise((resolve, reject) => {
+
+        const script = document.createElement("script");
+
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = () => reject(new Error("Cannot load " + src));
+
+        document.head.appendChild(script);
+
+    });
+
+}
+
+
+async function ensureLibraries() {
+
+    const jobs = Object.entries(LIBRARY_FALLBACKS)
+        .filter(([name]) => !window[name])
+        .map(([, src]) => loadScriptOnce(src));
+
+    if (jobs.length > 0) {
+        await Promise.allSettled(jobs);
+    }
+
+}
+
+
 async function initializeApplication() {
+
+    await ensureLibraries();
 
     loadHeroImage();
 

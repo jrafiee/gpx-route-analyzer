@@ -24,16 +24,7 @@
     padding: 4px 10px 12px;
 }
 
-.map-toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 6px 10px 12px;
-}
-
-.chart-mode-buttons,
-.map-view-buttons,
-.map-location-group {
+.chart-mode-buttons {
     --grp: var(--tb-chart);
 
     position: relative;
@@ -55,25 +46,6 @@
 .map-location-group {
     --grp: var(--tb-location);
 }
-
-/* group label */
-
-.chart-mode-buttons::before,
-.map-view-buttons::before,
-.map-location-group::before {
-    position: absolute;
-    top: 4px;
-    right: 12px;
-    font-size: 11px;
-    font-weight: bold;
-    line-height: 1.6;
-    color: var(--grp);
-}
-
-.chart-mode-buttons::before { content: "نوع نمودار"; }
-.map-view-buttons::before   { content: "نوع نقشه"; }
-.map-location-group::before { content: "موقعیت من"; }
-
 
 /* ---------------------------------------------------------
    Buttons: same size everywhere
@@ -149,12 +121,6 @@
    Dark mode
    --------------------------------------------------------- */
 
-body.dark-mode .chart-mode-buttons,
-body.dark-mode .map-view-buttons,
-body.dark-mode .map-location-group {
-    background: color-mix(in srgb, var(--grp) 12%, transparent);
-}
-
 body.dark-mode .chart-mode-buttons .map-view-button,
 body.dark-mode .map-view-buttons .map-view-button,
 body.dark-mode .map-location-group .map-view-button,
@@ -200,22 +166,8 @@ body.dark-mode .user-location-status {
         padding: 4px 6px 10px;
     }
 
-    .chart-mode-buttons,
-    .map-toolbar,
-    .map-view-buttons,
-    .map-location-group {
+    .chart-mode-buttons {
         width: 100%;
-    }
-
-    .map-toolbar {
-        flex-direction: column;
-        gap: 10px;
-        padding: 4px 6px 10px;
-    }
-
-    .chart-mode-buttons,
-    .map-view-buttons,
-    .map-location-group {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 6px;
@@ -492,12 +444,6 @@ body.dark-mode .ulp-track {
     display: contents;
 }
 
-.map-view-buttons::before,
-.map-location-group::before {
-    content: none;
-    display: none;
-}
-
 .map-view-buttons .map-view-button,
 .map-location-group .map-view-button {
     width: 100%;
@@ -548,10 +494,6 @@ body.dark-mode .chart-mode-buttons {
     background: none;
 }
 
-.chart-mode-buttons::before {
-    content: none;
-    display: none;
-}
 
 
 /* Location panel: progress bars (climb / distance) */

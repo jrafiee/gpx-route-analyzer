@@ -46,6 +46,8 @@ function initializeMapLayers() {
             {
                 maxZoom: 19,
 
+                crossOrigin: true,
+
                 attribution:
                     "&copy; OpenStreetMap contributors"
             }
@@ -58,6 +60,8 @@ function initializeMapLayers() {
             {
                 maxZoom: 17,
 
+                crossOrigin: true,
+
                 attribution:
                     "Map data &copy; OpenStreetMap contributors, SRTM | Map style &copy; OpenTopoMap"
             }
@@ -69,6 +73,8 @@ function initializeMapLayers() {
             "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
             {
                 maxZoom: 19,
+
+                crossOrigin: true,
 
                 attribution:
                     "Tiles &copy; Esri"
@@ -156,24 +162,121 @@ function clearMap() {
    Draw routes
    ========================================================= */
 
-function buildSegmentTooltip(label, segment) {
+/*
+ * Consecutive segments with the same speed colour are drawn as ONE
+ * polyline (10-20x fewer layers). The tooltip describes the whole
+ * run: average speed and its 3D length.
+ */
 
-    const speed =
-        segment ? segment.speed : null;
+function buildRunTooltip(label, run) {
 
     let text = label;
 
-    if (speed !== null && Number.isFinite(speed)) {
-        text += `<br>سرعت: <b>${speed.toFixed(1)}</b> km/h`;
+    if (run.speedCount > 0) {
+        text += `<br>سرعت (میانگین): <b>${(run.speedSum / run.speedCount).toFixed(1)}</b> km/h`;
     } else {
         text += `<br>سرعت: بدون اطلاعات زمانی`;
     }
 
-    if (segment && Number.isFinite(segment.distance3D)) {
-        text += `<br>فاصله 3D: ${segment.distance3D.toFixed(1)} m`;
+    if (run.distance3D > 0) {
+        text += run.distance3D >= 1000
+            ? `<br>طول بخش (3D): ${(run.distance3D / 1000).toFixed(2)} km`
+            : `<br>طول بخش (3D): ${run.distance3D.toFixed(0)} m`;
     }
 
     return text;
+
+}
+
+
+function drawSpeedRuns(points, range, speedSegments, label, bounds) {
+
+    let run = null;
+
+    function flush() {
+
+        if (!run) {
+            return;
+        }
+
+        const info = run;
+
+        const line =
+            L.polyline(
+                info.latLngs,
+                {
+                    color: info.color,
+                    weight: 4,
+                    opacity: 0.9,
+                    lineJoin: "round",
+                    lineCap: "round"
+                }
+            ).addTo(map);
+
+        line.bindTooltip(
+            () => buildRunTooltip(label, info),
+            {
+                sticky: true,
+                direction: "top"
+            }
+        );
+
+        mapLayers.push(line);
+
+        run = null;
+
+    }
+
+    bounds.extend([
+        points[range.start].latitude,
+        points[range.start].longitude
+    ]);
+
+    for (let i = range.start; i < range.end; i++) {
+
+        const point1 = points[i];
+        const point2 = points[i + 1];
+        const segment = speedSegments[i];
+
+        const color =
+            getSpeedColor(segment ? segment.speed : null);
+
+        if (!run || run.color !== color) {
+
+            flush();
+
+            run = {
+                color: color,
+                latLngs: [[point1.latitude, point1.longitude]],
+                speedSum: 0,
+                speedCount: 0,
+                distance3D: 0
+            };
+
+        }
+
+        const latLng = [point2.latitude, point2.longitude];
+
+        run.latLngs.push(latLng);
+
+        bounds.extend(latLng);
+
+        if (segment) {
+
+            if (Number.isFinite(segment.speed)) {
+                run.speedSum += segment.speed;
+                run.speedCount++;
+            }
+
+            if (Number.isFinite(segment.distance3D)) {
+                run.distance3D += segment.distance3D;
+            }
+
+        }
+
+    }
+
+    flush();
 
 }
 
@@ -221,66 +324,13 @@ function drawRoutesOnMap(results) {
                 `${index + 1}. ${escapeHtml(result.route)}`;
 
 
-            for (
-                let i = range.start;
-                i < range.end;
-                i++
-            ) {
-
-                const point1 = points[i];
-                const point2 = points[i + 1];
-                const segment = speedSegments[i];
-
-
-                const latLngs = [
-                    [point1.latitude, point1.longitude],
-                    [point2.latitude, point2.longitude]
-                ];
-
-
-                const line =
-                    L.polyline(
-                        latLngs,
-                        {
-
-                            color:
-                                getSpeedColor(
-                                    segment ? segment.speed : null
-                                ),
-
-                            weight: 4,
-
-                            opacity: 0.9,
-
-                            lineJoin: "round",
-
-                            lineCap: "round"
-
-                        }
-                    ).addTo(
-                        map
-                    );
-
-
-                // the tooltip text is built only when it is shown
-                line.bindTooltip(
-                    () => buildSegmentTooltip(label, segment),
-                    {
-                        sticky: true,
-                        direction: "top"
-                    }
-                );
-
-
-                mapLayers.push(
-                    line
-                );
-
-
-                bounds.extend(latLngs[0]);
-                bounds.extend(latLngs[1]);
-
-            }
+            drawSpeedRuns(
+                points,
+                range,
+                speedSegments,
+                label,
+                bounds
+            );
 
 
             const firstPoint =

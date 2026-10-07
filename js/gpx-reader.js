@@ -96,7 +96,7 @@ function extractRoutePoints(xml) {
             const parsedTime = new Date(timeText.trim());
 
             if (!Number.isNaN(parsedTime.getTime())) {
-                time = parsedTime;
+                time = parsedTime.getTime();   // ms since epoch (number)
             }
         }
 

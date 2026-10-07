@@ -127,10 +127,7 @@ function calculateAscentDistance3D(route) {
 
 
 function hasValidTime(point) {
-    return (
-        point.time instanceof Date &&
-        !Number.isNaN(point.time.getTime())
-    );
+    return Number.isFinite(point.time);
 }
 
 
@@ -159,10 +156,10 @@ function calculateRouteTimes(route) {
     }
 
     const ascentTimeMs =
-        summitPoint.time.getTime() - startPoint.time.getTime();
+        summitPoint.time - startPoint.time;
 
     const totalTimeMs =
-        endPoint.time.getTime() - startPoint.time.getTime();
+        endPoint.time - startPoint.time;
 
     if (ascentTimeMs < 0 || totalTimeMs < 0) {
         return empty;

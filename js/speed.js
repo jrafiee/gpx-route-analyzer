@@ -109,55 +109,16 @@ function calculate3DDistance(
 
 function getPointTimestamp(point) {
 
-    if (
-        !point ||
-        point.time === undefined ||
-        point.time === null
-    ) {
+    if (!point) {
 
         return null;
 
     }
 
+    const time = point.time;
 
-    if (
-        point.time instanceof Date
-    ) {
-
-        const value =
-            point.time.getTime();
-
-
-        return Number.isFinite(value)
-            ? value
-            : null;
-
-    }
-
-
-    if (
-        typeof point.time === "number"
-    ) {
-
-        return Number.isFinite(point.time)
-            ? point.time
-            : null;
-
-    }
-
-
-    const date =
-        new Date(
-            point.time
-        );
-
-
-    const timestamp =
-        date.getTime();
-
-
-    return Number.isFinite(timestamp)
-        ? timestamp
+    return typeof time === "number" && Number.isFinite(time)
+        ? time
         : null;
 
 }
