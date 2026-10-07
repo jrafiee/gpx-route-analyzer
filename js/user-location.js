@@ -1270,47 +1270,53 @@
 
 
     /*
-     * Spoken alert. If the device has no Persian voice the alert
-     * falls back to beeps: 1 beep = track on the left,
-     * 2 beeps = track on the right.
+     * Spoken alert.
+     *  - Persian voice available -> Persian text
+     *  - otherwise -> English-voice fallback text ("chap" / "raast" /
+     *    "dorost shod")
+     *  - no speech support at all -> beeps (1 = left, 2 = right)
      */
 
-    function speakAlert(text, beepCount) {
-
-        let spoke = false;
+    function speakAlert(text, beepCount, fallbackText) {
 
         try {
 
             if ("speechSynthesis" in window) {
 
-                const voice = window.speechSynthesis
-                    .getVoices()
-                    .find(v => /^fa/i.test(v.lang));
+                const voices = window.speechSynthesis.getVoices();
 
-                if (voice) {
+                const fa = voices.find(v => /^fa/i.test(v.lang));
 
-                    window.speechSynthesis.cancel();
+                const en = voices.find(v => /^en/i.test(v.lang));
 
-                    const utterance = new SpeechSynthesisUtterance(text);
+                const utterance = new SpeechSynthesisUtterance(
+                    fa ? text : (fallbackText || text)
+                );
 
+                if (fa) {
                     utterance.lang = "fa-IR";
-                    utterance.voice = voice;
-                    utterance.rate = 0.95;
-                    utterance.volume = 1;
+                    utterance.voice = fa;
+                } else {
+                    utterance.lang = "en-US";
 
-                    window.speechSynthesis.speak(utterance);
-
-                    spoke = true;
-
+                    if (en) {
+                        utterance.voice = en;
+                    }
                 }
+
+                utterance.rate = 0.9;
+                utterance.volume = 1;
+
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+
+                return;
 
             }
 
-        } catch (e) { /* ignore */ }
+        } catch (e) { /* fall through to beeps */ }
 
-        if (!spoke) {
-            beep(beepCount);
-        }
+        beep(beepCount);
 
     }
 
@@ -1331,7 +1337,7 @@
 
         requestWakeLock();
 
-        speakAlert("حالت جیب فعال شد", 1);
+        speakAlert("حالت جیب فعال شد", 1, "pocket mode on");
 
     }
 
@@ -1662,7 +1668,8 @@
 
                 speakAlert(
                     `از مسیر خارج شدید. مسیر سمت ${trackSide} شماست`,
-                    trackSide === "چپ" ? 1 : 2
+                    trackSide === "چپ" ? 1 : 2,
+                    trackSide === "چپ" ? "chap" : "raast"
                 );
 
                 if (navigator.vibrate) {
@@ -1676,7 +1683,7 @@
             navAlert.off = false;
 
             if (pocketOpen) {
-                speakAlert("به مسیر برگشتید", 1);
+                speakAlert("به مسیر برگشتید", 1, "dorost shod");
             }
 
         }
