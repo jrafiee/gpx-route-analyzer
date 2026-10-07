@@ -30,11 +30,13 @@ GPX files are loaded and analyzed directly in the browser. No backend or databas
 ## Project Structure
 
 ```text
-compare_routes_web/
+mountain-route-compare/
 ├── index.html
-├── js/
-│   ├── gpx-reader.js
-│   ├── route-analysis.js
-│   └── charts.js
-├── README.md
-└── .gitignore
+├── sw.js
+├── manifest.webmanifest
+├── partials/calculations.html   (formula guide, loaded on demand)
+├── css/  style.css, responsive.css, toolbar.css, weather.css
+└── js/   app-state, gpx-reader, route-analysis, charts, ui,
+          route-selection, speed, map-2d, map-3d, track-geometry,
+          user-location, weather, pwa, app
+```

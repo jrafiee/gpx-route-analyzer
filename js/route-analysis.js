@@ -24,157 +24,55 @@ function getElevationProfile(route) {
 
 
 /**
- * Elevation profile with normalized distance.
- *
- * Distance is normalized between 0 and 1.
- */
-function getNormalizedElevationProfile(route) {
-    const { distance, elevation } = extractRouteProfile(route);
-
-    const totalDistance = distance[distance.length - 1];
-
-    let normalizedDistance;
-
-    if (totalDistance > 0) {
-        normalizedDistance = distance.map(
-            d => d / totalDistance
-        );
-    } else {
-        normalizedDistance = distance.map(() => 0);
-    }
-
-    return {
-        distance: normalizedDistance,
-        elevation_m: elevation
-    };
-}
-
-
-/**
  * Elevation gain relative to starting elevation.
  */
-function getElevationGainProfile(route) {
-    const { distance, elevation } = extractRouteProfile(route);
-
+function getElevationGainProfile(
+    route,
+    baseProfile = getElevationProfile(route)
+) {
+    const elevation = baseProfile.elevation_m;
     const startingElevation = elevation[0];
 
-    const elevationGain = elevation.map(
-        e => e - startingElevation
-    );
-
     return {
-        distance_km: distance.map(d => d / 1000),
-        elevation_gain_m: elevationGain
+        distance_km: baseProfile.distance_km,
+        elevation_gain_m: elevation.map(
+            e => e - startingElevation
+        )
     };
 }
 
-
-/**
- * Elevation gain with normalized distance.
- */
-function getNormalizedElevationGainProfile(route) {
-    const { distance, elevation } = extractRouteProfile(route);
-
-    const totalDistance = distance[distance.length - 1];
-
-    let normalizedDistance;
-
-    if (totalDistance > 0) {
-        normalizedDistance = distance.map(
-            d => d / totalDistance
-        );
-    } else {
-        normalizedDistance = distance.map(() => 0);
-    }
-
-    const startingElevation = elevation[0];
-
-    const elevationGain = elevation.map(
-        e => e - startingElevation
-    );
-
-    return {
-        distance: normalizedDistance,
-        elevation_gain_m: elevationGain
-    };
-}
 
 function calculateRouteMetrics(route) {
-    // Extract cumulative distance and raw elevation
     const { distance, elevation } =
         extractRouteProfile(route);
 
-    // --------------------------------------------------
-    // Elevation changes
-    // --------------------------------------------------
-
-    const elevationDiff = [];
+    // Single pass: ascent, descent, sum, min and max
+    let totalAscent = 0;
+    let totalDescent = 0;
+    let sum = elevation[0];
+    let minimumElevation = elevation[0];
+    let maximumElevation = elevation[0];
 
     for (let i = 1; i < elevation.length; i++) {
-        elevationDiff.push(
-            elevation[i] - elevation[i - 1]
-        );
-    }
+        const value = elevation[i];
+        const diff = value - elevation[i - 1];
 
-    // --------------------------------------------------
-    // Total ascent
-    // --------------------------------------------------
-
-    let totalAscent = 0;
-
-    for (const diff of elevationDiff) {
         if (diff > 0) {
             totalAscent += diff;
+        } else if (diff < 0) {
+            totalDescent -= diff;
+        }
+
+        sum += value;
+
+        if (value < minimumElevation) {
+            minimumElevation = value;
+        }
+
+        if (value > maximumElevation) {
+            maximumElevation = value;
         }
     }
-
-    // --------------------------------------------------
-    // Total descent
-    // --------------------------------------------------
-
-    let totalDescent = 0;
-
-    for (const diff of elevationDiff) {
-        if (diff < 0) {
-            totalDescent += Math.abs(diff);
-        }
-    }
-
-    // --------------------------------------------------
-    // Mean elevation
-    // --------------------------------------------------
-
-    const meanElevation =
-        elevation.reduce(
-            (sum, value) => sum + value,
-            0
-        ) / elevation.length;
-
-    // --------------------------------------------------
-    // Minimum elevation
-    // --------------------------------------------------
-
-    const minimumElevation =
-        Math.min(...elevation);
-
-    // --------------------------------------------------
-    // Maximum elevation
-    // --------------------------------------------------
-
-    const maximumElevation =
-        Math.max(...elevation);
-
-    // --------------------------------------------------
-    // Maximum elevation gain
-    // Difference between maximum and minimum elevation
-    // --------------------------------------------------
-
-    const maximumElevationGain =
-        maximumElevation - minimumElevation;
-
-    // --------------------------------------------------
-    // Return metrics
-    // --------------------------------------------------
 
     return {
         "Distance (km)":
@@ -190,10 +88,10 @@ function calculateRouteMetrics(route) {
             maximumElevation,
 
         "Maximum Elevation Gain (m)":
-            maximumElevationGain,
+            maximumElevation - minimumElevation,
 
         "Mean Elevation (m)":
-            meanElevation,
+            sum / elevation.length,
 
         "Total Ascent (m)":
             totalAscent,
@@ -210,27 +108,13 @@ function calculateAscentDistance3D(route) {
         return 0;
     }
 
-    // Find summit (highest point)
-    let summitIndex = 0;
-
-    for (let i = 1; i < points.length; i++) {
-        if (
-            Number.isFinite(points[i].elevation) &&
-            points[i].elevation >
-            points[summitIndex].elevation
-        ) {
-            summitIndex = i;
-        }
-    }
+    const summitIndex = getSummitIndexOfPoints(points);
 
     // Sum 3D distance from start to summit
     let ascentDistance3D = 0;
 
     for (let i = 0; i < summitIndex; i++) {
-        const d = distance3D(
-            points[i],
-            points[i + 1]
-        );
+        const d = distance3D(points[i], points[i + 1]);
 
         if (d !== null) {
             ascentDistance3D += d;
@@ -242,115 +126,70 @@ function calculateAscentDistance3D(route) {
 
 
 
+function hasValidTime(point) {
+    return (
+        point.time instanceof Date &&
+        !Number.isNaN(point.time.getTime())
+    );
+}
+
+
 function calculateRouteTimes(route) {
     const points = route.points;
 
-    if (!points || points.length < 2) {
-        return {
-            ascentTimeHours: null,
-            totalTimeHours: null
-        };
-    }
+    const empty = {
+        ascentTimeHours: null,
+        totalTimeHours: null
+    };
 
-    // --------------------------------------------------
-    // Start point
-    // --------------------------------------------------
+    if (!points || points.length < 2) {
+        return empty;
+    }
 
     const startPoint = points[0];
-
-    if (!(startPoint.time instanceof Date) ||
-        Number.isNaN(startPoint.time.getTime())) {
-        return {
-            ascentTimeHours: null,
-            totalTimeHours: null
-        };
-    }
-
-    // --------------------------------------------------
-    // Find summit (highest elevation)
-    // --------------------------------------------------
-
-    let summitIndex = 0;
-
-    for (let i = 1; i < points.length; i++) {
-        if (
-            Number.isFinite(points[i].elevation) &&
-            points[i].elevation >
-            points[summitIndex].elevation
-        ) {
-            summitIndex = i;
-        }
-    }
-
-    // --------------------------------------------------
-    // End point
-    // --------------------------------------------------
-
     const endPoint = points[points.length - 1];
+    const summitPoint = points[getSummitIndexOfPoints(points)];
 
-    if (!(endPoint.time instanceof Date) ||
-        Number.isNaN(endPoint.time.getTime())) {
-        return {
-            ascentTimeHours: null,
-            totalTimeHours: null
-        };
+    if (
+        !hasValidTime(startPoint) ||
+        !hasValidTime(endPoint) ||
+        !hasValidTime(summitPoint)
+    ) {
+        return empty;
     }
-
-    // --------------------------------------------------
-    // Summit time
-    // --------------------------------------------------
-
-    const summitPoint = points[summitIndex];
-
-    if (!(summitPoint.time instanceof Date) ||
-        Number.isNaN(summitPoint.time.getTime())) {
-        return {
-            ascentTimeHours: null,
-            totalTimeHours: null
-        };
-    }
-
-    // --------------------------------------------------
-    // Calculate elapsed times
-    // --------------------------------------------------
 
     const ascentTimeMs =
-        summitPoint.time.getTime() -
-        startPoint.time.getTime();
+        summitPoint.time.getTime() - startPoint.time.getTime();
 
     const totalTimeMs =
-        endPoint.time.getTime() -
-        startPoint.time.getTime();
-
-    // --------------------------------------------------
-    // Validate
-    // --------------------------------------------------
+        endPoint.time.getTime() - startPoint.time.getTime();
 
     if (ascentTimeMs < 0 || totalTimeMs < 0) {
-        return {
-            ascentTimeHours: null,
-            totalTimeHours: null
-        };
+        return empty;
     }
 
     return {
-        ascentTimeHours:
-            ascentTimeMs / (1000 * 60 * 60),
-
-        totalTimeHours:
-            totalTimeMs / (1000 * 60 * 60)
+        ascentTimeHours: ascentTimeMs / (1000 * 60 * 60),
+        totalTimeHours: totalTimeMs / (1000 * 60 * 60)
     };
 }
+
+const SLOPE_BINS = [
+    ["Descent (<0%)", -Infinity, 0],
+    ["Very Easy (0–5%)", 0, 5],
+    ["Easy (5–10%)", 5, 10],
+    ["Moderate (10–15%)", 10, 15],
+    ["Steep (15–20%)", 15, 20],
+    ["Very Steep (20–25%)", 20, 25],
+    ["Extreme (>25%)", 25, Infinity]
+];
+
 
 function calculateSlopeDistribution(
     route,
     resampleDistance = 20,
     smoothingWindow = 2
 ) {
-    // ========================================================
-    // 1. Extract route profile
-    // ========================================================
-
     const { distance, elevation } =
         extractRouteProfile(route);
 
@@ -360,22 +199,14 @@ function calculateSlopeDistribution(
         );
     }
 
-    // ========================================================
-    // 2. Resampling
-    // ========================================================
+    // Resampling (fixed step) + linear interpolation
+    const lastDistance = distance[distance.length - 1];
 
     const newDistance = [];
 
-    for (
-        let d = 0;
-        d < distance[distance.length - 1];
-        d += resampleDistance
-    ) {
+    for (let d = 0; d < lastDistance; d += resampleDistance) {
         newDistance.push(d);
     }
-
-    const lastDistance =
-        distance[distance.length - 1];
 
     if (
         newDistance.length === 0 ||
@@ -390,10 +221,7 @@ function calculateSlopeDistribution(
         elevation
     );
 
-    // ========================================================
-    // 3. Smoothing
-    // ========================================================
-
+    // Smoothing (moving average)
     if (smoothingWindow < 1) {
         throw new Error(
             "smoothing_window must be greater than zero."
@@ -407,22 +235,16 @@ function calculateSlopeDistribution(
     let smoothElevation;
 
     if (newElevation.length >= smoothingWindow) {
-        const kernel = Array(
-            smoothingWindow
-        ).fill(1 / smoothingWindow);
-
         smoothElevation = convolveSame(
             newElevation,
-            kernel
+            Array(smoothingWindow).fill(1 / smoothingWindow)
         );
 
-        const half =
-            Math.floor(smoothingWindow / 2);
+        const half = Math.floor(smoothingWindow / 2);
 
         // Avoid convolution edge effects
         for (let i = 0; i < half; i++) {
-            smoothElevation[i] =
-                newElevation[i];
+            smoothElevation[i] = newElevation[i];
         }
 
         for (
@@ -430,192 +252,94 @@ function calculateSlopeDistribution(
             i < newElevation.length;
             i++
         ) {
-            smoothElevation[i] =
-                newElevation[i];
+            smoothElevation[i] = newElevation[i];
         }
     } else {
-        smoothElevation = [...newElevation];
+        smoothElevation = newElevation;
     }
 
-    // ========================================================
-    // 4. Calculate grade
-    // ========================================================
+    // One pass over the segments: categories, uphill distance,
+    // ascent / descent, weighted grade, min / max grade
+    const binDistance = SLOPE_BINS.map(() => 0);
 
-    const deltaElevation = [];
-
-    const deltaDistance = [];
+    let totalDistance = 0;
+    let uphillDistance = 0;
+    let totalAscent = 0;
+    let totalDescent = 0;
+    let weightedSum = 0;
+    let maxGrade = -Infinity;
+    let minGrade = Infinity;
 
     for (let i = 1; i < smoothElevation.length; i++) {
-        deltaElevation.push(
-            smoothElevation[i] -
-            smoothElevation[i - 1]
-        );
+        const deltaElevation =
+            smoothElevation[i] - smoothElevation[i - 1];
 
-        deltaDistance.push(
-            newDistance[i] -
-            newDistance[i - 1]
-        );
-    }
+        const deltaDistance =
+            newDistance[i] - newDistance[i - 1];
 
-    const grade = deltaElevation.map(
-        (delta, i) =>
-            (delta / deltaDistance[i]) * 100
-    );
+        const grade = (deltaElevation / deltaDistance) * 100;
 
-    const segmentDistance = deltaDistance;
+        totalDistance += deltaDistance;
 
-    const totalDistance =
-        segmentDistance.reduce(
-            (sum, value) => sum + value,
-            0
-        );
-
-    // ========================================================
-    // 5. Slope categories
-    // ========================================================
-
-    const categories = {
-        "Descent (<0%)":
-            grade.map(g => g < 0),
-
-        "Very Easy (0–5%)":
-            grade.map(
-                g => g >= 0 && g < 5
-            ),
-
-        "Easy (5–10%)":
-            grade.map(
-                g => g >= 5 && g < 10
-            ),
-
-        "Moderate (10–15%)":
-            grade.map(
-                g => g >= 10 && g < 15
-            ),
-
-        "Steep (15–20%)":
-            grade.map(
-                g => g >= 15 && g < 20
-            ),
-
-        "Very Steep (20–25%)":
-            grade.map(
-                g => g >= 20 && g < 25
-            ),
-
-        "Extreme (>25%)":
-            grade.map(g => g >= 25)
-    };
-
-    // ========================================================
-    // 6. Distance and percentage per category
-    // ========================================================
-
-    const result = {};
-
-    for (
-        const [category, categoryMask]
-        of Object.entries(categories)
-    ) {
-        let categoryDistance = 0;
-
-        for (let i = 0; i < categoryMask.length; i++) {
-            if (categoryMask[i]) {
-                categoryDistance +=
-                    segmentDistance[i];
+        for (let b = 0; b < SLOPE_BINS.length; b++) {
+            if (
+                grade >= SLOPE_BINS[b][1] &&
+                grade < SLOPE_BINS[b][2]
+            ) {
+                binDistance[b] += deltaDistance;
+                break;
             }
         }
 
-        result[`${category} - km`] =
-            categoryDistance / 1000;
+        if (grade > 0) {
+            uphillDistance += deltaDistance;
+            weightedSum += grade * deltaDistance;
+        }
 
-        result[`${category} - %`] =
-            (categoryDistance / totalDistance) * 100;
-    }
+        if (deltaElevation > 0) {
+            totalAscent += deltaElevation;
+        } else if (deltaElevation < 0) {
+            totalDescent -= deltaElevation;
+        }
 
-    // ========================================================
-    // 7. Uphill distance
-    // ========================================================
+        if (grade > maxGrade) {
+            maxGrade = grade;
+        }
 
-    let uphillDistance = 0;
-
-    for (let i = 0; i < grade.length; i++) {
-        if (grade[i] > 0) {
-            uphillDistance +=
-                segmentDistance[i];
+        if (grade < minGrade) {
+            minGrade = grade;
         }
     }
+
+    const result = {};
+
+    SLOPE_BINS.forEach(([category], b) => {
+        result[`${category} - km`] =
+            binDistance[b] / 1000;
+
+        result[`${category} - %`] =
+            (binDistance[b] / totalDistance) * 100;
+    });
 
     result["Uphill Distance (km)"] =
         uphillDistance / 1000;
 
-    // ========================================================
-    // 8. Total ascent
-    // ========================================================
-
-    let totalAscent = 0;
-
-    for (const delta of deltaElevation) {
-        if (delta > 0) {
-            totalAscent += delta;
-        }
-    }
-
     result["Total Ascent (m)"] =
         totalAscent;
-
-    // ========================================================
-    // 9. Total descent
-    // ========================================================
-
-    let totalDescent = 0;
-
-    for (const delta of deltaElevation) {
-        if (delta < 0) {
-            totalDescent += Math.abs(delta);
-        }
-    }
 
     result["Total Descent (m)"] =
         totalDescent;
 
-    // ========================================================
-    // 10. Weighted average uphill grade
-    // ========================================================
-
-    let weightedUpHillGrade = 0;
-
-    if (uphillDistance > 0) {
-        let weightedSum = 0;
-
-        for (let i = 0; i < grade.length; i++) {
-            if (grade[i] > 0) {
-                weightedSum +=
-                    grade[i] *
-                    segmentDistance[i];
-            }
-        }
-
-        weightedUpHillGrade =
-            weightedSum / uphillDistance;
-    }
-
     result["Average Uphill Grade (%)"] =
-        weightedUpHillGrade;
-
-    // ========================================================
-    // 11. Maximum and minimum grade
-    // ========================================================
+        uphillDistance > 0
+            ? weightedSum / uphillDistance
+            : 0;
 
     result["Maximum Grade (%)"] =
-        Math.max(...grade);
+        maxGrade;
 
     result["Minimum Grade (%)"] =
-        Math.min(...grade);
-
-    // ========================================================
-    // 12. Total distance
-    // ========================================================
+        minGrade;
 
     result["Total Distance (km)"] =
         totalDistance / 1000;
@@ -1021,33 +745,15 @@ result["Estimated Ascent Time (h)"] =
     return result;
 }
 function analyzeRoute(route, routeName = null) {
-    // ========================================================
-    // 1. General route metrics
-    // ========================================================
+    // 1. General metrics, 3D ascent distance, recorded times
+    const routeMetrics = calculateRouteMetrics(route);
+    const ascentDistance3D = calculateAscentDistance3D(route);
+    const routeTimes = calculateRouteTimes(route);
 
-const routeMetrics =
-    calculateRouteMetrics(route);
-
-const ascentDistance3D =
-    calculateAscentDistance3D(route);
-
-const routeTimes =
-    calculateRouteTimes(route);
-    // ========================================================
     // 2. Slope analysis
-    // ========================================================
+    const slopeMetrics = calculateSlopeDistribution(route, 20, 5);
 
-    const slopeMetrics =
-        calculateSlopeDistribution(
-            route,
-            20,
-            5
-        );
-
-    // ========================================================
     // 3. Combine metrics
-    // ========================================================
-
     const slopeMetricsForMerge = {
         ...slopeMetrics
     };
@@ -1055,76 +761,39 @@ const routeTimes =
     delete slopeMetricsForMerge["Total Ascent (m)"];
     delete slopeMetricsForMerge["Total Descent (m)"];
 
-const combinedMetrics = {
-    ...routeMetrics,
-    ...slopeMetricsForMerge,
+    const combinedMetrics = {
+        ...routeMetrics,
+        ...slopeMetricsForMerge,
 
-    "Ascent Distance 3D (km)":
-        ascentDistance3D,
+        "Ascent Distance 3D (km)":
+            ascentDistance3D,
 
-    "Ascent Time (h)":
-        routeTimes.ascentTimeHours,
+        "Ascent Time (h)":
+            routeTimes.ascentTimeHours,
 
-    "Total Time (h)":
-        routeTimes.totalTimeHours
-};
+        "Total Time (h)":
+            routeTimes.totalTimeHours
+    };
+
     if (routeName !== null) {
         combinedMetrics.route = routeName;
     }
 
-    // ========================================================
     // 4. Difficulty
-    // ========================================================
+    const difficulty = calculateDifficulty(combinedMetrics);
 
-    const difficulty =
-        calculateDifficulty(
-            combinedMetrics
-        );
-
-    // ========================================================
-    // 5. Elevation profiles
-    // ========================================================
-
-    const profiles = {
-        elevation:
-            getElevationProfile(route),
-
-        normalized_elevation:
-            getNormalizedElevationProfile(route),
-
-        elevation_gain:
-            getElevationGainProfile(route),
-
-        normalized_elevation_gain:
-            getNormalizedElevationGainProfile(route)
-    };
-
-    // ========================================================
-    // 6. Route map coordinates
-    // ========================================================
-
-    const routeMap = {
-        latitude:
-            route.points.map(
-                point => point.latitude
-            ),
-
-        longitude:
-            route.points.map(
-                point => point.longitude
-            )
-    };
-
-    // ========================================================
-    // 7. Final result
-    // ========================================================
+    // 5. Elevation profiles (the distance array is shared)
+    const elevationProfile = getElevationProfile(route);
 
     return {
         route: routeName,
         metrics: combinedMetrics,
         difficulty: difficulty,
-        profiles: profiles,
-        slope: slopeMetrics,
-        map: routeMap
+        profiles: {
+            elevation: elevationProfile,
+            elevation_gain:
+                getElevationGainProfile(route, elevationProfile)
+        },
+        slope: slopeMetrics
     };
 }

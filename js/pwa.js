@@ -17,7 +17,7 @@ window.addEventListener("beforeinstallprompt", event => {
     event.preventDefault();
     deferredInstallPrompt = event;
 
-    const actions = document.querySelector(".page-header-actions");
+    const actions = document.querySelector(".header-install-slot, .page-header-actions");
     if (!actions || document.getElementById("install-button")) return;
 
     const btn = document.createElement("button");
@@ -68,6 +68,28 @@ function currentRouteOrder() {
         .map(el => el.dataset.route);
 }
 
+/*
+ * The order of the routes is a tiny list, so it lives in
+ * localStorage. Re-ordering used to read and re-write every saved
+ * GPX file in IndexedDB.
+ */
+const ROUTE_ORDER_KEY = "route-order";
+
+function writeRouteOrderLocal() {
+    try {
+        localStorage.setItem(ROUTE_ORDER_KEY, JSON.stringify(currentRouteOrder()));
+    } catch (e) { /* ignore */ }
+}
+
+function readRouteOrderLocal() {
+    try {
+        const value = JSON.parse(localStorage.getItem(ROUTE_ORDER_KEY));
+        return Array.isArray(value) ? value : [];
+    } catch (e) {
+        return [];
+    }
+}
+
 async function saveRouteToStorage(file) {
     if (isRestoringRoutes) return;
     try {
@@ -80,6 +102,7 @@ async function saveRouteToStorage(file) {
         });
         await idbDone(tx);
         db.close();
+        writeRouteOrderLocal();
         if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
     } catch (e) { console.warn("Save route failed:", e); }
 }
@@ -97,20 +120,7 @@ async function deleteRouteFromStorage(name) {
 
 async function saveRouteOrder() {
     if (isRestoringRoutes) return;
-    try {
-        const order = currentRouteOrder();
-        const db = await openRouteDb();
-        const tx = db.transaction(ROUTE_STORE, "readwrite");
-        const store = tx.objectStore(ROUTE_STORE);
-        store.getAll().onsuccess = e => {
-            e.target.result.forEach(rec => {
-                rec.order = order.indexOf(rec.name);
-                store.put(rec);
-            });
-        };
-        await idbDone(tx);
-        db.close();
-    } catch (e) { console.warn("Save order failed:", e); }
+    writeRouteOrderLocal();
 }
 
 async function restoreSavedRoutes() {
@@ -123,7 +133,16 @@ async function restoreSavedRoutes() {
         });
         db.close();
 
-        records.sort((a, b) => a.order - b.order);
+        // new order list first, old per-record "order" as fallback
+        const saved = readRouteOrderLocal();
+        const rank = rec => {
+            const index = saved.indexOf(rec.name);
+            return index >= 0
+                ? index
+                : saved.length + 1 + (Number.isFinite(rec.order) ? rec.order : 0);
+        };
+
+        records.sort((a, b) => rank(a) - rank(b));
 
         isRestoringRoutes = true;
         for (const rec of records) {
@@ -138,5 +157,10 @@ async function restoreSavedRoutes() {
         console.warn("Restore routes failed:", e);
     } finally {
         isRestoringRoutes = false;
+    }
+
+    // single redraw for all restored routes
+    if (analysisResults.length > 0) {
+        redrawAllCharts();
     }
 }

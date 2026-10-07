@@ -2,6 +2,24 @@
    Global application state
    ========================================================= */
 
+/*
+ * Route colours (same order as the numbered markers on the maps).
+ * Single source for the charts, the 2D map and the 3D map.
+ */
+
+const ROUTE_COLORS = [
+    "#e53935",
+    "#1e88e5",
+    "#43a047",
+    "#fb8c00",
+    "#8e24aa",
+    "#00acc1",
+    "#6d4c41",
+    "#3949ab",
+    "#f4511e",
+    "#00897b"
+];
+
 let selectedFiles = [];
 let analysisResults = [];
 let draggedItem = null;
@@ -72,8 +90,9 @@ function applyTheme() {
         localStorage.setItem("theme", "light");
     }
 
-    if (analysisResults.length > 0 && typeof redrawAllCharts === "function") {
-        redrawAllCharts();
+    // only the charts depend on the theme (maps / weather are CSS driven)
+    if (analysisResults.length > 0 && typeof requestChartsRedraw === "function") {
+        requestChartsRedraw();
     }
 }
 
@@ -98,16 +117,7 @@ let mapDirectionMode = "both";
 
 function getDirectionPointRange(points) {
     const last = points.length - 1;
-    let summitIndex = 0;
-
-    for (let i = 1; i < points.length; i++) {
-        if (
-            Number.isFinite(points[i].elevation) &&
-            points[i].elevation > points[summitIndex].elevation
-        ) {
-            summitIndex = i;
-        }
-    }
+    const summitIndex = getSummitIndexOfPoints(points);
 
     if (mapDirectionMode === "outbound") {
         return { start: 0, end: summitIndex, markerIndex: 0 };
@@ -199,6 +209,11 @@ function setActiveSection(sectionId) {
             item.removeAttribute("aria-current");
         }
     });
+
+    // draw whatever was postponed while this section was hidden
+    if (typeof flushPendingSectionWork === "function") {
+        flushPendingSectionWork(sectionId);
+    }
 
     if (sectionId === "map") {
         setTimeout(() => {

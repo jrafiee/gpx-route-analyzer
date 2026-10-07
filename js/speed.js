@@ -79,148 +79,29 @@ const SPEED_LEGEND_ITEMS = [
 ];
 
 
-function haversineDistance(
-    lat1,
-    lon1,
-    lat2,
-    lon2
-) {
-
-    const R = 6371000;
-
-
-    const lat1Rad =
-        lat1 *
-        Math.PI /
-        180;
-
-
-    const lat2Rad =
-        lat2 *
-        Math.PI /
-        180;
-
-
-    const deltaLat =
-        (lat2 - lat1) *
-        Math.PI /
-        180;
-
-
-    const deltaLon =
-        (lon2 - lon1) *
-        Math.PI /
-        180;
-
-
-    const a =
-
-        Math.sin(
-            deltaLat / 2
-        ) ** 2
-
-        +
-
-        Math.cos(
-            lat1Rad
-        )
-
-        *
-
-        Math.cos(
-            lat2Rad
-        )
-
-        *
-
-        Math.sin(
-            deltaLon / 2
-        ) ** 2;
-
-
-    const c =
-        2 *
-        Math.atan2(
-            Math.sqrt(a),
-            Math.sqrt(1 - a)
-        );
-
-
-    return R * c;
-
-}
-
-
 function calculate3DDistance(
     point1,
     point2
 ) {
 
+    // horizontal part: same haversine formula as everywhere else
     const horizontalDistance =
-        haversineDistance(
+        distance2D(point1, point2);
 
-            Number(
-                point1.latitude
-            ),
+    if (horizontalDistance === null) {
+        return NaN;
+    }
 
-            Number(
-                point1.longitude
-            ),
-
-            Number(
-                point2.latitude
-            ),
-
-            Number(
-                point2.longitude
-            )
-
-        );
-
-
-    const elevation1 =
-        Number(
-            point1.elevation
-        );
-
-
-    const elevation2 =
-        Number(
-            point2.elevation
-        );
-
-
-    const safeElevation1 =
-        Number.isFinite(
-            elevation1
-        )
-            ? elevation1
-            : 0;
-
-
-    const safeElevation2 =
-        Number.isFinite(
-            elevation2
-        )
-            ? elevation2
-            : 0;
-
+    const elevation1 = Number(point1.elevation);
+    const elevation2 = Number(point2.elevation);
 
     const verticalDistance =
-        safeElevation2 -
-        safeElevation1;
-
+        (Number.isFinite(elevation2) ? elevation2 : 0) -
+        (Number.isFinite(elevation1) ? elevation1 : 0);
 
     return Math.sqrt(
-
-        horizontalDistance *
-        horizontalDistance
-
-        +
-
-        verticalDistance *
-        verticalDistance
-
+        horizontalDistance * horizontalDistance +
+        verticalDistance * verticalDistance
     );
 
 }
@@ -277,81 +158,6 @@ function getPointTimestamp(point) {
 
     return Number.isFinite(timestamp)
         ? timestamp
-        : null;
-
-}
-
-
-function calculateRawSpeed(
-    point1,
-    point2
-) {
-
-    const timestamp1 =
-        getPointTimestamp(
-            point1
-        );
-
-
-    const timestamp2 =
-        getPointTimestamp(
-            point2
-        );
-
-
-    if (
-        timestamp1 === null ||
-        timestamp2 === null
-    ) {
-
-        return null;
-
-    }
-
-
-    const elapsedSeconds =
-        (
-            timestamp2 -
-            timestamp1
-        ) / 1000;
-
-
-    if (
-        !Number.isFinite(elapsedSeconds) ||
-        elapsedSeconds <= 0
-    ) {
-
-        return null;
-
-    }
-
-
-    const distance3D =
-        calculate3DDistance(
-            point1,
-            point2
-        );
-
-
-    if (
-        !Number.isFinite(distance3D) ||
-        distance3D < 0
-    ) {
-
-        return null;
-
-    }
-
-
-    const speed =
-        (
-            distance3D /
-            elapsedSeconds
-        ) * 3.6;
-
-
-    return Number.isFinite(speed)
-        ? speed
         : null;
 
 }
@@ -485,6 +291,14 @@ function smoothSpeeds(
 }
 
 
+/*
+ * Speeds only depend on the track points, but the 2D map, the 3D
+ * map and every direction change used to recompute them. They are
+ * cached per points array (callers must not modify the result).
+ */
+
+const routeSpeedCache = new WeakMap();
+
 function calculateRouteSpeeds(points) {
 
     if (
@@ -497,21 +311,61 @@ function calculateRouteSpeeds(points) {
     }
 
 
-    const rawSpeeds = [];
+    const cached = routeSpeedCache.get(points);
+
+    if (cached) {
+
+        return cached;
+
+    }
 
 
-    for (
-        let i = 0;
-        i < points.length - 1;
-        i++
-    ) {
+    const count = points.length - 1;
 
-        rawSpeeds.push(
-            calculateRawSpeed(
-                points[i],
-                points[i + 1]
-            )
-        );
+    const rawSpeeds = new Array(count);
+    const distances3D = new Array(count);
+    const elapsedList = new Array(count);
+
+    let previousTimestamp = getPointTimestamp(points[0]);
+
+    for (let i = 0; i < count; i++) {
+
+        const timestamp = getPointTimestamp(points[i + 1]);
+
+        const distance3D =
+            calculate3DDistance(points[i], points[i + 1]);
+
+        let elapsedSeconds = null;
+        let speed = null;
+
+        if (previousTimestamp !== null && timestamp !== null) {
+
+            elapsedSeconds =
+                (timestamp - previousTimestamp) / 1000;
+
+            if (
+                Number.isFinite(elapsedSeconds) &&
+                elapsedSeconds > 0 &&
+                Number.isFinite(distance3D) &&
+                distance3D >= 0
+            ) {
+
+                const value =
+                    (distance3D / elapsedSeconds) * 3.6;
+
+                if (Number.isFinite(value)) {
+                    speed = value;
+                }
+
+            }
+
+        }
+
+        rawSpeeds[i] = speed;
+        distances3D[i] = distance3D;
+        elapsedList[i] = elapsedSeconds;
+
+        previousTimestamp = timestamp;
 
     }
 
@@ -523,66 +377,32 @@ function calculateRouteSpeeds(points) {
         );
 
 
-    return rawSpeeds.map(
-        (
-            rawSpeed,
-            index
-        ) => {
+    const segments = new Array(count);
 
-            const distance3D =
-                calculate3DDistance(
-                    points[index],
-                    points[index + 1]
-                );
+    for (let i = 0; i < count; i++) {
 
+        segments[i] = {
 
-            const timestamp1 =
-                getPointTimestamp(
-                    points[index]
-                );
+            rawSpeed:
+                rawSpeeds[i],
 
+            speed:
+                smoothedSpeeds[i],
 
-            const timestamp2 =
-                getPointTimestamp(
-                    points[index + 1]
-                );
+            distance3D:
+                distances3D[i],
+
+            elapsedSeconds:
+                elapsedList[i]
+
+        };
+
+    }
 
 
-            let elapsedSeconds = null;
+    routeSpeedCache.set(points, segments);
 
-
-            if (
-                timestamp1 !== null &&
-                timestamp2 !== null
-            ) {
-
-                elapsedSeconds =
-                    (
-                        timestamp2 -
-                        timestamp1
-                    ) / 1000;
-
-            }
-
-
-            return {
-
-                rawSpeed:
-                    rawSpeed,
-
-                speed:
-                    smoothedSpeeds[index],
-
-                distance3D:
-                    distance3D,
-
-                elapsedSeconds:
-                    elapsedSeconds
-
-            };
-
-        }
-    );
+    return segments;
 
 }
 

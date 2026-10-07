@@ -56,61 +56,57 @@ async function readGpxFile(file) {
 function extractRoutePoints(xml) {
     const points = [];
 
-    const trackSegments = xml.querySelectorAll("trkseg");
+    // getElementsByTagNameNS("*") is a lot faster than querySelector
+    // per point, and also works with prefixed GPX namespaces.
+    const trackPoints = xml.getElementsByTagNameNS("*", "trkpt");
 
-    trackSegments.forEach(segment => {
-        const trackPoints = segment.querySelectorAll("trkpt");
+    for (let i = 0; i < trackPoints.length; i++) {
+        const point = trackPoints[i];
 
-        trackPoints.forEach(point => {
-            const elevationElement = point.querySelector("ele");
+        let elevationText = null;
+        let timeText = null;
 
-            if (!elevationElement) {
-                return;
+        for (const child of point.children) {
+            if (child.localName === "ele") {
+                elevationText = child.textContent;
+            } else if (child.localName === "time") {
+                timeText = child.textContent;
             }
+        }
 
-            const latitude = parseFloat(
-                point.getAttribute("lat")
-            );
+        if (elevationText === null) {
+            continue;
+        }
 
-            const longitude = parseFloat(
-                point.getAttribute("lon")
-            );
+        const latitude = parseFloat(point.getAttribute("lat"));
+        const longitude = parseFloat(point.getAttribute("lon"));
+        const elevation = parseFloat(elevationText);
 
-            const elevation = parseFloat(
-                elevationElement.textContent
-            );
+        if (
+            !Number.isFinite(latitude) ||
+            !Number.isFinite(longitude) ||
+            !Number.isFinite(elevation)
+        ) {
+            continue;
+        }
 
-            // Extract timestamp if available
-            const timeElement = point.querySelector("time");
+        let time = null;
 
-            let time = null;
+        if (timeText !== null) {
+            const parsedTime = new Date(timeText.trim());
 
-            if (timeElement) {
-                const parsedTime = new Date(
-                    timeElement.textContent.trim()
-                );
-
-                if (!Number.isNaN(parsedTime.getTime())) {
-                    time = parsedTime;
-                }
+            if (!Number.isNaN(parsedTime.getTime())) {
+                time = parsedTime;
             }
+        }
 
-            if (
-                !Number.isFinite(latitude) ||
-                !Number.isFinite(longitude) ||
-                !Number.isFinite(elevation)
-            ) {
-                return;
-            }
-
-            points.push({
-                latitude,
-                longitude,
-                elevation,
-                time
-            });
+        points.push({
+            latitude,
+            longitude,
+            elevation,
+            time
         });
-    });
+    }
 
     if (points.length < 2) {
         throw new Error(
@@ -138,7 +134,7 @@ function extractRoutePoints(xml) {
 function extractWaypoints(xml) {
     const waypoints = [];
 
-    xml.querySelectorAll("wpt").forEach(waypoint => {
+    Array.from(xml.getElementsByTagNameNS("*", "wpt")).forEach(waypoint => {
 
         const latitude = parseFloat(
             waypoint.getAttribute("lat")
@@ -241,7 +237,21 @@ async function loadGpxFile(file) {
 }
 
 
+/*
+ * The profile of a route never changes, but it is needed by the
+ * metrics, slope analysis and every profile builder. It is computed
+ * once per route (callers must not modify the returned arrays).
+ */
+
+const routeProfileCache = new WeakMap();
+
 function extractRouteProfile(route) {
+    const cached = routeProfileCache.get(route);
+
+    if (cached) {
+        return cached;
+    }
+
     const points = route.points;
 
     if (points.length < 2) {
@@ -254,10 +264,7 @@ function extractRouteProfile(route) {
     let totalDistance = 0;
 
     for (let i = 0; i < points.length - 1; i++) {
-        const previous = points[i];
-        const current = points[i + 1];
-
-        const d = distance2D(previous, current);
+        const d = distance2D(points[i], points[i + 1]);
 
         if (d === null || d <= 0) {
             continue;
@@ -266,17 +273,53 @@ function extractRouteProfile(route) {
         totalDistance += d;
 
         distance.push(totalDistance);
-        elevation.push(current.elevation);
+        elevation.push(points[i + 1].elevation);
     }
 
     if (distance.length < 2) {
         throw new Error("Not enough valid distance data.");
     }
 
-    return {
-        distance,
-        elevation
-    };
+    const profile = { distance, elevation };
+
+    routeProfileCache.set(route, profile);
+
+    return profile;
+}
+
+
+/*
+ * Index of the highest point (first one on ties), cached per
+ * points array. Shared by analysis, maps and weather.
+ */
+
+const summitIndexCache = new WeakMap();
+
+function getSummitIndexOfPoints(points) {
+    if (!Array.isArray(points) || points.length === 0) {
+        return 0;
+    }
+
+    const cached = summitIndexCache.get(points);
+
+    if (cached !== undefined) {
+        return cached;
+    }
+
+    let summitIndex = 0;
+
+    for (let i = 1; i < points.length; i++) {
+        if (
+            Number.isFinite(points[i].elevation) &&
+            points[i].elevation > points[summitIndex].elevation
+        ) {
+            summitIndex = i;
+        }
+    }
+
+    summitIndexCache.set(points, summitIndex);
+
+    return summitIndex;
 }
 
 

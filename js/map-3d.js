@@ -7,7 +7,105 @@
    3D Map initialization
    ========================================================= */
 
+/*
+ * MapLibre (JS + CSS, several hundred KB) is only downloaded the
+ * first time the 3D view is opened.
+ */
+
+const MAPLIBRE_VERSION = "6.9.0";
+
+let maplibrePromise = null;
+
+function loadMapLibre() {
+
+    if (window.maplibregl) {
+
+        return Promise.resolve(window.maplibregl);
+
+    }
+
+    if (!maplibrePromise) {
+
+        const link = document.createElement("link");
+
+        link.rel = "stylesheet";
+
+        link.href =
+            `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.css`;
+
+        document.head.appendChild(link);
+
+        maplibrePromise =
+            import(
+                `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/maplibre-gl.mjs`
+            ).then(
+                module => {
+
+                    window.maplibregl = module;
+
+                    return module;
+
+                }
+            ).catch(
+                error => {
+
+                    maplibrePromise = null;
+
+                    throw error;
+
+                }
+            );
+
+    }
+
+    return maplibrePromise;
+
+}
+
+
+let map3dLoading = false;
+
 function initialize3DMap() {
+
+    if (
+        map3d ||
+        map3dInitialized ||
+        map3dLoading
+    ) {
+
+        return;
+
+    }
+
+    map3dLoading = true;
+
+    loadMapLibre()
+        .then(
+            () => {
+
+                map3dLoading = false;
+
+                createMap3D();
+
+            }
+        )
+        .catch(
+            error => {
+
+                map3dLoading = false;
+
+                console.error(
+                    "MapLibre GL JS could not be loaded:",
+                    error
+                );
+
+            }
+        );
+
+}
+
+
+function createMap3D() {
 
     if (
         map3dInitialized
@@ -393,20 +491,7 @@ function drawRoutesOn3DMap(results) {
      * Same route colors used by the 2D map.
      */
 
-    const routeColors = [
-
-        "#e53935",
-        "#1e88e5",
-        "#43a047",
-        "#fb8c00",
-        "#8e24aa",
-        "#00acc1",
-        "#6d4c41",
-        "#3949ab",
-        "#f4511e",
-        "#00897b"
-
-    ];
+    const routeColors = ROUTE_COLORS;
 
 
     /*

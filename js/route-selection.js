@@ -156,7 +156,10 @@ async function addGpxFile(file) {
         saveRouteToStorage(file);
 
 
-        redrawAllCharts();
+        // while saved routes are being restored one redraw at the end is enough
+        if (!isRestoringRoutes) {
+            redrawAllCharts();
+        }
 
 
     } catch (error) {
@@ -568,24 +571,6 @@ function removeSelectedRoute(
     updateRouteNumbers();
 
     redrawAllCharts();
-
-}
-
-
-/* =========================================================
-   Selected files
-   ========================================================= */
-
-function getSelectedFiles() {
-
-    return Array.from(
-        document.querySelectorAll(
-            ".selected-route"
-        )
-    ).map(
-        item =>
-            item.file
-    );
 
 }
 

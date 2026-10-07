@@ -37,7 +37,34 @@ function initializeSidebarOffset() {
 }
 
 
+/*
+ * The header image is desktop only; on phones it is hidden by CSS
+ * but the browser would still download it. It is loaded only when
+ * the screen is wide enough.
+ */
+
+function loadHeroImage() {
+
+    const image = document.querySelector(".site-hero img[data-src]");
+
+    if (!image) {
+        return;
+    }
+
+    if (window.innerWidth > 900) {
+        image.src = image.dataset.src;
+        image.removeAttribute("data-src");
+    } else {
+        window.addEventListener("resize", loadHeroImage, { once: true });
+    }
+
+}
+
+
 async function initializeApplication() {
+
+    loadHeroImage();
+
 
     initializeTheme();
 

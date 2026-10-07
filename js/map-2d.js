@@ -15,7 +15,10 @@ function initializeMap() {
         L.map(
             "map",
             {
-                zoomControl: true
+                zoomControl: true,
+
+                /* thousands of short segments: canvas instead of SVG nodes */
+                preferCanvas: true
             }
         );
 
@@ -153,6 +156,28 @@ function clearMap() {
    Draw routes
    ========================================================= */
 
+function buildSegmentTooltip(label, segment) {
+
+    const speed =
+        segment ? segment.speed : null;
+
+    let text = label;
+
+    if (speed !== null && Number.isFinite(speed)) {
+        text += `<br>سرعت: <b>${speed.toFixed(1)}</b> km/h`;
+    } else {
+        text += `<br>سرعت: بدون اطلاعات زمانی`;
+    }
+
+    if (segment && Number.isFinite(segment.distance3D)) {
+        text += `<br>فاصله 3D: ${segment.distance3D.toFixed(1)} m`;
+    }
+
+    return text;
+
+}
+
+
 function drawRoutesOnMap(results) {
 
     initializeMap();
@@ -162,22 +187,6 @@ function drawRoutesOnMap(results) {
 
     const bounds =
         L.latLngBounds([]);
-
-
-    const routeColors = [
-
-        "#e53935",
-        "#1e88e5",
-        "#43a047",
-        "#fb8c00",
-        "#8e24aa",
-        "#00acc1",
-        "#6d4c41",
-        "#3949ab",
-        "#f4511e",
-        "#00897b"
-
-    ];
 
 
     results.forEach(
@@ -197,6 +206,7 @@ function drawRoutesOnMap(results) {
             }
 
 
+            // cached per route (see speed.js)
             const speedSegments =
                 calculateRouteSpeeds(
                     points
@@ -207,43 +217,25 @@ function drawRoutesOnMap(results) {
                 getDirectionPointRange(points);
 
 
+            const label =
+                `${index + 1}. ${escapeHtml(result.route)}`;
+
+
             for (
                 let i = range.start;
                 i < range.end;
                 i++
             ) {
 
-                const point1 =
-                    points[i];
-
-
-                const point2 =
-                    points[i + 1];
-
-
-                const segment =
-                    speedSegments[i];
+                const point1 = points[i];
+                const point2 = points[i + 1];
+                const segment = speedSegments[i];
 
 
                 const latLngs = [
-
-                    [
-                        point1.latitude,
-                        point1.longitude
-                    ],
-
-                    [
-                        point2.latitude,
-                        point2.longitude
-                    ]
-
+                    [point1.latitude, point1.longitude],
+                    [point2.latitude, point2.longitude]
                 ];
-
-
-                const speed =
-                    segment
-                        ? segment.speed
-                        : null;
 
 
                 const line =
@@ -253,20 +245,16 @@ function drawRoutesOnMap(results) {
 
                             color:
                                 getSpeedColor(
-                                    speed
+                                    segment ? segment.speed : null
                                 ),
 
-                            weight:
-                                4,
+                            weight: 4,
 
-                            opacity:
-                                0.9,
+                            opacity: 0.9,
 
-                            lineJoin:
-                                "round",
+                            lineJoin: "round",
 
-                            lineCap:
-                                "round"
+                            lineCap: "round"
 
                         }
                     ).addTo(
@@ -274,41 +262,9 @@ function drawRoutesOnMap(results) {
                     );
 
 
-                let tooltipText =
-                    `${index + 1}. ${escapeHtml(result.route)}`;
-
-
-                if (
-                    speed !== null &&
-                    Number.isFinite(speed)
-                ) {
-
-                    tooltipText +=
-                        `<br>سرعت: <b>${speed.toFixed(1)}</b> km/h`;
-
-                } else {
-
-                    tooltipText +=
-                        `<br>سرعت: بدون اطلاعات زمانی`;
-
-                }
-
-
-                if (
-                    segment &&
-                    Number.isFinite(
-                        segment.distance3D
-                    )
-                ) {
-
-                    tooltipText +=
-                        `<br>فاصله 3D: ${segment.distance3D.toFixed(1)} m`;
-
-                }
-
-
+                // the tooltip text is built only when it is shown
                 line.bindTooltip(
-                    tooltipText,
+                    () => buildSegmentTooltip(label, segment),
                     {
                         sticky: true,
                         direction: "top"
@@ -321,14 +277,8 @@ function drawRoutesOnMap(results) {
                 );
 
 
-                bounds.extend(
-                    latLngs[0]
-                );
-
-
-                bounds.extend(
-                    latLngs[1]
-                );
+                bounds.extend(latLngs[0]);
+                bounds.extend(latLngs[1]);
 
             }
 
@@ -337,18 +287,10 @@ function drawRoutesOnMap(results) {
                 points[range.markerIndex];
 
 
-            const startLatLng = [
-
-                firstPoint.latitude,
-                firstPoint.longitude
-
-            ];
-
-
             const markerColor =
-                routeColors[
+                ROUTE_COLORS[
                     index %
-                    routeColors.length
+                    ROUTE_COLORS.length
                 ];
 
 
@@ -379,7 +321,10 @@ function drawRoutesOnMap(results) {
 
             const startMarker =
                 L.marker(
-                    startLatLng,
+                    [
+                        firstPoint.latitude,
+                        firstPoint.longitude
+                    ],
                     {
                         icon:
                             routeIcon
@@ -390,7 +335,7 @@ function drawRoutesOnMap(results) {
 
 
             startMarker.bindTooltip(
-                `${index + 1}. ${escapeHtml(result.route)}`,
+                label,
                 {
                     direction: "top",
                     offset: [0, -10]

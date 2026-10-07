@@ -193,17 +193,6 @@
        Geolocation
        ===================================================== */
 
-    function toggleTracking() {
-
-        if (state.watchId !== null) {
-            stopTracking();
-        } else {
-            startTracking();
-        }
-
-    }
-
-
     function startTracking() {
 
         if (!("geolocation" in navigator)) {

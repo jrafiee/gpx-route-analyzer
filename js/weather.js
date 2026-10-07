@@ -93,764 +93,6 @@ function getSelectedWeatherModelApiId() {
     return getSelectedWeatherModel().apiModel;
 }
 
-function injectDailyWeatherStyles() {
-    if (document.getElementById("weather-daily-styles")) return;
-
-    const style = document.createElement("style");
-    style.id = "weather-daily-styles";
-    style.textContent = `
-    .weather-route-filter-bar {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-bottom: 14px;
-        padding: 4px 0;
-    }
-
-    .weather-route-filter-btn {
-        padding: 6px 14px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-family: inherit;
-        background: #f1f3f5;
-        border: 1px solid #dcdfe3;
-        color: #444;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .weather-route-filter-btn:hover {
-        background: #e2e8f0;
-    }
-
-    .weather-route-filter-btn.active {
-        background: #4d8bc9;
-        border-color: #4d8bc9;
-        color: white;
-        font-weight: bold;
-    }
-
-    body.dark-mode .weather-route-filter-btn {
-        background: #2b2e30;
-        border-color: #484b4d;
-        color: #eee;
-    }
-
-    body.dark-mode .weather-route-filter-btn.active {
-        background: #4d8bc9;
-        color: white;
-    }
-
-    /* Model Selector Container */
-    .weather-model-selector {
-        width: 100%;
-        margin-bottom: 18px;
-        padding: 14px 16px;
-        background: var(--card-bg, #ffffff);
-        border: 1px solid var(--border-color, #e2e8f0);
-        border-radius: 14px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-        box-sizing: border-box;
-    }
-
-    .weather-model-selector-title {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 12px;
-    }
-
-    .weather-model-title-left {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .weather-model-heading {
-        font-size: 13.5px;
-        font-weight: 700;
-        color: var(--text-primary, #1e293b);
-    }
-
-    .weather-model-current-badge {
-        font-size: 11px;
-        font-weight: 700;
-        padding: 3px 8px;
-        border-radius: 6px;
-        background: #eaf2f9;
-        color: #245f91;
-    }
-
-    .weather-model-scroll-hint {
-        font-size: 11px;
-        color: var(--text-muted, #94a3b8);
-    }
-
-    /* Weather Model Options Strip: Horizontal Scroll with Identical Sized Boxes */
-    .weather-model-options {
-        display: flex !important;
-        flex-direction: row !important;
-        gap: 10px !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        scrollbar-width: thin;
-        padding: 4px 2px 8px !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-    }
-
-    /* STRICT UNIFORM BOX SIZE ON BOTH MOBILE AND DESKTOP: 140px x 76px */
-    .weather-model-option {
-        position: relative !important;
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: stretch !important;
-        justify-content: center !important;
-        flex: 0 0 140px !important;
-        width: 140px !important;
-        min-width: 140px !important;
-        max-width: 140px !important;
-        height: 76px !important;
-        min-height: 76px !important;
-        max-height: 76px !important;
-        padding: 8px 10px !important;
-        border: 1.5px solid var(--border-color, #cbd5e1) !important;
-        border-radius: 12px !important;
-        background: #ffffff !important;
-        cursor: pointer !important;
-        user-select: none !important;
-        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        box-sizing: border-box !important;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-        text-align: right !important;
-    }
-
-    .weather-model-option:hover {
-        border-color: #94a3b8 !important;
-        background: #f8fafc !important;
-    }
-
-    .weather-model-option input[type="radio"] {
-        position: absolute !important;
-        opacity: 0 !important;
-        width: 0 !important;
-        height: 0 !important;
-        pointer-events: none !important;
-    }
-
-    .weather-model-card-inner {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        width: 100%;
-    }
-
-    .weather-model-header-row {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        width: 100%;
-    }
-
-    .weather-model-radio-circle {
-        width: 13px;
-        height: 13px;
-        border-radius: 50%;
-        border: 2px solid #94a3b8;
-        background: #ffffff;
-        flex-shrink: 0;
-        transition: all 0.2s ease;
-        box-sizing: border-box;
-    }
-
-    .weather-model-name {
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--text-primary, #1e293b);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: 1.2;
-    }
-
-    .weather-model-sub-badge {
-        font-size: 10.5px;
-        font-weight: 500;
-        color: var(--text-secondary, #64748b);
-        background: #f1f5f9;
-        padding: 2px 6px;
-        border-radius: 4px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: inline-block;
-        max-width: 100%;
-        width: fit-content;
-    }
-
-    /* Active Selected Model */
-    .weather-model-option.active,
-    .weather-model-option:has(input:checked) {
-        border-color: #3182ce !important;
-        background: #ebf5ff !important;
-        box-shadow: 0 0 0 1px #3182ce, 0 3px 8px rgba(49, 130, 206, 0.2) !important;
-    }
-
-    .weather-model-option.active .weather-model-radio-circle,
-    .weather-model-option:has(input:checked) .weather-model-radio-circle {
-        border-color: #3182ce;
-        background: #3182ce;
-        box-shadow: inset 0 0 0 2.5px #ffffff;
-    }
-
-    .weather-model-option.active .weather-model-name,
-    .weather-model-option:has(input:checked) .weather-model-name {
-        color: #1e4e79;
-    }
-
-    .weather-model-option.active .weather-model-sub-badge,
-    .weather-model-option:has(input:checked) .weather-model-sub-badge {
-        background: #dbeafe;
-        color: #1d4ed8;
-        font-weight: 600;
-    }
-
-    /* Daily Row */
-    .weather-daily-row {
-        display: flex;
-        flex-direction: row;
-        direction: rtl;
-        gap: 10px;
-        padding: 14px 16px;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-    }
-
-    .weather-daily-item {
-        flex: 1 0 118px;
-        min-width: 118px;
-        display: flex;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-        padding: 12px 8px;
-        border: 1px solid var(--border-color, #ddd);
-        border-radius: 10px;
-        background: var(--table-label-bg, #f7f7f7);
-        text-align: center;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    }
-
-    .weather-daily-item.active {
-        border-color: #4d8bc9;
-        box-shadow: 0 0 0 1px rgba(77, 139, 201, 0.25);
-    }
-
-    .weather-daily-icon {
-        font-size: 34px;
-        line-height: 1.2;
-    }
-
-    .weather-daily-condition {
-        font-size: 12px;
-        font-weight: bold;
-        min-height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1.4;
-    }
-
-    .weather-daily-weekday {
-        font-size: 13px;
-        font-weight: bold;
-    }
-
-    .weather-daily-date {
-        font-size: 11px;
-        color: var(--muted-text, #666);
-    }
-
-    .weather-daily-temp {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        font-size: 14px;
-        font-weight: bold;
-        direction: ltr;
-    }
-
-    .weather-daily-temp .arrow {
-        font-size: 16px;
-        font-weight: bold;
-        line-height: 1;
-    }
-
-    .weather-daily-temp.max .arrow,
-    .weather-daily-temp.max .value {
-        color: #e53935;
-    }
-
-    .weather-daily-temp.min .arrow,
-    .weather-daily-temp.min .value {
-        color: #1e88e5;
-    }
-
-    .weather-daily-extra {
-        font-size: 11px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-    }
-
-    .weather-daily-extra .ltr {
-        direction: ltr;
-        unicode-bidi: embed;
-    }
-
-    .weather-hourly-button {
-        margin-top: auto;
-        padding: 7px 6px;
-        border: 1px solid #ccc;
-        border-radius: 7px;
-        background: #f3f3f3;
-        color: #333;
-        font-family: inherit;
-        font-size: 12px;
-        cursor: pointer;
-        transition: background 0.2s ease, border-color 0.2s ease;
-    }
-
-    .weather-hourly-button:hover {
-        background: #e7e7e7;
-    }
-
-    .weather-hourly-button.active {
-        background: #4d8bc9;
-        border-color: #4d8bc9;
-        color: #fff;
-    }
-
-    .weather-hourly-panel {
-        display: none;
-        padding: 4px 16px 16px;
-        border-top: 1px dashed var(--border-color, #ddd);
-        box-sizing: border-box;
-        width: 100%;
-    }
-
-    /* =========================================================
-       Hourly Forecast Horizontal Table & Quick Jumps
-       ========================================================= */
-
-    .hourly-forecast-wrapper {
-        width: 100%;
-        margin-top: 12px;
-        padding: 12px 0 6px;
-        box-sizing: border-box;
-    }
-
-    .hourly-forecast-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 12px;
-        padding: 0 4px;
-    }
-
-    .hourly-header-info {
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-    }
-
-    .hourly-forecast-title {
-        margin: 0;
-        font-size: 13.5px;
-        font-weight: 700;
-        color: var(--text-primary, #1e293b);
-    }
-
-    .hourly-forecast-hint {
-        font-size: 11px;
-        color: var(--text-muted, #94a3b8);
-    }
-
-    .hourly-quick-jumps {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-wrap: wrap;
-    }
-
-    .hourly-jump-label {
-        font-size: 11px;
-        color: var(--text-muted, #94a3b8);
-        margin-inline-end: 2px;
-    }
-
-    .hourly-jump-btn {
-        padding: 4px 8px;
-        border-radius: 6px;
-        border: 1px solid var(--border-color, #cbd5e1);
-        background: #f8fafc;
-        font-size: 11px;
-        font-family: inherit;
-        color: var(--text-primary, #334155);
-        cursor: pointer;
-        transition: all 0.15s ease;
-        white-space: nowrap;
-    }
-
-    .hourly-jump-btn:hover {
-        background: #e2e8f0;
-        border-color: #94a3b8;
-    }
-
-    /* Horizontal Scroll Container */
-    .hourly-table-scroll-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        overflow-x: auto !important;
-        overflow-y: hidden !important;
-        -webkit-overflow-scrolling: touch !important;
-        scrollbar-width: thin;
-        border: 1px solid var(--border-color, #e2e8f0);
-        border-radius: 12px;
-        background: var(--card-bg, #ffffff);
-        box-sizing: border-box;
-        position: relative;
-    }
-
-    /* The Horizontal Table */
-    .hourly-forecast-table {
-        display: table !important;
-        table-layout: fixed !important;
-        width: 1632px !important;
-        min-width: 1632px !important;
-        max-width: 1632px !important;
-        border-collapse: separate !important;
-        border-spacing: 0 !important;
-        font-size: 12px;
-        direction: rtl !important;
-        text-align: center;
-        margin: 0;
-    }
-
-    /* Sticky First Column pinned to right edge */
-    .hourly-sticky-col {
-        position: sticky !important;
-        right: 0 !important;
-        z-index: 25 !important;
-        width: 96px !important;
-        min-width: 96px !important;
-        max-width: 96px !important;
-        background: #f1f5f9 !important;
-        color: var(--text-primary, #1e293b) !important;
-        font-weight: 700 !important;
-        font-size: 11.5px !important;
-        text-align: right !important;
-        padding: 8px 10px 8px 6px !important;
-        box-shadow: -3px 0 6px rgba(0, 0, 0, 0.06);
-        border-left: 2px solid var(--border-color, #e2e8f0) !important;
-        border-bottom: 1px solid var(--border-color, #e2e8f0) !important;
-        white-space: nowrap !important;
-        box-sizing: border-box !important;
-        vertical-align: middle !important;
-    }
-
-    /* All 24 Hour Columns */
-    .hourly-th-cell,
-    .hourly-td-cell {
-        display: table-cell !important;
-        width: 64px !important;
-        min-width: 64px !important;
-        max-width: 64px !important;
-        padding: 6px 4px !important;
-        border-bottom: 1px solid var(--border-color, #e2e8f0);
-        border-left: 1px solid var(--border-color, #e2e8f0);
-        white-space: nowrap !important;
-        box-sizing: border-box !important;
-        vertical-align: middle !important;
-        text-align: center !important;
-        height: 40px;
-    }
-
-    .hourly-forecast-table thead tr th.hourly-th-cell {
-        background: #f8fafc;
-        color: var(--text-primary, #1e293b);
-        font-family: Consolas, monospace;
-        font-size: 11px;
-        font-weight: 700;
-        padding: 7px 4px;
-    }
-
-    .hourly-th-cell.hour-night {
-        background: #f1f5f9;
-    }
-
-    .hourly-th-cell.hour-day {
-        background: #fffbeb;
-    }
-
-    .hourly-cell-time {
-        font-weight: 700;
-        line-height: 1.2;
-    }
-
-    .hourly-cell-phase {
-        font-size: 10px;
-        opacity: 0.8;
-    }
-
-    .hourly-table-icon {
-        font-size: 17px;
-        line-height: 1;
-        display: block;
-        margin-bottom: 2px;
-    }
-
-    .hourly-table-cond-name {
-        font-size: 9.5px;
-        color: var(--text-secondary, #64748b);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 58px;
-        margin: 0 auto;
-    }
-
-    .hourly-chart-td {
-        padding: 0 !important;
-        height: 76px;
-        background: var(--card-bg, #ffffff);
-        vertical-align: middle;
-    }
-
-    .temp-val-cold {
-        color: #1e88e5;
-        background: rgba(30, 136, 229, 0.06);
-    }
-
-    .temp-val-warm {
-        color: #e53935;
-        background: rgba(229, 57, 53, 0.06);
-    }
-
-    .hourly-temp-value {
-        font-size: 13px;
-        font-weight: 700;
-    }
-
-    .hourly-rain-value,
-    .hourly-wind-value,
-    .hourly-prob-value {
-        font-size: 11.5px;
-        font-weight: 600;
-    }
-
-    /* Dark Mode */
-    body.dark-mode .weather-model-selector {
-        background: #202324;
-        border-color: #313538;
-    }
-
-    body.dark-mode .weather-model-current-badge {
-        background: #1c2b3c;
-        color: #8ec5f5;
-    }
-
-    body.dark-mode .weather-model-option {
-        background: #272a2c !important;
-        border-color: #3a3d3f !important;
-    }
-
-    body.dark-mode .weather-model-option:hover {
-        background: #2f3336 !important;
-        border-color: #4f5356 !important;
-    }
-
-    body.dark-mode .weather-model-sub-badge {
-        background: #1e2022;
-        color: #94a3b8;
-    }
-
-    body.dark-mode .weather-model-option.active,
-    body.dark-mode .weather-model-option:has(input:checked) {
-        background: #1a2c3f !important;
-        border-color: #4d8bc9 !important;
-        box-shadow: 0 0 0 1px #4d8bc9, 0 3px 8px rgba(77, 139, 201, 0.25) !important;
-    }
-
-    body.dark-mode .weather-model-option.active .weather-model-name,
-    body.dark-mode .weather-model-option:has(input:checked) .weather-model-name {
-        color: #8ec5f5;
-    }
-
-    body.dark-mode .weather-model-option.active .weather-model-sub-badge,
-    body.dark-mode .weather-model-option:has(input:checked) .weather-model-sub-badge {
-        background: #183350;
-        color: #93c5fd;
-    }
-
-    body.dark-mode .hourly-forecast-wrapper {
-        border-top-color: #313538;
-    }
-
-    body.dark-mode .hourly-jump-btn {
-        background: #272a2c;
-        border-color: #3a3d3f;
-        color: #e2e8f0;
-    }
-
-    body.dark-mode .hourly-jump-btn:hover {
-        background: #35383a;
-    }
-
-    body.dark-mode .hourly-table-scroll-container {
-        background: #202324;
-        border-color: #313538;
-    }
-
-    body.dark-mode .hourly-th-cell,
-    body.dark-mode .hourly-td-cell {
-        border-bottom-color: #313538;
-        border-left-color: #313538;
-    }
-
-    body.dark-mode .hourly-forecast-table thead tr th.hourly-th-cell {
-        background: #272a2c;
-        color: #e5e5e5;
-    }
-
-    body.dark-mode .hourly-th-cell.hour-night {
-        background: #1c1f21;
-    }
-
-    body.dark-mode .hourly-th-cell.hour-day {
-        background: #252824;
-    }
-
-    body.dark-mode .hourly-sticky-col {
-        background: #2b2e30 !important;
-        color: #e5e5e5 !important;
-        border-bottom-color: #313538 !important;
-        border-left-color: #3a3d3f !important;
-        box-shadow: -3px 0 6px rgba(0, 0, 0, 0.3);
-    }
-
-    body.dark-mode .hourly-chart-td {
-        background: #202324;
-    }
-
-    body.dark-mode .temp-val-cold {
-        color: #64b5f6;
-        background: rgba(33, 150, 243, 0.12);
-    }
-
-    body.dark-mode .temp-val-warm {
-        color: #ef5350;
-        background: rgba(239, 83, 80, 0.12);
-    }
-
-    body.dark-mode .weather-daily-item {
-        background: #272a2c;
-        border-color: #3a3d3f;
-    }
-
-    body.dark-mode .weather-daily-item.active {
-        border-color: #4d8bc9;
-    }
-
-    body.dark-mode .weather-daily-date {
-        color: #aaa;
-    }
-
-    body.dark-mode .weather-daily-temp.max .arrow,
-    body.dark-mode .weather-daily-temp.max .value {
-        color: #ef5350;
-    }
-
-    body.dark-mode .weather-daily-temp.min .arrow,
-    body.dark-mode .weather-daily-temp.min .value {
-        color: #64b5f6;
-    }
-
-    body.dark-mode .weather-hourly-button {
-        background: #2b2e30;
-        border-color: #484b4d;
-        color: #eee;
-    }
-
-    body.dark-mode .weather-hourly-button:hover {
-        background: #35383a;
-    }
-
-    body.dark-mode .weather-hourly-button.active {
-        background: #4d8bc9;
-        border-color: #4d8bc9;
-        color: #fff;
-    }
-
-    body.dark-mode .weather-hourly-panel {
-        border-top-color: #3a3d3f;
-    }
-
-    @media (max-width: 900px) {
-        .weather-daily-row {
-            padding: 10px 8px;
-            gap: 8px;
-        }
-        .weather-daily-item {
-            flex-basis: 108px;
-            min-width: 108px;
-        }
-        .weather-hourly-panel {
-            padding: 4px 8px 12px;
-        }
-    }
-
-    /* Sticky model selector (stays below the top bar while scrolling) */
-    .weather-model-selector {
-        position: sticky;
-        top: 60px;
-        z-index: 90;
-    }
-
-    /* Summit info line under each peak name: smaller, not bold */
-    .weather-summit-info {
-        font-size: 11px;
-        font-weight: 400;
-    }
-
-    .weather-summit-info span,
-    .weather-summit-info strong {
-        font-size: inherit;
-        font-weight: 400;
-    }
-
-    @media (max-width: 900px) {
-        .weather-model-selector {
-            top: 56px;
-            padding: 8px 10px;
-            margin-bottom: 12px;
-        }
-        .weather-model-selector-title {
-            margin-bottom: 6px;
-        }
-    }
-    `;
-    document.head.appendChild(style);
-}
-
 function createWeatherModelSelector() {
     const selector = document.createElement("div");
     selector.className = "weather-model-selector";
@@ -996,25 +238,27 @@ function renderWeatherCardsVisibility() {
 }
 
 function getRouteSummitPoint(routeData) {
-    if (!routeData || !Array.isArray(routeData.points) || routeData.points.length === 0) {
+    const points = routeData && routeData.points;
+
+    if (!Array.isArray(points) || points.length === 0) {
         return null;
     }
 
-    let highestPoint = null;
-    for (const point of routeData.points) {
-        const latitude = Number(point.latitude);
-        const longitude = Number(point.longitude);
-        const elevation = Number(point.elevation);
+    const point = points[getSummitIndexOfPoints(points)];
 
-        if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || !Number.isFinite(elevation)) {
-            continue;
-        }
+    const latitude = Number(point.latitude);
+    const longitude = Number(point.longitude);
+    const elevation = Number(point.elevation);
 
-        if (highestPoint === null || elevation > highestPoint.elevation) {
-            highestPoint = { latitude, longitude, elevation };
-        }
+    if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude) ||
+        !Number.isFinite(elevation)
+    ) {
+        return null;
     }
-    return highestPoint;
+
+    return { latitude, longitude, elevation };
 }
 
 function buildWeatherApiUrl(summitPoint) {
@@ -1037,27 +281,58 @@ function buildWeatherApiUrl(summitPoint) {
     return `${WEATHER_API_URL}?${params.toString()}`;
 }
 
+/*
+ * Forecast cache: every redraw (adding / removing / re-ordering a
+ * route, opening the weather section again) used to download the
+ * forecast of ALL routes again. The same request (same summit +
+ * same model) is now reused for 15 minutes.
+ */
+
+const WEATHER_CACHE_TTL_MS = 15 * 60 * 1000;
+
+const weatherCache = new Map();
+
 async function fetchSummitWeather(summitPoint) {
     if (!summitPoint) throw new Error("Summit point is not available.");
+
     const url = buildWeatherApiUrl(summitPoint);
 
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Weather API error: HTTP ${response.status}`);
+    const hit = weatherCache.get(url);
+
+    if (hit && Date.now() - hit.time < WEATHER_CACHE_TTL_MS) {
+        return hit.promise;
     }
 
-    const data = await response.json();
-    if (
-        !data ||
-        !data.hourly ||
-        !Array.isArray(data.hourly.time) ||
-        !data.daily ||
-        !Array.isArray(data.daily.time)
-    ) {
-        throw new Error("Invalid weather API response.");
-    }
+    const promise = (async () => {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Weather API error: HTTP ${response.status}`);
+        }
 
-    return data;
+        const data = await response.json();
+        if (
+            !data ||
+            !data.hourly ||
+            !Array.isArray(data.hourly.time) ||
+            !data.daily ||
+            !Array.isArray(data.daily.time)
+        ) {
+            throw new Error("Invalid weather API response.");
+        }
+
+        return data;
+    })();
+
+    weatherCache.set(url, { time: Date.now(), promise });
+
+    // failed requests must not stay cached
+    promise.catch(() => {
+        if (weatherCache.get(url) && weatherCache.get(url).promise === promise) {
+            weatherCache.delete(url);
+        }
+    });
+
+    return promise;
 }
 
 async function getRouteWeather(result) {
@@ -1536,8 +811,6 @@ async function reloadWeatherForecasts() {
 }
 
 async function drawWeatherForecasts(results, requestGeneration = null) {
-    injectDailyWeatherStyles();
-
     const container = document.getElementById("weather-container");
     const cardsContainer = document.getElementById("weather-cards");
     if (!container || !cardsContainer) return;
@@ -1558,9 +831,9 @@ async function drawWeatherForecasts(results, requestGeneration = null) {
     cardsContainer.innerHTML = "";
     const generation = requestGeneration !== null ? requestGeneration : ++weatherRequestGeneration;
 
-    for (const result of results) {
-        if (generation !== weatherRequestGeneration) return;
-
+    // placeholders first (keeps the route order), then all forecasts
+    // are requested in parallel instead of one after another
+    const placeholders = results.map(result => {
         const loading = document.createElement("div");
         loading.className = "weather-card weather-loading";
         loading.dataset.route = result.route;
@@ -1570,12 +843,16 @@ async function drawWeatherForecasts(results, requestGeneration = null) {
             </div>
         `;
         cardsContainer.appendChild(loading);
+        return loading;
+    });
+
+    await Promise.all(results.map(async (result, index) => {
+        const loading = placeholders[index];
 
         try {
             const weatherResult = await getRouteWeather(result);
             if (generation !== weatherRequestGeneration) return;
-            const card = createWeatherCard(weatherResult);
-            loading.replaceWith(card);
+            loading.replaceWith(createWeatherCard(weatherResult));
         } catch (error) {
             if (generation !== weatherRequestGeneration) return;
             loading.className = "weather-card weather-error";
@@ -1585,9 +862,11 @@ async function drawWeatherForecasts(results, requestGeneration = null) {
                 <div class="weather-error-message">${escapeHtml(error.message)}</div>
             `;
         }
-    }
+    }));
 
-    renderWeatherCardsVisibility();
+    if (generation === weatherRequestGeneration) {
+        renderWeatherCardsVisibility();
+    }
 }
 
 function clearWeatherForecasts() {

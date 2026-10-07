@@ -1,19 +1,27 @@
 /* Service Worker - Mountain Route Compare */
-const VERSION = "v7";
+const VERSION = "v8";
 const SHELL_CACHE = "mrc-shell-" + VERSION;
 const RUNTIME_CACHE = "mrc-runtime-" + VERSION;
 
 const SHELL_FILES = [
   "./", "index.html", "manifest.webmanifest",
-  "css/style.css", "css/responsive.css",
+  "css/style.css", "css/responsive.css", "css/toolbar.css", "css/weather.css",
   "js/app-state.js", "js/gpx-reader.js", "js/route-analysis.js", "js/charts.js",
   "js/ui.js", "js/route-selection.js", "js/speed.js", "js/map-2d.js",
-  "js/map-3d.js", "js/weather.js", "js/app.js", "js/pwa.js",
-  "images/header.jpg", "icons/icon-192.png", "icons/icon-512.png","js/user-location.js","css/toolbar.css" ,"js/track-geometry.js"
+  "js/map-3d.js", "js/track-geometry.js", "js/user-location.js",
+  "js/weather.js", "js/app.js", "js/pwa.js",
+  "partials/calculations.html",
+  "icons/icon-192.png", "icons/icon-512.png"
+  // images/header.jpg is cached on first use (it is not loaded on phones)
 ];
 
-/* کتابخانه‌های خارجی که باید برای استفاده آفلاین کش شوند */
+/* external libraries: versioned URLs, never change -> cache first */
 const CACHEABLE_HOSTS = ["cdn.plot.ly", "unpkg.com"];
+
+/* pathnames of the shell files (used to pick the right cache) */
+const SHELL_PATHS = new Set(
+  SHELL_FILES.map(f => new URL(f, self.registration.scope).pathname)
+);
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -33,6 +41,14 @@ self.addEventListener("activate", event => {
   );
 });
 
+function store(cacheName, req, res) {
+  if (res && (res.ok || res.type === "opaque")) {
+    const copy = res.clone();
+    caches.open(cacheName).then(c => c.put(req, copy));
+  }
+  return res;
+}
+
 self.addEventListener("fetch", event => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -41,21 +57,30 @@ self.addEventListener("fetch", event => {
   const sameOrigin = url.origin === self.location.origin;
   const cdn = CACHEABLE_HOSTS.includes(url.hostname);
 
-  // بقیه (تایل نقشه، API هواشناسی، analytics) مستقیم از شبکه
+  // map tiles, weather API, analytics: straight from the network
   if (!sameOrigin && !cdn) return;
 
-  // stale-while-revalidate
+  // CDN libraries: cache first, no background re-download
+  if (cdn) {
+    event.respondWith(
+      caches.match(req).then(cached =>
+        cached || fetch(req).then(res => store(RUNTIME_CACHE, req, res))
+      )
+    );
+    return;
+  }
+
+  // own files: stale-while-revalidate
+  const cacheName = SHELL_PATHS.has(url.pathname) ? SHELL_CACHE : RUNTIME_CACHE;
+
   event.respondWith(
-    caches.match(req, { ignoreSearch: false }).then(cached => {
-      const network = fetch(req).then(res => {
-        if (res && (res.ok || res.type === "opaque")) {
-          const copy = res.clone();
-          const name = sameOrigin && SHELL_FILES.some(f => url.pathname.endsWith(f.replace("./", "")))
-            ? SHELL_CACHE : RUNTIME_CACHE;
-          caches.open(name).then(c => c.put(req, copy));
-        }
-        return res;
-      }).catch(() => cached || (req.mode === "navigate" ? caches.match("index.html") : undefined));
+    caches.match(req).then(cached => {
+      const network = fetch(req)
+        .then(res => store(cacheName, req, res))
+        .catch(() =>
+          cached ||
+          (req.mode === "navigate" ? caches.match("index.html") : Response.error())
+        );
       return cached || network;
     })
   );
