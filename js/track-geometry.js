@@ -140,7 +140,7 @@ function projectOnTrack(
 
     let bestDistance = Infinity;
 
-    // flat [distance, along, distance, along, ...]
+    // flat [distance, along, lateral, qx, qy, ...]
     const candidates = [];
 
     for (let i = 0; i < count - 1; i++) {
@@ -165,9 +165,20 @@ function projectOnTrack(
 
         if (distance <= bestDistance + TRACK_AMBIGUITY_MARGIN) {
 
+            // signed offset: > 0 means the position is on the LEFT
+            // of the track when walking in the track direction
+            const length = Math.sqrt(lengthSquared);
+
+            const lateral = length > 0
+                ? (dx * (py - ay) - dy * (px - ax)) / length
+                : 0;
+
             candidates.push(
                 distance,
-                cum[i] + t * (cum[i + 1] - cum[i])
+                cum[i] + t * (cum[i + 1] - cum[i]),
+                lateral,
+                ax + t * dx,
+                ay + t * dy
             );
 
             if (distance < bestDistance) {
@@ -179,9 +190,12 @@ function projectOnTrack(
     }
 
     let along = NaN;
+    let lateral = 0;
+    let qx = 0;
+    let qy = 0;
     let bestScore = Infinity;
 
-    for (let j = 0; j < candidates.length; j += 2) {
+    for (let j = 0; j < candidates.length; j += 5) {
 
         if (candidates[j] > bestDistance + TRACK_AMBIGUITY_MARGIN) {
             continue;
@@ -197,6 +211,9 @@ function projectOnTrack(
         if (score < bestScore) {
             bestScore = score;
             along = candidateAlong;
+            lateral = candidates[j + 2];
+            qx = candidates[j + 3];
+            qy = candidates[j + 4];
         }
 
     }
@@ -209,7 +226,12 @@ function projectOnTrack(
         distance: bestDistance,
         along: along,
         remaining: Math.max(0, total - along),
-        total: total
+        total: total,
+        lateral: lateral,
+        point: {
+            lat: geometry.lat0 + qy / k,
+            lon: geometry.lon0 + qx / (k * geometry.cosLat)
+        }
     };
 
 }

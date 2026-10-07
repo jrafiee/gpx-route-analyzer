@@ -571,3 +571,260 @@ body.dark-mode .ulp-prog-foot small{color:#aaa}
     .ulp-item.ulp-progress{flex-direction:column;align-items:stretch;gap:6px}
     .ulp-item.ulp-dist{border-inline-start-color:var(--tb-location)}
 }
+
+
+/* =========================================================
+   Navigation screen (always dark) + pocket mode
+   ========================================================= */
+
+body.nav-open { overflow: hidden; }
+
+.nav-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    background: #0b0e12;
+    color: #eef2f6;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.nav-screen[hidden],
+.pocket-screen[hidden] { display: none !important; }
+
+.nav-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #222a33;
+}
+
+.nav-title { font-size: 20px; font-weight: bold; }
+
+.nav-actions { display: flex; gap: 8px; }
+
+.nav-btn {
+    min-height: 42px;
+    padding: 6px 14px;
+    border: 1px solid #3a4652;
+    border-radius: 10px;
+    background: #1a2027;
+    color: #eef2f6;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.nav-pocket-btn { border-color: #7e57c2; background: #2a2040; }
+.nav-close { border-color: #b3443f; background: #3a1d1b; }
+
+.nav-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.nav-info { display: flex; flex-direction: column; gap: 12px; }
+
+.nav-map-col { display: flex; flex-direction: column; gap: 12px; }
+
+.nav-map {
+    width: 100%;
+    height: 46vh;
+    min-height: 260px;
+    border-radius: 14px;
+    border: 1px solid #2c3540;
+    overflow: hidden;
+}
+
+/* status box */
+
+.nav-status {
+    padding: 16px;
+    border-radius: 14px;
+    text-align: center;
+    border: 2px solid #3a4652;
+    background: #161b21;
+}
+
+.nav-status-main { font-size: 30px; font-weight: bold; line-height: 1.4; }
+.nav-status-sub  { margin-top: 4px; font-size: 16px; opacity: 0.9; }
+
+.nav-status.nav-ok {
+    background: #0f2a18;
+    border-color: #2fbf5b;
+    color: #6bf59a;
+}
+
+.nav-status.nav-off {
+    background: #3a1500;
+    border-color: #ff9800;
+    color: #ffb74d;
+    animation: nav-warn 1s infinite;
+}
+
+.nav-status.nav-off .nav-status-main { color: #ffcc80; }
+
+@keyframes nav-warn {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
+    50%      { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+}
+
+/* info panel (moved here by JS) - large */
+
+#nav-screen .user-location-panel {
+    margin: 0;
+    padding: 12px;
+    border: 1px solid #2c3540;
+    border-radius: 14px;
+    background: #12161b;
+    color: #eef2f6;
+    box-shadow: none;
+}
+
+#nav-screen .ulp-header {
+    border-bottom: 1px solid #2c3540;
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+#nav-screen .ulp-title { color: #4cd964; font-size: 14px; }
+#nav-screen .ulp-route { color: #eef2f6; font-size: 20px; font-weight: bold; }
+#nav-screen .ulp-meta  { color: #aab4c0; font-size: 13px; }
+#nav-screen .ulp-meta.warn { color: #ffb74d; }
+
+#nav-screen .ulp-track {
+    background: #1a2027;
+    border-color: #3a4652;
+    color: #eef2f6;
+    font-size: 15px;
+    min-height: 38px;
+}
+
+#nav-screen .ulp-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    border: 0;
+    background: none;
+    overflow: visible;
+}
+
+#nav-screen .ulp-item,
+#nav-screen .ulp-item:nth-child(even) {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    padding: 12px 14px;
+    background: #1a2027;
+    border: 1px solid #2c3540;
+    border-inline-start: 6px solid #4da3ff;
+    border-radius: 12px;
+}
+
+#nav-screen .ulp-item + .ulp-item { border-top: 1px solid #2c3540; }
+
+#nav-screen .ulp-item.ulp-dist { border-inline-start-color: #4cd964; }
+
+#nav-screen .ulp-label { font-size: 15px; color: #aab4c0; }
+
+#nav-screen .ulp-value {
+    font-size: 38px;
+    color: #4fc3f7;
+    text-align: center;
+}
+
+#nav-screen .ulp-prog-pct { font-size: 26px; color: #eef2f6; }
+
+#nav-screen .ulp-bar { height: 24px; border-radius: 12px; }
+
+#nav-screen .ulp-climb .ulp-bar-fill { background: #4da3ff; }
+#nav-screen .ulp-dist  .ulp-bar-fill { background: #4cd964; }
+
+#nav-screen .ulp-prog-foot small { font-size: 13px; color: #aab4c0; }
+#nav-screen .ulp-prog-foot b { font-size: 26px; }
+#nav-screen .ulp-climb .ulp-prog-foot b { color: #8ec5ff; }
+#nav-screen .ulp-dist  .ulp-prog-foot b { color: #7dffa0; }
+
+#nav-screen .ulp-note { color: #ffb74d; font-size: 14px; }
+
+/* sensitivity */
+
+.nav-sens {
+    padding: 12px;
+    border: 1px solid #2c3540;
+    border-radius: 14px;
+    background: #12161b;
+}
+
+.nav-sens-title { margin-bottom: 8px; font-size: 14px; color: #aab4c0; }
+
+.nav-sens-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.nav-sens-btn {
+    flex: 1 1 60px;
+    min-height: 44px;
+    border: 1px solid #3a4652;
+    border-radius: 10px;
+    background: #1a2027;
+    color: #eef2f6;
+    font-family: inherit;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.nav-sens-btn.active {
+    background: #ff9800;
+    border-color: #ff9800;
+    color: #1a1000;
+    font-weight: bold;
+}
+
+/* pocket mode: pure black (OLED friendly) */
+
+.pocket-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 4000;
+    background: #000;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 24px;
+}
+
+.pocket-hint { color: #222; font-size: 13px; text-align: center; }
+
+/* Desktop layout: info column + large map, no pocket mode */
+
+@media (min-width: 901px) {
+
+    .nav-pocket-btn,
+    .pocket-screen { display: none !important; }
+
+    .nav-body {
+        display: grid;
+        grid-template-columns: 430px 1fr;
+        gap: 16px;
+        padding: 16px;
+        overflow: hidden;
+    }
+
+    .nav-info { overflow-y: auto; }
+
+    .nav-map-col { min-height: 0; }
+
+    .nav-map { flex: 1; height: auto; min-height: 400px; }
+
+    #nav-screen .ulp-value { font-size: 34px; }
+}

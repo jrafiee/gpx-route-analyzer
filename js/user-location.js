@@ -19,7 +19,8 @@
         centerOnNextFix: false,
         signalLost: false,
         matchTrack: null,
-        matchAlong: null
+        matchAlong: null,
+        dir: 1            // 1 = outbound (along grows), -1 = return
     };
 
     // track chosen by the user when several routes are loaded
@@ -34,6 +35,32 @@
 
     let marker2d = null;
     let circle2d = null;
+
+    /* navigation screen state */
+    let navOpen = false;
+    let pocketOpen = false;
+    let navMap = null;
+    let navUserMarker = null;
+    let navAccuracy = null;
+    let navRouteLine = null;
+    let navOffLine = null;
+    let navTrackedName = null;
+    let navHistoryPushed = false;
+    let wakeLock = null;
+    let audioCtx = null;
+    let lastPocketTap = 0;
+
+    const NAV_THRESHOLDS = [10, 15, 25, 40, 60];
+    const navAlert = { off: false, last: 0 };
+
+    let navThreshold = (function () {
+        try {
+            const v = Number(localStorage.getItem("nav-threshold"));
+            return NAV_THRESHOLDS.includes(v) ? v : 25;
+        } catch (e) {
+            return 25;
+        }
+    })();
 
 
     /* =====================================================
@@ -85,27 +112,20 @@
             element.textContent = text || "";
         }
 
+        if (text && navOpen) {
+            setNavStatus("wait", text, "");
+        }
+
     }
 
 
     function updateButtons() {
 
-        const toggle =
+        const nav =
             document.getElementById("user-location-button");
 
-        const center =
-            document.getElementById("user-location-center-button");
-
-        const active = state.watchId !== null;
-
-        if (toggle) {
-            toggle.classList.toggle("active", active);
-            toggle.textContent =
-                active ? "⏹ توقف موقعیت" : "📍 موقعیت من";
-        }
-
-        if (center) {
-            center.disabled = !state.position;
+        if (nav) {
+            nav.classList.toggle("active", navOpen);
         }
 
         updatePanel();
@@ -127,10 +147,6 @@
             return;
         }
 
-        /*
-         * Wrapper: [ 2D / 3D group ] [ location group ]
-         */
-
         let toolbar = mapButtons.parentElement;
 
         if (!toolbar.classList.contains("map-toolbar")) {
@@ -149,35 +165,26 @@
 
         group.className = "map-location-group";
 
-        const toggle = document.createElement("button");
+        const nav = document.createElement("button");
 
-        toggle.id = "user-location-button";
-        toggle.type = "button";
-        toggle.className = "map-view-button";
-        toggle.textContent = "📍 موقعیت من";
-        toggle.addEventListener("click", toggleTracking);
-
-        const center = document.createElement("button");
-
-        center.id = "user-location-center-button";
-        center.type = "button";
-        center.className = "map-view-button";
-        center.textContent = "🎯 مرکز روی من";
-        center.disabled = true;
-        center.addEventListener("click", centerOnUser);
+        nav.id = "user-location-button";
+        nav.type = "button";
+        nav.className = "map-view-button";
+        nav.textContent = "🧭 ناوبری";
+        nav.addEventListener("click", openNav);
 
         const status = document.createElement("span");
 
         status.id = "user-location-status";
         status.className = "user-location-status";
 
-        group.appendChild(toggle);
-        group.appendChild(center);
+        group.appendChild(nav);
 
         toolbar.appendChild(group);
         toolbar.appendChild(status);
 
         createPanel(toolbar);
+        createNavScreen();
 
     }
 
@@ -243,6 +250,11 @@
 
         remove2D();
         remove3D();
+
+        state.dir = 1;
+        navAlert.off = false;
+        navAlert.last = 0;
+        removeNavUser();
 
         setStatus("");
         updateButtons();
@@ -705,7 +717,8 @@
 
             });
 
-        toolbar.insertAdjacentElement("afterend", panel);
+        // the panel lives inside the navigation screen (see createNavScreen)
+        document.body.appendChild(panel);
 
     }
 
@@ -876,6 +889,17 @@
                 onTrack = isUserOnTrack(projection, p.accuracy);
 
                 if (onTrack) {
+                    if (
+                        state.matchTrack === result &&
+                        state.matchAlong !== null
+                    ) {
+                        const delta = projection.along - state.matchAlong;
+
+                        if (Math.abs(delta) > 8) {
+                            state.dir = delta > 0 ? 1 : -1;
+                        }
+                    }
+
                     state.matchTrack = result;
                     state.matchAlong = projection.along;
                 }
@@ -896,6 +920,8 @@
             );
         }
 
+        updateNavigation(projection, onTrack, p, result);
+
         const note = document.getElementById("ulp-offtrack");
 
         if (note) {
@@ -907,6 +933,750 @@
             if (offTrack) {
                 note.textContent =
                     `خارج از مسیر · ${formatDistance(projection.distance)} تا مسیر`;
+            }
+
+        }
+
+    }
+
+
+    /* =====================================================
+       Navigation screen (full screen, always dark)
+
+       - status box: on track / deviation (distance + side)
+       - the info panel (altitude, climb, progress...) is
+         moved into this screen and shown large
+       - mini map with the route and the user
+       - deviation sensitivity buttons
+       - pocket mode (mobile): black screen + voice alerts
+       ===================================================== */
+
+    function setNavStatus(kind, main, sub) {
+
+        const box = document.getElementById("nav-status");
+
+        if (!box) {
+            return;
+        }
+
+        box.className = "nav-status nav-" + kind;
+
+        panelText("nav-status-main", main);
+        panelText("nav-status-sub", sub || "");
+
+    }
+
+
+    function createNavScreen() {
+
+        if (document.getElementById("nav-screen")) {
+            return;
+        }
+
+        const screen = document.createElement("div");
+
+        screen.id = "nav-screen";
+        screen.className = "nav-screen";
+        screen.hidden = true;
+
+        screen.innerHTML = `
+
+            <div class="nav-top">
+                <div class="nav-title">🧭 ناوبری</div>
+                <div class="nav-actions">
+                    <button id="nav-pocket-btn" type="button"
+                            class="nav-btn nav-pocket-btn">🔒 حالت جیب</button>
+                    <button id="nav-close-btn" type="button"
+                            class="nav-btn nav-close">✕ خروج</button>
+                </div>
+            </div>
+
+            <div class="nav-body">
+
+                <div class="nav-info">
+                    <div id="nav-status" class="nav-status nav-wait">
+                        <div id="nav-status-main" class="nav-status-main">در حال یافتن موقعیت...</div>
+                        <div id="nav-status-sub" class="nav-status-sub"></div>
+                    </div>
+                    <div id="nav-panel-slot"></div>
+                </div>
+
+                <div class="nav-map-col">
+                    <div id="nav-map" class="nav-map"></div>
+                    <div class="nav-sens">
+                        <div class="nav-sens-title">حساسیت هشدار انحراف از مسیر</div>
+                        <div id="nav-sens-buttons" class="nav-sens-buttons"></div>
+                    </div>
+                </div>
+
+            </div>
+
+        `;
+
+        document.body.appendChild(screen);
+
+        const panel = document.getElementById(PANEL_ID);
+
+        if (panel) {
+            document.getElementById("nav-panel-slot").appendChild(panel);
+        }
+
+        document
+            .getElementById("nav-close-btn")
+            .addEventListener("click", () => closeNav(false));
+
+        document
+            .getElementById("nav-pocket-btn")
+            .addEventListener("click", openPocket);
+
+        renderSensitivityButtons();
+
+        /* pocket screen */
+
+        const pocket = document.createElement("div");
+
+        pocket.id = "pocket-screen";
+        pocket.className = "pocket-screen";
+        pocket.hidden = true;
+
+        pocket.innerHTML =
+            '<div class="pocket-hint">برای خروج از حالت جیب، دو بار سریع لمس کنید</div>';
+
+        pocket.addEventListener("click", () => {
+
+            const now = Date.now();
+
+            if (now - lastPocketTap < 450) {
+                closePocket();
+            }
+
+            lastPocketTap = now;
+
+        });
+
+        document.body.appendChild(pocket);
+
+        window.addEventListener("popstate", () => {
+
+            if (navOpen) {
+                closeNav(true);
+            }
+
+        });
+
+        document.addEventListener("visibilitychange", () => {
+
+            if (!document.hidden && navOpen) {
+                requestWakeLock();
+            }
+
+        });
+
+    }
+
+
+    function renderSensitivityButtons() {
+
+        const holder = document.getElementById("nav-sens-buttons");
+
+        if (!holder) {
+            return;
+        }
+
+        holder.innerHTML = "";
+
+        NAV_THRESHOLDS.forEach(value => {
+
+            const button = document.createElement("button");
+
+            button.type = "button";
+            button.className =
+                "nav-sens-btn" + (value === navThreshold ? " active" : "");
+            button.textContent = value + " متر";
+
+            button.addEventListener("click", () => {
+
+                navThreshold = value;
+
+                try {
+                    localStorage.setItem("nav-threshold", String(value));
+                } catch (e) { /* ignore */ }
+
+                renderSensitivityButtons();
+                updatePanel();
+
+            });
+
+            holder.appendChild(button);
+
+        });
+
+    }
+
+
+    function openNav() {
+
+        if (navOpen) {
+            return;
+        }
+
+        navOpen = true;
+
+        document.getElementById("nav-screen").hidden = false;
+        document.body.classList.add("nav-open");
+
+        try {
+            history.pushState({ navScreen: true }, "");
+            navHistoryPushed = true;
+        } catch (e) {
+            navHistoryPushed = false;
+        }
+
+        if (state.watchId === null) {
+            startTracking();
+        }
+
+        initNavMap();
+
+        requestWakeLock();
+
+        updateButtons();
+
+    }
+
+
+    function closeNav(fromPopState) {
+
+        if (!navOpen) {
+            return;
+        }
+
+        closePocket();
+
+        navOpen = false;
+
+        document.getElementById("nav-screen").hidden = true;
+        document.body.classList.remove("nav-open");
+
+        stopTracking();
+
+        destroyNavMap();
+
+        releaseWakeLock();
+
+        if (navHistoryPushed) {
+
+            navHistoryPushed = false;
+
+            if (!fromPopState) {
+                history.back();
+            }
+
+        }
+
+        updateButtons();
+
+    }
+
+
+    /* ---------- wake lock / audio ---------- */
+
+    async function requestWakeLock() {
+
+        try {
+
+            if ("wakeLock" in navigator && !wakeLock) {
+
+                wakeLock = await navigator.wakeLock.request("screen");
+
+                wakeLock.addEventListener("release", () => {
+                    wakeLock = null;
+                });
+
+            }
+
+        } catch (e) { /* not supported / denied */ }
+
+    }
+
+
+    function releaseWakeLock() {
+
+        try {
+
+            if (wakeLock) {
+                wakeLock.release();
+            }
+
+        } catch (e) { /* ignore */ }
+
+        wakeLock = null;
+
+    }
+
+
+    function getAudio() {
+
+        try {
+
+            if (!audioCtx) {
+
+                const Ctx = window.AudioContext || window.webkitAudioContext;
+
+                if (Ctx) {
+                    audioCtx = new Ctx();
+                }
+
+            }
+
+            if (audioCtx && audioCtx.state === "suspended") {
+                audioCtx.resume();
+            }
+
+        } catch (e) { /* ignore */ }
+
+        return audioCtx;
+
+    }
+
+
+    function beep(count) {
+
+        const ctx = getAudio();
+
+        if (!ctx) {
+            return;
+        }
+
+        for (let i = 0; i < count; i++) {
+
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+
+            osc.frequency.value = 880;
+            gain.gain.value = 0.4;
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            const t = ctx.currentTime + i * 0.4;
+
+            osc.start(t);
+            osc.stop(t + 0.22);
+
+        }
+
+    }
+
+
+    /*
+     * Spoken alert. If the device has no Persian voice the alert
+     * falls back to beeps: 1 beep = track on the left,
+     * 2 beeps = track on the right.
+     */
+
+    function speakAlert(text, beepCount) {
+
+        let spoke = false;
+
+        try {
+
+            if ("speechSynthesis" in window) {
+
+                const voice = window.speechSynthesis
+                    .getVoices()
+                    .find(v => /^fa/i.test(v.lang));
+
+                if (voice) {
+
+                    window.speechSynthesis.cancel();
+
+                    const utterance = new SpeechSynthesisUtterance(text);
+
+                    utterance.lang = "fa-IR";
+                    utterance.voice = voice;
+                    utterance.rate = 0.95;
+                    utterance.volume = 1;
+
+                    window.speechSynthesis.speak(utterance);
+
+                    spoke = true;
+
+                }
+
+            }
+
+        } catch (e) { /* ignore */ }
+
+        if (!spoke) {
+            beep(beepCount);
+        }
+
+    }
+
+
+    /* ---------- pocket mode ---------- */
+
+    function openPocket() {
+
+        if (!navOpen || window.innerWidth > 900) {
+            return;
+        }
+
+        pocketOpen = true;
+
+        document.getElementById("pocket-screen").hidden = false;
+
+        getAudio();
+
+        requestWakeLock();
+
+        speakAlert("حالت جیب فعال شد", 1);
+
+    }
+
+
+    function closePocket() {
+
+        if (!pocketOpen) {
+            return;
+        }
+
+        pocketOpen = false;
+
+        document.getElementById("pocket-screen").hidden = true;
+
+        try {
+            window.speechSynthesis.cancel();
+        } catch (e) { /* ignore */ }
+
+    }
+
+
+    /* ---------- navigation map ---------- */
+
+    function initNavMap() {
+
+        if (navMap || typeof L === "undefined") {
+            return;
+        }
+
+        navMap = L.map("nav-map", {
+            zoomControl: true,
+            attributionControl: false
+        });
+
+        const topo = L.tileLayer(
+            "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+            { maxZoom: 17 }
+        );
+
+        const sat = L.tileLayer(
+            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            { maxZoom: 19 }
+        );
+
+        const osm = L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            { maxZoom: 19 }
+        );
+
+        topo.addTo(navMap);
+
+        L.control.layers(
+            {
+                "توپوگرافی": topo,
+                "ماهواره‌ای": sat,
+                "خیابانی": osm
+            },
+            null,
+            { position: "topright", collapsed: true }
+        ).addTo(navMap);
+
+        navMap.setView([32.0, 51.5], 7);
+
+        drawNavRoute(true);
+
+        setTimeout(() => {
+
+            if (navMap) {
+                navMap.invalidateSize();
+            }
+
+        }, 150);
+
+    }
+
+
+    function drawNavRoute(fit) {
+
+        if (!navMap) {
+            return;
+        }
+
+        if (navRouteLine) {
+            navMap.removeLayer(navRouteLine);
+            navRouteLine = null;
+        }
+
+        const result = getReferenceResult();
+
+        navTrackedName = result ? result.route : null;
+
+        const points = result && result.routeData
+            ? result.routeData.points
+            : null;
+
+        if (!points || points.length < 2) {
+            return;
+        }
+
+        navRouteLine = L.polyline(
+            points.map(point => [point.latitude, point.longitude]),
+            { color: "#4da3ff", weight: 5, opacity: 0.95 }
+        ).addTo(navMap);
+
+        if (fit && !navUserMarker) {
+            navMap.fitBounds(navRouteLine.getBounds(), { padding: [20, 20] });
+        }
+
+    }
+
+
+    function renderNavMap(p, projection, off) {
+
+        if (!navMap || !p) {
+            return;
+        }
+
+        const latLng = [p.lat, p.lon];
+
+        if (!navUserMarker) {
+
+            navAccuracy = L.circle(latLng, {
+                radius: p.accuracy,
+                color: "#1a73e8",
+                weight: 1,
+                fillColor: "#1a73e8",
+                fillOpacity: 0.12,
+                interactive: false
+            }).addTo(navMap);
+
+            navUserMarker = L.marker(latLng, {
+                icon: L.divIcon({
+                    className: "",
+                    html: '<div class="user-location-dot"></div>',
+                    iconSize: [22, 22],
+                    iconAnchor: [11, 11]
+                }),
+                zIndexOffset: 1000
+            }).addTo(navMap);
+
+            navMap.setView(latLng, 16);
+
+        } else {
+
+            navUserMarker.setLatLng(latLng);
+            navAccuracy.setLatLng(latLng);
+            navAccuracy.setRadius(p.accuracy);
+
+            if (!navMap.getBounds().pad(-0.2).contains(latLng)) {
+                navMap.panTo(latLng);
+            }
+
+        }
+
+        /* dashed line from the user to the nearest point of the track */
+
+        if (projection && projection.point && projection.distance > 3) {
+
+            const line = [
+                latLng,
+                [projection.point.lat, projection.point.lon]
+            ];
+
+            const style = {
+                color: off ? "#ff5252" : "#4cd964",
+                weight: 3,
+                dashArray: "6 6"
+            };
+
+            if (!navOffLine) {
+                navOffLine = L.polyline(line, style).addTo(navMap);
+            } else {
+                navOffLine.setLatLngs(line);
+                navOffLine.setStyle(style);
+            }
+
+        } else if (navOffLine) {
+
+            navMap.removeLayer(navOffLine);
+            navOffLine = null;
+
+        }
+
+    }
+
+
+    function removeNavUser() {
+
+        if (!navMap) {
+            return;
+        }
+
+        [navUserMarker, navAccuracy, navOffLine].forEach(layer => {
+
+            if (layer) {
+                navMap.removeLayer(layer);
+            }
+
+        });
+
+        navUserMarker = null;
+        navAccuracy = null;
+        navOffLine = null;
+
+    }
+
+
+    function destroyNavMap() {
+
+        if (navMap) {
+            navMap.remove();
+        }
+
+        navMap = null;
+        navUserMarker = null;
+        navAccuracy = null;
+        navRouteLine = null;
+        navOffLine = null;
+        navTrackedName = null;
+
+    }
+
+
+    /* ---------- evaluation + alerts ---------- */
+
+    function updateNavigation(projection, onTrack, p, result) {
+
+        if (!navOpen) {
+            return;
+        }
+
+        if (result && navMap && navTrackedName !== result.route) {
+            drawNavRoute(true);
+        }
+
+        if (!result) {
+            setNavStatus("wait", "ابتدا یک مسیر انتخاب کنید", "");
+            return;
+        }
+
+        if (!p) {
+
+            setNavStatus(
+                "wait",
+                state.signalLost
+                    ? "⚠ موقعیت در دسترس نیست"
+                    : "در حال یافتن موقعیت...",
+                ""
+            );
+
+            return;
+
+        }
+
+        if (!projection) {
+
+            setNavStatus("wait", "مسیر قابل محاسبه نیست", "");
+
+            return;
+
+        }
+
+        /* GPS noise: allow half of the accuracy (max 10 m) */
+
+        const allowance = Math.min(p.accuracy || 0, 20) / 2;
+
+        const limit = navThreshold + allowance;
+
+        const distance = projection.distance;
+
+        const off = navAlert.off
+            ? distance > limit * 0.85
+            : distance > limit;
+
+        /* side relative to the walking direction */
+
+        const userSide =
+            projection.lateral * state.dir > 0 ? "چپ" : "راست";
+
+        const trackSide = userSide === "چپ" ? "راست" : "چپ";
+
+        const directionText =
+            state.dir === 1 ? "مسیر رفت" : "مسیر برگشت";
+
+        const weak = state.signalLost
+            ? " · ⚠ سیگنال GPS ضعیف"
+            : "";
+
+        if (off) {
+
+            setNavStatus(
+                "off",
+                `⚠ ${Math.round(distance)} متر سمت ${userSide} مسیر`,
+                `مسیر سمت ${trackSide} شماست · ${directionText}${weak}`
+            );
+
+        } else {
+
+            setNavStatus(
+                "ok",
+                "✓ در مسیر درست",
+                `فاصله تا مسیر: ${Math.round(distance)} متر · ${directionText}${weak}`
+            );
+
+        }
+
+        renderNavMap(p, projection, off);
+
+        handleAlert(off, trackSide);
+
+    }
+
+
+    function handleAlert(off, trackSide) {
+
+        const now = Date.now();
+
+        if (off) {
+
+            if (!navAlert.off) {
+                navAlert.off = true;
+                navAlert.last = 0;
+            }
+
+            if (pocketOpen && now - navAlert.last > 12000) {
+
+                navAlert.last = now;
+
+                speakAlert(
+                    `از مسیر خارج شدید. مسیر سمت ${trackSide} شماست`,
+                    trackSide === "چپ" ? 1 : 2
+                );
+
+                if (navigator.vibrate) {
+                    navigator.vibrate([300, 150, 300]);
+                }
+
+            }
+
+        } else if (navAlert.off) {
+
+            navAlert.off = false;
+
+            if (pocketOpen) {
+                speakAlert("به مسیر برگشتید", 1);
             }
 
         }
