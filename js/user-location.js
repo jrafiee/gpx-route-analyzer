@@ -21,7 +21,8 @@
         matchTrack: null,
         matchAlong: null,
         dir: 1,           // 1 = outbound (along grows), -1 = return
-        dirKnown: false   // true after real movement along the track was seen
+        dirKnown: false,  // true after real movement (or a manual choice)
+        dirMode: "auto"   // "auto" | "out" | "back"  (manual choice)
     };
 
     // track chosen by the user when several routes are loaded
@@ -56,7 +57,7 @@
 
     /* low-vision options (saved) */
 
-    const NAV_FONT_STEPS = [1, 1.2, 1.4, 1.6];
+    const NAV_FONT_STEPS = [0.8, 1, 1.2, 1.4, 1.6];   // 1 = default (index 1)
 
     function readNavPref(key) {
         try { return localStorage.getItem(key); } catch (e) { return null; }
@@ -67,8 +68,8 @@
     }
 
     let navFontStep = (function () {
-        const v = Number(readNavPref("nav-font-step"));
-        return Number.isInteger(v) && v >= 0 && v < NAV_FONT_STEPS.length ? v : 0;
+        const index = NAV_FONT_STEPS.indexOf(Number(readNavPref("nav-font-scale")));
+        return index >= 0 ? index : 1;
     })();
 
     let navLight = readNavPref("nav-theme") === "light";
@@ -262,6 +263,8 @@
 
         state.dir = 1;
         state.dirKnown = false;
+        state.dirMode = "auto";
+        renderDirButtons();
         navAlert.off = false;
         navAlert.last = 0;
         removeNavUser();
@@ -905,7 +908,7 @@
                     ) {
                         const delta = projection.along - state.matchAlong;
 
-                        if (Math.abs(delta) > 8) {
+                        if (state.dirMode === "auto" && Math.abs(delta) > 8) {
                             state.dir = delta > 0 ? 1 : -1;
                             state.dirKnown = true;
                         }
@@ -1034,6 +1037,35 @@
     }
 
 
+    /* manual direction: "out" = outbound (1), "back" = return (-1) */
+
+    function applyDirMode() {
+
+        if (state.dirMode === "out") {
+            state.dir = 1;
+            state.dirKnown = true;
+        } else if (state.dirMode === "back") {
+            state.dir = -1;
+            state.dirKnown = true;
+        }
+
+    }
+
+
+    function renderDirButtons() {
+
+        document.querySelectorAll(".nav-dir-opt").forEach(button => {
+
+            const active = button.dataset.mode === state.dirMode;
+
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", active ? "true" : "false");
+
+        });
+
+    }
+
+
     function changeNavFont(delta) {
 
         const next = Math.min(
@@ -1047,7 +1079,7 @@
 
         navFontStep = next;
 
-        writeNavPref("nav-font-step", navFontStep);
+        writeNavPref("nav-font-scale", NAV_FONT_STEPS[navFontStep]);
 
         applyNavAppearance();
 
@@ -1106,6 +1138,13 @@
                 <div id="nav-status-sub" class="nav-status-sub"></div>
             </div>
 
+            <div class="nav-dir-bar" role="group" aria-label="جهت مسیر">
+                <span class="nav-dir-bar-label">جهت:</span>
+                <button type="button" class="nav-dir-opt" data-mode="auto">خودکار</button>
+                <button type="button" class="nav-dir-opt" data-mode="out">⬆ رفت</button>
+                <button type="button" class="nav-dir-opt" data-mode="back">⬇ برگشت</button>
+            </div>
+
             <div class="nav-body">
 
                 <div class="nav-info">
@@ -1153,6 +1192,24 @@
             .addEventListener("click", toggleNavLight);
 
         applyNavAppearance();
+
+        screen.querySelectorAll(".nav-dir-opt").forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                state.dirMode = button.dataset.mode;
+
+                applyDirMode();
+
+                renderDirButtons();
+
+                updatePanel();
+
+            });
+
+        });
+
+        renderDirButtons();
 
         renderSensitivityButtons();
 
@@ -1693,6 +1750,8 @@
         if (!navOpen) {
             return;
         }
+
+        applyDirMode();
 
         if (result && navMap && navTrackedName !== result.route) {
             drawNavRoute(true);
