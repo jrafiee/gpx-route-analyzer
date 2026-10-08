@@ -1274,3 +1274,118 @@ body.dark-mode .map-direction-option:has(input:checked) {
         height: max(620px, calc(100vh - 100px));
     }
 }
+
+
+/* =========================================================
+   Top bar: dark navy (same family as the guide hero), clear
+   frames and light text on the menu buttons
+   ========================================================= */
+
+.app-topbar {
+    background: linear-gradient(135deg, #2b4c6f 0%, #1e3349 100%);
+    border-bottom: 1px solid #14222f;
+    box-shadow: 0 2px 8px rgba(15, 30, 45, 0.25);
+}
+
+.app-topbar .brand-title { color: #ffffff; }
+
+.app-topbar .desktop-nav-tabs {
+    background: rgba(8, 20, 32, 0.38);
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    gap: 6px;
+    padding: 5px;
+}
+
+.app-topbar .desktop-nav-item {
+    color: #e8f0f8;
+    font-weight: 600;
+    border: 1px solid rgba(255, 255, 255, 0.40);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.app-topbar .desktop-nav-item:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.20);
+    border-color: rgba(255, 255, 255, 0.70);
+}
+
+.app-topbar .desktop-nav-item.active {
+    background: #ffffff;
+    color: #244b70;
+    font-weight: 800;
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(242, 160, 61, 0.85);
+}
+
+.app-topbar .workspace-trigger-btn {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+}
+
+.app-topbar .workspace-trigger-btn:hover {
+    background: rgba(255, 255, 255, 0.24);
+    border-color: #ffffff;
+}
+
+.app-topbar .route-count-badge {
+    background: #f2a03d;
+    color: #1e2a38;
+}
+
+.app-topbar .route-count-badge.badge-zero {
+    background: #b7c3d0;
+    color: #1e2a38;
+}
+
+.app-topbar .icon-btn {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    color: #ffffff;
+}
+
+.app-topbar .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.24);
+    border-color: #ffffff;
+}
+
+.app-topbar .calculations-link {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.55);
+}
+
+/* dark mode: a slightly deeper navy, same structure */
+
+body.dark-mode .app-topbar {
+    background: linear-gradient(135deg, #1b2d40 0%, #101c28 100%);
+    border-bottom-color: #313538;
+}
+
+body.dark-mode .app-topbar .desktop-nav-tabs {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+body.dark-mode .app-topbar .desktop-nav-item {
+    background: rgba(255, 255, 255, 0.07);
+    color: #e8f0f8;
+}
+
+body.dark-mode .app-topbar .desktop-nav-item:hover {
+    background: rgba(255, 255, 255, 0.20);
+}
+
+body.dark-mode .app-topbar .desktop-nav-item.active {
+    background: #ffffff;
+    color: #244b70;
+}
+
+body.dark-mode .app-topbar .icon-btn {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.55);
+    color: #ffffff;
+}
+
+body.dark-mode .app-topbar .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.24);
+}

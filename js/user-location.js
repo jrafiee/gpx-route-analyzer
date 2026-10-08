@@ -53,6 +53,25 @@
     const NAV_THRESHOLDS = [10, 15, 25, 40, 60];
     const navAlert = { off: false, last: 0 };
 
+    /* low-vision options (saved) */
+
+    const NAV_FONT_STEPS = [1, 1.2, 1.4, 1.6];
+
+    function readNavPref(key) {
+        try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+
+    function writeNavPref(key, value) {
+        try { localStorage.setItem(key, String(value)); } catch (e) { /* ignore */ }
+    }
+
+    let navFontStep = (function () {
+        const v = Number(readNavPref("nav-font-step"));
+        return Number.isInteger(v) && v >= 0 && v < NAV_FONT_STEPS.length ? v : 0;
+    })();
+
+    let navLight = readNavPref("nav-theme") === "light";
+
     let navThreshold = (function () {
         try {
             const v = Number(localStorage.getItem("nav-threshold"));
@@ -956,6 +975,69 @@
     }
 
 
+    function applyNavAppearance() {
+
+        const screen = document.getElementById("nav-screen");
+
+        if (!screen) {
+            return;
+        }
+
+        screen.style.setProperty("--nav-scale", String(NAV_FONT_STEPS[navFontStep]));
+        screen.classList.toggle("nav-light", navLight);
+
+        const minus = document.getElementById("nav-font-minus");
+        const plus = document.getElementById("nav-font-plus");
+        const sun = document.getElementById("nav-sun-btn");
+
+        if (minus) {
+            minus.disabled = navFontStep <= 0;
+        }
+
+        if (plus) {
+            plus.disabled = navFontStep >= NAV_FONT_STEPS.length - 1;
+        }
+
+        if (sun) {
+            sun.classList.toggle("active", navLight);
+            sun.setAttribute("aria-pressed", navLight ? "true" : "false");
+            sun.textContent = navLight ? "🌙 شب" : "☀️ آفتاب";
+        }
+
+    }
+
+
+    function changeNavFont(delta) {
+
+        const next = Math.min(
+            NAV_FONT_STEPS.length - 1,
+            Math.max(0, navFontStep + delta)
+        );
+
+        if (next === navFontStep) {
+            return;
+        }
+
+        navFontStep = next;
+
+        writeNavPref("nav-font-step", navFontStep);
+
+        applyNavAppearance();
+
+    }
+
+
+    function toggleNavLight() {
+
+        navLight = !navLight;
+
+        writeNavPref("nav-theme", navLight ? "light" : "dark");
+
+        applyNavAppearance();
+
+    }
+
+
     function createNavScreen() {
 
         if (document.getElementById("nav-screen")) {
@@ -972,6 +1054,14 @@
 
             <div class="nav-top">
                 <div class="nav-title">🧭 ناوبری</div>
+                <div class="nav-tools">
+                    <button id="nav-font-minus" type="button" class="nav-btn"
+                            title="کوچک‌تر کردن نوشته" aria-label="کوچک‌تر کردن نوشته">A−</button>
+                    <button id="nav-font-plus" type="button" class="nav-btn"
+                            title="بزرگ‌تر کردن نوشته" aria-label="بزرگ‌تر کردن نوشته">A+</button>
+                    <button id="nav-sun-btn" type="button" class="nav-btn nav-sun"
+                            aria-pressed="false">☀️ آفتاب</button>
+                </div>
                 <div class="nav-actions">
                     <button id="nav-pocket-btn" type="button"
                             class="nav-btn nav-pocket-btn">🔒 حالت جیب</button>
@@ -980,13 +1070,14 @@
                 </div>
             </div>
 
+            <div id="nav-status" class="nav-status nav-wait" role="status" aria-live="polite">
+                <div id="nav-status-main" class="nav-status-main">در حال یافتن موقعیت...</div>
+                <div id="nav-status-sub" class="nav-status-sub"></div>
+            </div>
+
             <div class="nav-body">
 
                 <div class="nav-info">
-                    <div id="nav-status" class="nav-status nav-wait">
-                        <div id="nav-status-main" class="nav-status-main">در حال یافتن موقعیت...</div>
-                        <div id="nav-status-sub" class="nav-status-sub"></div>
-                    </div>
                     <div id="nav-panel-slot"></div>
                 </div>
 
@@ -1017,6 +1108,20 @@
         document
             .getElementById("nav-pocket-btn")
             .addEventListener("click", openPocket);
+
+        document
+            .getElementById("nav-font-minus")
+            .addEventListener("click", () => changeNavFont(-1));
+
+        document
+            .getElementById("nav-font-plus")
+            .addEventListener("click", () => changeNavFont(1));
+
+        document
+            .getElementById("nav-sun-btn")
+            .addEventListener("click", toggleNavLight);
+
+        applyNavAppearance();
 
         renderSensitivityButtons();
 
