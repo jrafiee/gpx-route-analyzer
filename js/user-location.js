@@ -20,7 +20,8 @@
         signalLost: false,
         matchTrack: null,
         matchAlong: null,
-        dir: 1            // 1 = outbound (along grows), -1 = return
+        dir: 1,           // 1 = outbound (along grows), -1 = return
+        dirKnown: false   // true after real movement along the track was seen
     };
 
     // track chosen by the user when several routes are loaded
@@ -260,6 +261,7 @@
         remove3D();
 
         state.dir = 1;
+        state.dirKnown = false;
         navAlert.off = false;
         navAlert.last = 0;
         removeNavUser();
@@ -905,6 +907,7 @@
 
                         if (Math.abs(delta) > 8) {
                             state.dir = delta > 0 ? 1 : -1;
+                            state.dirKnown = true;
                         }
                     }
 
@@ -959,7 +962,13 @@
        - pocket mode (mobile): black screen + voice alerts
        ===================================================== */
 
-    function setNavStatus(kind, main, sub) {
+    /*
+     * extra (optional):
+     *   arrow : "←" | "→"  big arrow = the way back to the track
+     *   dir   : { kind: "out" | "back" | "unk", text }  direction badge
+     */
+
+    function setNavStatus(kind, main, sub, extra) {
 
         const box = document.getElementById("nav-status");
 
@@ -967,10 +976,28 @@
             return;
         }
 
+        const opts = extra || {};
+
         box.className = "nav-status nav-" + kind;
 
         panelText("nav-status-main", main);
         panelText("nav-status-sub", sub || "");
+
+        const arrow = document.getElementById("nav-status-arrow");
+
+        if (arrow) {
+            arrow.textContent = opts.arrow || "";
+            arrow.hidden = !opts.arrow;
+        }
+
+        const badge = document.getElementById("nav-status-dir");
+
+        if (badge) {
+            badge.hidden = !opts.dir;
+            badge.textContent = opts.dir ? opts.dir.text : "";
+            badge.className =
+                "nav-dir-badge" + (opts.dir ? " nav-dir-" + opts.dir.kind : "");
+        }
 
     }
 
@@ -1071,7 +1098,11 @@
             </div>
 
             <div id="nav-status" class="nav-status nav-wait" role="status" aria-live="polite">
-                <div id="nav-status-main" class="nav-status-main">در حال یافتن موقعیت...</div>
+                <div id="nav-status-dir" class="nav-dir-badge" hidden></div>
+                <div class="nav-status-row" dir="ltr">
+                    <span id="nav-status-arrow" class="nav-status-arrow" aria-hidden="true" hidden></span>
+                    <div id="nav-status-main" class="nav-status-main" dir="rtl">در حال یافتن موقعیت...</div>
+                </div>
                 <div id="nav-status-sub" class="nav-status-sub"></div>
             </div>
 
@@ -1713,19 +1744,27 @@
 
         const trackSide = userSide === "چپ" ? "راست" : "چپ";
 
-        const directionText =
-            state.dir === 1 ? "مسیر رفت" : "مسیر برگشت";
+        /* the arrow points to where the track is */
+
+        const arrow = trackSide === "چپ" ? "←" : "→";
+
+        const dirInfo = !state.dirKnown
+            ? { kind: "unk", text: "جهت حرکت: نامشخص (کمی حرکت کنید)" }
+            : state.dir === 1
+                ? { kind: "out", text: "⬆ مسیر رفت" }
+                : { kind: "back", text: "⬇ مسیر برگشت" };
 
         const weak = state.signalLost
-            ? " · ⚠ سیگنال GPS ضعیف"
+            ? "⚠ سیگنال GPS ضعیف"
             : "";
 
         if (off) {
 
             setNavStatus(
                 "off",
-                `⚠ ${Math.round(distance)} متر سمت ${userSide} مسیر`,
-                `مسیر سمت ${trackSide} شماست · ${directionText}${weak}`
+                `${Math.round(distance)} متر انحراف`,
+                `به سمت ${trackSide} بروید` + (weak ? " · " + weak : ""),
+                { arrow: arrow, dir: dirInfo }
             );
 
         } else {
@@ -1733,7 +1772,9 @@
             setNavStatus(
                 "ok",
                 "✓ در مسیر درست",
-                `فاصله تا مسیر: ${Math.round(distance)} متر · ${directionText}${weak}`
+                `فاصله تا مسیر: ${Math.round(distance)} متر` +
+                    (weak ? " · " + weak : ""),
+                { dir: dirInfo }
             );
 
         }

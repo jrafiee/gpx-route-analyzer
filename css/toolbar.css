@@ -672,6 +672,43 @@ body.nav-open { overflow: hidden; }
     50%  { background: #fff;    color: #e65100; }
 }
 
+/* direction badge (outbound / return) */
+
+.nav-dir-badge {
+    display: inline-block;
+    margin-bottom: calc(8px * var(--s));
+    padding: calc(4px * var(--s)) calc(16px * var(--s));
+    border: 3px solid #fff;
+    border-radius: 999px;
+    background: #000;
+    color: #fff;
+    font-size: calc(22px * var(--s));
+    font-weight: 900;
+    line-height: 1.3;
+}
+
+.nav-dir-badge.nav-dir-out  { background: #0057b8; }
+.nav-dir-badge.nav-dir-back { background: #6a1b9a; }
+.nav-dir-badge.nav-dir-unk  { background: #444; font-size: calc(16px * var(--s)); }
+
+/* arrow + deviation distance */
+
+.nav-status-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(14px * var(--s));
+}
+
+.nav-status-arrow {
+    font-size: calc(84px * var(--s));
+    font-weight: 900;
+    line-height: 1;
+}
+
+.nav-dir-badge[hidden],
+.nav-status-arrow[hidden] { display: none !important; }
+
 /* body */
 
 .nav-body {
