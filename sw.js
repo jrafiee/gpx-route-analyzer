@@ -1,15 +1,15 @@
 /* Service Worker - Mountain Route Compare */
-const VERSION = "v9";
+const VERSION = "v10";
 const SHELL_CACHE = "mrc-shell-" + VERSION;
 const RUNTIME_CACHE = "mrc-runtime-" + VERSION;
 
 /* map tiles live in their own cache that survives version bumps */
 const TILE_CACHE = "mrc-tiles-v1";
-const TILE_LIMIT = 1500;
+const TILE_LIMIT = 6000;
 
 const SHELL_FILES = [
   "./", "index.html", "manifest.webmanifest",
-  "css/style.css", "css/responsive.css", "css/toolbar.css", "css/weather.css",
+  "css/style.css", "css/responsive.css", "css/toolbar.css", "css/nav-theme.css", "css/weather.css",
   "js/app-state.js", "js/gpx-reader.js", "js/route-analysis.js", "js/charts.js",
   "js/ui.js", "js/route-selection.js", "js/speed.js", "js/map-2d.js",
   "js/map-3d.js", "js/track-geometry.js", "js/user-location.js",

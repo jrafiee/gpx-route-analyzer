@@ -1,0 +1,203 @@
+/* =========================================================
+   Navigation screen theme (dark navy / green / cyan)
+   Only colours, borders, radii and progress bars.
+   Load AFTER toolbar.css
+   ========================================================= */
+
+.nav-screen {
+    --nv-bg: #0a1020;
+    --nv-fg: #e9eef7;
+    --nv-muted: #8fa0bd;
+    --nv-card: #0e1628;
+    --nv-card2: #121c33;
+    --nv-line: #1c2a44;
+    --nv-climb: #36d9ff;
+    --nv-dist: #19d38a;
+    --nv-track: #172036;
+    --nv-btn: #121c33;
+    --nv-btn-line: #26365a;
+    --nv-warn: #f5b041;
+    --nv-accent: #36d9ff;
+    --nv-green: #19d38a;
+    --nv-bar: linear-gradient(90deg, #0fc4a3 0%, #a6e22e 100%);
+    font-weight: 600;
+}
+
+.nav-screen.nav-light {
+    --nv-bg: #eef3fa;
+    --nv-fg: #0d1b2e;
+    --nv-muted: #51627d;
+    --nv-card: #ffffff;
+    --nv-card2: #f3f7fc;
+    --nv-line: #cdd8e8;
+    --nv-climb: #0a7fb3;
+    --nv-dist: #0a8a58;
+    --nv-track: #dbe4f1;
+    --nv-btn: #ffffff;
+    --nv-btn-line: #b9c7dc;
+    --nv-warn: #b45f06;
+    --nv-accent: #0a7fb3;
+    --nv-green: #0a8a58;
+}
+
+/* ---------- top bar ---------- */
+.nav-top {
+    background: var(--nv-card);
+    border-bottom: 1px solid var(--nv-line);
+    padding: 8px 12px;
+}
+.nav-title { color: var(--nv-fg); font-weight: 700; }
+.nav-btn,
+.nav-dir-opt {
+    border: 1px solid var(--nv-btn-line);
+    border-radius: 12px;
+    background: var(--nv-card2);
+    color: var(--nv-fg);
+    font-weight: 600;
+}
+.nav-pocket-btn { border-color: #7c5cd6; color: #c4b0ff; }
+.nav-light .nav-pocket-btn { color: #5b3fb8; }
+.nav-close { border-color: #c0495a; color: #ff9aa8; }
+.nav-light .nav-close { background: #fff0f2; color: #b3202f; }
+.nav-sun.active {
+    background: #f5b041; border-color: #f5b041; color: #1a1200;
+}
+
+/* ---------- status card ---------- */
+.nav-status {
+    border: 1px solid var(--nv-line);
+    border-radius: 22px;
+    background: var(--nv-card);
+    color: var(--nv-fg);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+.nav-status-main { font-weight: 800; }
+.nav-status-sub { color: var(--nv-muted); font-weight: 500; }
+
+.nav-status.nav-ok {
+    background: linear-gradient(135deg, #0c3d31 0%, #0a2433 100%);
+    border: 1px solid #14925f;
+    color: #1fd18d;
+}
+.nav-status.nav-ok .nav-status-sub { color: #b3c2d6; }
+.nav-light .nav-status.nav-ok {
+    background: linear-gradient(135deg, #e3f8ee 0%, #e6f2fb 100%);
+    border-color: #2fa876;
+    color: #0a7a4d;
+}
+.nav-light .nav-status.nav-ok .nav-status-sub { color: #3b5068; }
+
+.nav-status.nav-off {
+    background: #3a2406;
+    border: 1px solid #f59e0b;
+    color: #ffc25a;
+    animation: nav-blink-theme 1s steps(1, end) infinite;
+}
+.nav-status.nav-off .nav-status-sub { color: #ffd9a0; }
+.nav-light .nav-status.nav-off {
+    border-color: #e08600;
+    animation-name: nav-blink-theme-light;
+}
+@keyframes nav-blink-theme {
+    0%   { background: #3a2406; color: #ffc25a; }
+    50%  { background: #0e1628; color: #f59e0b; }
+}
+@keyframes nav-blink-theme-light {
+    0%   { background: #fff1d6; color: #9a4f00; }
+    50%  { background: #ffffff; color: #e08600; }
+}
+
+.nav-status.nav-wait { color: var(--nv-fg); }
+
+.nav-dir-badge {
+    border: 1px solid #26365a;
+    background: #121c33;
+    color: #e9eef7;
+    font-weight: 700;
+}
+.nav-dir-badge.nav-dir-out  { background: #0b3f66; border-color: #1b78b5; }
+.nav-dir-badge.nav-dir-back { background: #3d2368; border-color: #7c5cd6; }
+.nav-dir-badge.nav-dir-unk  { background: #1a2438; color: var(--nv-muted); }
+
+/* ---------- direction selector ---------- */
+.nav-dir-bar-label { color: var(--nv-muted); }
+.nav-dir-opt.active { background: #26365a; border-color: #36d9ff; color: #fff; }
+.nav-dir-opt[data-mode="out"].active  { background: #0b3f66; border-color: #1b78b5; }
+.nav-dir-opt[data-mode="back"].active { background: #3d2368; border-color: #7c5cd6; }
+
+/* ---------- cards ---------- */
+#nav-screen .user-location-panel,
+.nav-sens {
+    border: 1px solid var(--nv-line);
+    border-radius: 22px;
+    background: var(--nv-card);
+    box-shadow: none;
+}
+
+#nav-screen .ulp-header { border-bottom: 1px solid var(--nv-line); }
+#nav-screen .ulp-title { color: var(--nv-green); }
+#nav-screen .ulp-route { color: var(--nv-fg); }
+#nav-screen .ulp-meta { color: var(--nv-muted); }
+#nav-screen .ulp-track {
+    background: var(--nv-card2);
+    border: 1px solid var(--nv-btn-line);
+    border-radius: 12px;
+}
+
+#nav-screen .ulp-item,
+#nav-screen .ulp-item:nth-child(even) {
+    background: var(--nv-card);
+    border: 1px solid var(--nv-line);
+    border-inline-start: 1px solid var(--nv-line);
+    border-radius: 20px;
+}
+#nav-screen .ulp-item + .ulp-item { border-top: 1px solid var(--nv-line); }
+#nav-screen .ulp-item.ulp-dist { border-inline-start-color: var(--nv-line); }
+
+#nav-screen .ulp-label,
+#nav-screen .ulp-prog-foot small { color: var(--nv-muted); font-weight: 500; }
+
+#nav-screen .ulp-value,
+#nav-screen .ulp-prog-foot b { color: var(--nv-fg); font-weight: 800; }
+#nav-screen #ulp-altitude { color: var(--nv-accent); }
+
+#nav-screen .ulp-prog-pct { color: var(--nv-green); font-weight: 800; }
+
+/* ---------- progress bars (thin, rounded, RTL, gradient) ---------- */
+#nav-screen .ulp-bar {
+    direction: rtl;
+    height: calc(12px * var(--s));
+    border-radius: 999px;
+    border: 1px solid var(--nv-line);
+    background: var(--nv-track);
+    overflow: hidden;
+}
+#nav-screen .ulp-climb .ulp-bar-fill,
+#nav-screen .ulp-dist .ulp-bar-fill,
+#nav-screen .ulp-bar-fill {
+    background: var(--nv-bar);
+    border-radius: 999px;
+}
+
+#nav-screen .ulp-note { color: var(--nv-warn); font-weight: 600; }
+
+/* ---------- map + sensitivity ---------- */
+.nav-map {
+    border: 1px solid var(--nv-line);
+    border-radius: 22px;
+}
+.nav-sens-title { color: var(--nv-muted); font-weight: 600; }
+.nav-sens-btn {
+    border: 1px solid var(--nv-btn-line);
+    border-radius: 14px;
+    background: var(--nv-card2);
+    color: var(--nv-fg);
+    font-weight: 700;
+}
+.nav-sens-btn.active,
+.nav-light .nav-sens-btn.active {
+    background: #0c3d31;
+    border-color: #14925f;
+    color: #1fd18d;
+}
+.nav-light .nav-sens-btn.active { background: #e3f8ee; color: #0a7a4d; }
