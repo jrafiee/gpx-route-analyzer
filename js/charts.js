@@ -114,7 +114,7 @@ function getChartPalette() {
         dark: dark,
 
         muted:
-            dark ? "#9aa1a8" : "#68707a",
+            dark ? "#c8cdd3" : "#454d57",
 
         grid:
             dark
@@ -764,7 +764,7 @@ function buildPlotLayout(
 
         font: {
             family: CHART_FONT_SANS,
-            size: 12,
+            size: 13,
             color: palette.textColor
         },
 
@@ -774,7 +774,7 @@ function buildPlotLayout(
                 text: xTitle,
                 standoff: 12,
                 font: {
-                    size: 12,
+                    size: 13,
                     color: palette.muted
                 }
             },
@@ -794,8 +794,8 @@ function buildPlotLayout(
 
             tickfont: {
                 family: CHART_FONT_MONO,
-                size: 11,
-                color: palette.muted
+                size: 12,
+                color: palette.textColor
             },
 
             automargin: true
@@ -808,7 +808,7 @@ function buildPlotLayout(
                 text: yTitle,
                 standoff: 10,
                 font: {
-                    size: 12,
+                    size: 13,
                     color: palette.muted
                 }
             },
@@ -827,8 +827,8 @@ function buildPlotLayout(
 
             tickfont: {
                 family: CHART_FONT_MONO,
-                size: 11,
-                color: palette.muted
+                size: 12,
+                color: palette.textColor
             },
 
             automargin: true
@@ -851,7 +851,7 @@ function buildPlotLayout(
             bordercolor: palette.hoverBorder,
             font: {
                 family: CHART_FONT_SANS,
-                size: 12,
+                size: 14,
                 color: palette.textColor
             }
         },
@@ -859,7 +859,7 @@ function buildPlotLayout(
         legend: {
             ...getResponsiveLegend(),
             font: {
-                size: isMobile ? 11 : 12,
+                size: isMobile ? 12 : 13,
                 color: palette.textColor
             }
         },
@@ -908,7 +908,7 @@ function applyCategoryAxis(layout) {
 
         tickfont: {
             family: CHART_FONT_SANS,
-            size: 12,
+            size: 13,
             color: palette.textColor
         }
 
@@ -1011,6 +1011,94 @@ function applySpikeLine(layout) {
 
 
 const CHART_SLIM_BAR_WIDTH = 0.34;
+
+/* =========================================================
+   Bar charts: when a legend item is switched off, the y axis
+   is rescaled to the tallest bar that is still visible.
+   (stacked chart: tallest visible stack)
+   ========================================================= */
+
+function rescaleBarAxis(gd) {
+
+    const traces =
+        (gd.data || []).filter(
+            trace =>
+                trace.type === "bar" &&
+                trace.visible !== "legendonly" &&
+                trace.visible !== false
+        );
+
+    let max = 0;
+    const totals = {};
+
+    if (gd._barStacked) {
+
+        traces.forEach(trace => {
+            Array.from(trace.x || []).forEach((x, i) => {
+                const v = Number(trace.y[i]);
+                if (Number.isFinite(v)) {
+                    totals[x] = (totals[x] || 0) + v;
+                }
+            });
+        });
+
+        Object.values(totals).forEach(v => {
+            if (v > max) { max = v; }
+        });
+
+    } else {
+
+        traces.forEach(trace => {
+            Array.from(trace.y || []).forEach(value => {
+                const v = Number(value);
+                if (value !== null && Number.isFinite(v) && v > max) {
+                    max = v;
+                }
+            });
+        });
+
+    }
+
+    if (max <= 0) {
+        return;
+    }
+
+    const update = {
+        "yaxis.range": [0, max * (gd._barHeadroom || 1.1)]
+    };
+
+    if (gd._barStacked && gd.layout && gd.layout.annotations) {
+        gd.layout.annotations.forEach((annotation, i) => {
+            update[`annotations[${i}].y`] = totals[annotation.x] || 0;
+        });
+    }
+
+    Plotly.relayout(gd, update);
+
+}
+
+
+function bindBarAutoscale(containerId, headroom, stacked) {
+
+    const gd = document.getElementById(containerId);
+
+    if (!gd) {
+        return;
+    }
+
+    gd._barHeadroom = headroom;
+    gd._barStacked = !!stacked;
+
+    if (gd._barAutoscaleBound || typeof gd.on !== "function") {
+        return;
+    }
+
+    gd._barAutoscaleBound = true;
+
+    gd.on("plotly_restyle", () => rescaleBarAxis(gd));
+
+}
+
 
 
 // --------------------------------------------------
@@ -1686,8 +1774,8 @@ function drawSlopeDistribution(
 
                     font: {
                         family: CHART_FONT_MONO,
-                        size: 11,
-                        color: palette.muted
+                        size: 12,
+                        color: palette.textColor
                     }
 
                 };
@@ -1737,7 +1825,7 @@ function drawSlopeDistribution(
         traces,
         layout,
         getChartConfig(false)
-    );
+    ).then(() => bindBarAutoscale(containerId, 1.14, true));
 
 }
 
@@ -1769,8 +1857,11 @@ function drawGroupedBarChart(
         results.map(result => result.route);
 
     /* value labels become unreadable with many bars */
+    const isMobile =
+        window.innerWidth <= 900;
+
     const showLabels =
-        results.length * series.length <= 12;
+        results.length * series.length <= (isMobile ? 9 : 12);
 
     let maxValue = 0;
 
@@ -1848,7 +1939,7 @@ function drawGroupedBarChart(
                             value =>
                                 value === null
                                     ? ""
-                                    : value.toFixed(item.digits) +
+                                    : value.toFixed(isMobile ? Math.min(item.digits, 1) : item.digits) +
                                       (item.textSuffix || "")
                         );
 
@@ -1858,8 +1949,8 @@ function drawGroupedBarChart(
 
                     trace.textfont = {
                         family: CHART_FONT_MONO,
-                        size: 10,
-                        color: palette.muted
+                        size: 12,
+                        color: palette.textColor
                     };
 
                 }
@@ -1897,7 +1988,11 @@ function drawGroupedBarChart(
         traces,
         layout,
         getChartConfig(false)
-    );
+    ).then(() => bindBarAutoscale(
+        containerId,
+        showLabels ? 1.15 : 1.06,
+        false
+    ));
 
 }
 
@@ -2083,8 +2178,8 @@ function drawDifficultyScoreChart(
 
         textfont: {
             family: CHART_FONT_MONO,
-            size: 11,
-            color: palette.muted
+            size: 13,
+            color: palette.textColor
         },
 
         hovertemplate:
