@@ -8,22 +8,22 @@
 }
 
 :root {
-    --bg-main: #f6f8fa;
+    --bg-main: #f4f7f7;
     --card-bg: #ffffff;
     --border-color: #e2e8f0;
     --border-subtle: #edf2f7;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-muted: #94a3b8;
-    --accent: #315f8c;
-    --accent-light: #eaf2f9;
-    --accent-hover: #244b70;
-    --primary-blue: #4d8bc9;
+    --text-primary: #10303d;
+    --text-secondary: #4f6a76;
+    --text-muted: #5d7884;
+    --accent: #0b7a66;
+    --accent-light: #e3f5f0;
+    --accent-hover: #085f4f;
+    --primary-blue: #17a98a;
     --header-bg: #ffffff;
     --table-header-bg: #f8fafc;
     --table-label-bg: #f1f5f9;
-    --chip-bg: #eaf4ff;
-    --chip-border: #bfdbfe;
+    --chip-bg: #e6f6f2;
+    --chip-border: #b5e3d6;
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
     --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.09);
@@ -36,7 +36,7 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+    font-family: "Vazirmatn", Tahoma, "Segoe UI", Arial, sans-serif;
     background: var(--bg-main);
     color: var(--text-primary);
     line-height: 1.6;
@@ -140,7 +140,7 @@ body {
     padding: 7px 12px;
     background: var(--accent-light);
     color: var(--accent);
-    border: 1px solid #c8ddef;
+    border: 1px solid #bfe6da;
     border-radius: var(--radius-md);
     font-family: inherit;
     font-size: 13px;
@@ -151,8 +151,8 @@ body {
 }
 
 .workspace-trigger-btn:hover {
-    background: #dbeaf7;
-    border-color: #b7d5ee;
+    background: #d2efe7;
+    border-color: #a2dccd;
 }
 
 .workspace-trigger-btn:active {
@@ -459,7 +459,7 @@ body {
    ========================================================= */
 
 .guide-hero {
-    background: linear-gradient(135deg, #2b4c6f 0%, #1e3349 100%);
+    background: radial-gradient(90% 140% at 10% 0%, #0f5a62 0%, transparent 60%), linear-gradient(135deg, #0b2f3f 0%, #0a2230 100%);
     color: white;
     padding: 24px;
     border-radius: var(--radius-lg);
@@ -496,7 +496,14 @@ body {
 }
 
 .guide-feature-icon {
-    font-size: 28px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 22px;
     flex-shrink: 0;
     line-height: 1;
 }
@@ -850,7 +857,7 @@ body {
 
 .gpx-upload-box:hover {
     border-color: var(--primary-blue);
-    background: #f0f7ff;
+    background: #effaf6;
 }
 
 .gpx-upload-box input[type="file"] {
@@ -994,7 +1001,7 @@ body {
 
 .bottom-nav-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     height: 100%;
     align-items: center;
 }
@@ -1065,15 +1072,15 @@ body.dark-mode {
     --text-primary: #e5e5e5;
     --text-secondary: #a3acb9;
     --text-muted: #727b87;
-    --accent: #5c9ce6;
-    --accent-light: #1e2c3a;
-    --accent-hover: #7bb3f5;
-    --primary-blue: #4d8bc9;
+    --accent: #3ee0b9;
+    --accent-light: #12302c;
+    --accent-hover: #7ff0d2;
+    --primary-blue: #2fd9ae;
     --header-bg: #202324;
     --table-header-bg: #272a2c;
     --table-label-bg: #2b2e30;
-    --chip-bg: #1c2b3c;
-    --chip-border: #284464;
+    --chip-bg: #11332f;
+    --chip-border: #1e5a50;
 }
 
 body.dark-mode .app-topbar {
@@ -1087,7 +1094,7 @@ body.dark-mode .desktop-nav-tabs {
 
 body.dark-mode .desktop-nav-item.active {
     background: #2b2e30;
-    color: #8ec5f5;
+    color: #7ff0d2;
 }
 
 body.dark-mode .desktop-nav-item:hover {
@@ -1155,7 +1162,7 @@ body.dark-mode .mobile-bottom-nav .bottom-nav-item {
 }
 
 body.dark-mode .mobile-bottom-nav .bottom-nav-item.active {
-    color: #8ec5f5;
+    color: #7ff0d2;
 }
 
 body.dark-mode .guide-accordion summary {
@@ -1184,9 +1191,9 @@ body.dark-mode .map-direction-option {
 }
 
 body.dark-mode .map-direction-option:has(input:checked) {
-    background: #1e2c3a;
+    background: #12302c;
     border-color: var(--primary-blue);
-    color: #8ec5f5;
+    color: #7ff0d2;
 }
 
 /* =========================================================
@@ -1208,39 +1215,6 @@ body.dark-mode .map-direction-option:has(input:checked) {
     font-weight: 700;
     line-height: 1;
 }
-
-/* =========================================================
-   Desktop header image (scrolls away, top bar stays)
-   ========================================================= */
-
-.site-hero {
-    position: relative;
-    width: 100%;
-    height: 220px;
-    overflow: hidden;
-    background: #1e3349;
-}
-
-.site-hero img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center top;
-}
-
-@media (max-width: 900px) {
-    .site-hero {
-        display: none;
-    }
-}
-
-/* the fixed sidebar follows the visible part of the header */
-.sidebar {
-    top: calc(60px + var(--hero-offset, 0px));
-    height: calc(100vh - 60px - var(--hero-offset, 0px));
-}
-
 
 /* Guide: contact card + embedded calculations doc */
 .guide-contact-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
@@ -1277,115 +1251,109 @@ body.dark-mode .map-direction-option:has(input:checked) {
 
 
 /* =========================================================
-   Top bar: dark navy (same family as the guide hero), clear
-   frames and light text on the menu buttons
+   Soffeh top bar: glass navy, text menu with teal underline
    ========================================================= */
 
-.app-topbar {
-    background: linear-gradient(135deg, #2b4c6f 0%, #1e3349 100%);
-    border-bottom: 1px solid #14222f;
-    box-shadow: 0 2px 8px rgba(15, 30, 45, 0.25);
+body .app-topbar {
+    background: rgba(7, 32, 44, 0.92);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(14px) saturate(140%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: none;
 }
 
-.app-topbar .brand-title { color: #ffffff; }
+body.dark-mode .app-topbar { background: rgba(7, 22, 30, 0.82); border-bottom-color: rgba(255, 255, 255, 0.08); }
 
-.app-topbar .desktop-nav-tabs {
-    background: rgba(8, 20, 32, 0.38);
-    border: 1px solid rgba(255, 255, 255, 0.30);
-    gap: 6px;
-    padding: 5px;
+.brand-link { text-decoration: none; color: #fff; gap: 12px; }
+.brand-mark svg { display: block; width: 38px; height: auto; }
+.brand-text { display: flex; flex-direction: column; line-height: 1; gap: 4px; }
+.app-topbar .brand-title { font-size: 24px; font-weight: 800; color: #fff; line-height: 1; }
+.brand-latin { font-size: 9px; font-weight: 600; letter-spacing: 0.5em; color: #9fe9d6; text-align: right; }
+
+body .app-topbar .desktop-nav-tabs { background: transparent; border: 0; padding: 0; gap: 2px; }
+
+body .app-topbar .desktop-nav-item {
+    position: relative;
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #d3e3e9;
+    font-size: 14px;
+    font-weight: 500;
+    box-shadow: none;
 }
 
-.app-topbar .desktop-nav-item {
-    color: #e8f0f8;
-    font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.40);
-    background: rgba(255, 255, 255, 0.08);
+body .app-topbar .desktop-nav-item::after {
+    content: "";
+    position: absolute;
+    inset-inline: 14px;
+    bottom: 1px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--teal);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
 }
 
-.app-topbar .desktop-nav-item:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.20);
-    border-color: rgba(255, 255, 255, 0.70);
+body .app-topbar .desktop-nav-item:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+body .app-topbar .desktop-nav-item.active { color: #fff; background: transparent; font-weight: 700; box-shadow: none; }
+body .app-topbar .desktop-nav-item.active::after { transform: scaleX(1); }
+
+body .app-topbar .workspace-trigger-btn {
+    background: rgba(255, 255, 255, 0.10);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+}
+body .app-topbar .workspace-trigger-btn:hover { background: rgba(255, 255, 255, 0.2); border-color: #fff; }
+body .app-topbar .route-count-badge { background: var(--teal); color: #06261f; }
+body .app-topbar .route-count-badge.badge-zero { background: #b7c3d0; }
+
+body .app-topbar .icon-btn {
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #fff;
+    font-size: 18px;
+}
+body .app-topbar .icon-btn:hover { background: rgba(255, 255, 255, 0.22); border-color: #fff; }
+
+body .app-topbar .calculations-link {
+    background: var(--teal);
+    color: #06261f;
+    border-color: var(--teal);
+    font-weight: 700;
 }
 
-.app-topbar .desktop-nav-item.active {
-    background: #ffffff;
-    color: #244b70;
-    font-weight: 800;
-    border-color: #ffffff;
-    box-shadow: 0 0 0 2px rgba(242, 160, 61, 0.85);
+:focus-visible { outline: 2px solid var(--primary-blue); outline-offset: 2px; }
+.app-topbar :focus-visible { outline-color: var(--teal); }
+
+/* section header icon tile (replaces emoji) */
+.section-icon {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 23px;
+    flex-shrink: 0;
 }
 
-.app-topbar .workspace-trigger-btn {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.55);
-}
+.empty-state-icon { color: var(--accent); font-size: 52px; line-height: 1; }
+.gpx-upload-icon { color: var(--accent); font-size: 24px; line-height: 1; }
+.sidebar-title .ico { color: var(--accent); }
+.theme-toggle .ico { width: 18px; height: 18px; }
+.calculations-link .ico, .guide-contact-links .ico { width: 15px; height: 15px; }
 
-.app-topbar .workspace-trigger-btn:hover {
-    background: rgba(255, 255, 255, 0.24);
-    border-color: #ffffff;
-}
+/* bottom navigation: pill indicator for the active item */
+.bottom-nav-icon { width: 48px; height: 28px; border-radius: 14px; transition: background 0.15s ease, transform 0.15s ease; }
+.bottom-nav-icon svg { width: 20px; height: 20px; fill: none; }
+.bottom-nav-item.active .bottom-nav-icon { background: var(--accent-light); }
 
-.app-topbar .route-count-badge {
-    background: #f2a03d;
-    color: #1e2a38;
-}
-
-.app-topbar .route-count-badge.badge-zero {
-    background: #b7c3d0;
-    color: #1e2a38;
-}
-
-.app-topbar .icon-btn {
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.55);
-    color: #ffffff;
-}
-
-.app-topbar .icon-btn:hover {
-    background: rgba(255, 255, 255, 0.24);
-    border-color: #ffffff;
-}
-
-.app-topbar .calculations-link {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.55);
-}
-
-/* dark mode: a slightly deeper navy, same structure */
-
-body.dark-mode .app-topbar {
-    background: linear-gradient(135deg, #1b2d40 0%, #101c28 100%);
-    border-bottom-color: #313538;
-}
-
-body.dark-mode .app-topbar .desktop-nav-tabs {
-    background: rgba(0, 0, 0, 0.35);
-}
-
-body.dark-mode .app-topbar .desktop-nav-item {
-    background: rgba(255, 255, 255, 0.07);
-    color: #e8f0f8;
-}
-
-body.dark-mode .app-topbar .desktop-nav-item:hover {
-    background: rgba(255, 255, 255, 0.20);
-}
-
-body.dark-mode .app-topbar .desktop-nav-item.active {
-    background: #ffffff;
-    color: #244b70;
-}
-
-body.dark-mode .app-topbar .icon-btn {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.55);
-    color: #ffffff;
-}
-
-body.dark-mode .app-topbar .icon-btn:hover {
-    background: rgba(255, 255, 255, 0.24);
+@media (max-width: 900px) {
+    .brand-mark svg { width: 32px; }
+    .app-topbar .brand-title { font-size: 21px; }
+    .brand-latin { font-size: 8px; }
 }

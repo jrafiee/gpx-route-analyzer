@@ -12,12 +12,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
 
-<title>تحلیل و مقایسه مسیرهای کوهستانی | Mountain Route Compare</title>
+<title>صفه | تحلیل و مقایسه مسیرهای کوهستانی</title>
 
-<meta name="description" content="مسیرهای صعود و پیمایش را از نظر مسافت، ارتفاع، شیب و سرعت تحلیل و با هم مقایسه کنید. بارگذاری فایل GPX، پروفایل ارتفاعی، امتیاز سختی، زمان تخمینی صعود، نقشه سه‌بعدی و هواشناسی قله.">
-<meta name="theme-color" content="#315f8c">
+<meta name="description" content="صفه: مسیرهای صعود و پیمایش را از نظر مسافت، ارتفاع، شیب و سرعت تحلیل و مقایسه کنید. بارگذاری فایل GPX، پروفایل ارتفاعی، امتیاز سختی، زمان تخمینی صعود، نقشه دوبعدی و سه‌بعدی و هواشناسی قله.">
+<meta name="theme-color" content="#0b2230">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b2230'/%3E%3Cpath d='M9 46 26 20l9 12 7-8 13 22' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M24 46l8-10 6 7' fill='none' stroke='%232fd9ae' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+
+<!-- Font: Vazirmatn (falls back to Tahoma when offline) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
 
 <!-- Libraries: vendor/ first (see vendor/README.txt); app.js falls back to the CDN when a file is missing -->
 <script defer src="vendor/plotly/plotly-basic-2.35.2.min.js"></script>
@@ -28,48 +34,66 @@
 
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/toolbar.css">
-   <link rel="stylesheet" href="css/nav-theme.css">
+<link rel="stylesheet" href="css/nav-theme.css">
 <link rel="stylesheet" href="css/responsive.css">
 <link rel="stylesheet" href="css/weather.css">
+<link rel="stylesheet" href="css/home.css">
 </head>
 
-<body>
+<body data-section="home">
 
-<!-- Header image (desktop only, scrolls away) -->
-<div class="site-hero" aria-hidden="true">
-    <img data-src="images/header.jpg" alt="" decoding="async" onerror="this.parentNode.style.display='none'">
-</div>
+<!-- SVG icon sprite (stroke icons, 24x24) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="i-mountain" viewBox="0 0 24 24"><path d="m8 3 4 8 5-5 5 15H2L8 3z"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol>
+    <symbol id="i-profile" viewBox="0 0 24 24"><path d="M3 20 9 9l4 6 3-4 5 9z"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M12 14l4-4"/><path d="M3.3 16a9 9 0 1 1 17.4 0"/><circle cx="12" cy="14" r="1"/></symbol>
+    <symbol id="i-cloud-sun" viewBox="0 0 24 24"><path d="M12 2v2M4.9 4.9l1.4 1.4M2 12h2M20 12h2M17.7 6.3l1.4-1.4"/><path d="M15.9 12a4 4 0 0 0-7.8 1A4.5 4.5 0 0 0 8.5 22H17a4 4 0 0 0 .9-7.9"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.5"/><path d="M12 1.5v2.5M12 20v2.5M4.2 4.2l1.8 1.8M18 18l1.8 1.8M1.5 12H4M20 12h2.5M4.2 19.8 6 18M18 6l1.8-1.8"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+    <symbol id="i-route" viewBox="0 0 24 24"><polygon points="3 11 22 2 13 21 11 13 3 11"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+    <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 12 10 5 10-5"/><path d="m2 17 10 5 10-5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
+    <symbol id="i-slope" viewBox="0 0 24 24"><path d="M3 20h18L9 6z"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></symbol>
+</svg>
 
 <!-- Top Bar -->
 <header class="app-topbar">
-    <div class="brand-zone">
-        <span class="brand-icon">🏔️</span>
-        <h1 class="brand-title">تحلیل و مقایسه مسیرهای کوهستانی</h1>
-    </div>
+    <a class="brand-zone brand-link" href="#" data-goto="home" aria-label="صفه، بازگشت به صفحهٔ خانه">
+        <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 64 40" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 37 24 7l11 14 7-9 19 25" stroke="#fff" stroke-width="4.5"/>
+                <path d="M19 37l9-12 7 9 6-5" stroke="#2fd9ae" stroke-width="4.5"/>
+            </svg>
+        </span>
+        <span class="brand-text">
+            <strong class="brand-title">صفه</strong>
+            <span class="brand-latin" dir="ltr">SOFFEH</span>
+        </span>
+    </a>
 
     <!-- Desktop Navigation Tabs -->
     <nav class="desktop-nav-tabs" aria-label="بخش‌های اصلی برنامه">
-        <button type="button" class="desktop-nav-item" data-target="guide">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-            <span>راهنما</span>
-        </button>
-        <button type="button" class="desktop-nav-item active" data-target="analysis">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-            <span>تحلیل مسیر</span>
-        </button>
-        <button type="button" class="desktop-nav-item" data-target="map">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
-            <span>نقشه مسیرها</span>
-        </button>
-        <button type="button" class="desktop-nav-item" data-target="weather">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-            <span>هواشناسی قله</span>
-        </button>
+        <button type="button" class="desktop-nav-item active" data-target="home" aria-current="page"><span>خانه</span></button>
+        <button type="button" class="desktop-nav-item" data-target="analysis"><span>تحلیل و مقایسه مسیرها</span></button>
+        <button type="button" class="desktop-nav-item" data-target="map"><span>نقشه مسیرها</span></button>
+        <button type="button" class="desktop-nav-item" data-target="weather"><span>هواشناسی قله</span></button>
+        <button type="button" class="desktop-nav-item" data-target="guide"><span>راهنما و درباره ما</span></button>
     </nav>
 
     <div class="topbar-actions">
         <button type="button" class="workspace-trigger-btn workspace-trigger" aria-label="مدیریت مسیرها">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
+            <svg class="ico" aria-hidden="true"><use href="#i-route"/></svg>
             <span class="route-count-label">مسیرها</span>
             <span class="route-count-badge badge-zero">۰</span>
         </button>
@@ -77,12 +101,198 @@
         <div class="header-install-slot"></div>
 
         <button type="button" class="icon-btn theme-toggle" onclick="toggleTheme()" aria-label="تغییر به حالت تاریک" title="حالت تاریک">
-            🌙
+            <svg class="ico" aria-hidden="true"><use href="#i-moon"/></svg>
         </button>
     </div>
 </header>
 
 <div class="workspace-overlay" id="workspace-overlay" aria-hidden="true"></div>
+
+<!-- =====================================================
+     SECTION 0: خانه (landing)
+     ===================================================== -->
+<section id="section-home" class="app-section home-section active-section" aria-labelledby="home-heading">
+
+    <div class="home-hero">
+        <div class="home-hero-bg" aria-hidden="true">
+            <img data-src="images/header.jpg" alt="" decoding="async" onerror="this.parentNode.style.display='none'">
+        </div>
+
+        <div class="home-container home-hero-grid">
+
+            <div class="hero-copy">
+                <span class="hero-eyebrow">
+                    <svg class="ico" aria-hidden="true"><use href="#i-mountain"/></svg>
+                    صفه
+                </span>
+                <h1 id="home-heading" class="hero-title">تحلیل مسیرهای کوهستانی</h1>
+                <p class="hero-lead">نقشه، ارتفاع، سختی مسیر و هواشناسی قله؛ همه در یک‌جا. فایل GPX خود را بارگذاری کنید یا از مسیرهای آمادهٔ قله‌های ایران شروع کنید.</p>
+
+                <ul class="hero-features">
+                    <li><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg><span>نقشهٔ دوبعدی<br>و سه‌بعدی</span></li>
+                    <li><svg class="ico" aria-hidden="true"><use href="#i-profile"/></svg><span>پروفایل ارتفاعی<br>و مقایسهٔ مسیرها</span></li>
+                    <li><svg class="ico" aria-hidden="true"><use href="#i-gauge"/></svg><span>برآورد سختی<br>و زمان صعود</span></li>
+                    <li><svg class="ico" aria-hidden="true"><use href="#i-cloud-sun"/></svg><span>هواشناسی<br>قله</span></li>
+                </ul>
+
+                <div class="hero-cta">
+                    <button type="button" class="btn-primary" data-goto="analysis" data-open-routes>
+                        <span>شروع کنید</span>
+                        <svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg>
+                    </button>
+                    <button type="button" class="btn-ghost" data-goto="guide">
+                        <svg class="ico" aria-hidden="true"><use href="#i-book"/></svg>
+                        <span>راهنمای استفاده</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="hero-visual" aria-hidden="true">
+                <svg class="hero-contours" viewBox="0 0 520 460" fill="none" stroke="#2fd9ae" stroke-width="1.2" preserveAspectRatio="xMidYMid slice">
+                    <path opacity=".55" d="M40 330c40-60 110-70 160-40s90 20 130-30 110-70 160-20"/>
+                    <path opacity=".45" d="M20 370c60-70 140-90 200-50s110 30 160-30 100-70 140-30"/>
+                    <path opacity=".35" d="M0 410c80-80 170-110 240-60s120 40 180-20 80-60 100-40"/>
+                    <path opacity=".25" d="M-20 450c100-90 200-130 280-70s130 50 200-10 60-50 60-40"/>
+                    <path opacity=".5" d="M70 290c30-40 80-50 120-30s70 10 100-30 80-50 120-10"/>
+                </svg>
+
+                <div class="hero-phone">
+                    <div class="phone-screen">
+                        <div class="phone-map">
+                            <svg viewBox="0 0 240 150" preserveAspectRatio="xMidYMid slice">
+                                <defs>
+                                    <linearGradient id="pm-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a6f86"/><stop offset="1" stop-color="#27465a"/></linearGradient>
+                                    <linearGradient id="pm-land" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a6b4b"/><stop offset=".6" stop-color="#3d5240"/><stop offset="1" stop-color="#2b3d36"/></linearGradient>
+                                </defs>
+                                <rect width="240" height="150" fill="url(#pm-sky)"/>
+                                <path d="M0 52 38 30l28 16 34-22 40 24 36-14 64 22v94H0z" fill="#6c7f8c" opacity=".7"/>
+                                <path d="M0 70c50-18 96-6 140 4s70 14 100-6v82H0z" fill="url(#pm-land)"/>
+                                <path d="M18 132c34-8 52-30 86-42s50-30 78-52" stroke="#2fd9ae" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+                                <circle cx="182" cy="38" r="9" fill="#2fd9ae"/>
+                                <path d="m178 41 4-7 4 7z" fill="#073328"/>
+                            </svg>
+                            <div class="phone-map-title"><strong>کوه صفه</strong><span>اصفهان</span></div>
+                        </div>
+                        <div class="phone-profile">
+                            <svg viewBox="0 0 240 80" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="pp-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fd9ae" stop-opacity=".55"/><stop offset="1" stop-color="#2fd9ae" stop-opacity="0"/></linearGradient>
+                                </defs>
+                                <path d="M0 58 28 52l30 4 36-16 30-22 22-10 24 14 30 16 30-8 30 10v40H0z" fill="url(#pp-fill)"/>
+                                <path d="M0 58 28 52l30 4 36-16 30-22 22-10 24 14 30 16 30-8 30 10" stroke="#2fd9ae" stroke-width="2" fill="none" stroke-linejoin="round"/>
+                                <circle cx="146" cy="8" r="3.5" fill="#fff"/>
+                            </svg>
+                        </div>
+                        <dl class="phone-stats">
+                            <div><dt>زمان صعود</dt><dd dir="ltr">2:20 h</dd></div>
+                            <div><dt>مسافت</dt><dd dir="ltr">7.6 km</dd></div>
+                            <div><dt>ارتفاع نهایی</dt><dd dir="ltr">2,240 m</dd></div>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="hero-mini">
+                    <span class="hero-mini-icon"><svg class="ico"><use href="#i-mountain"/></svg></span>
+                    <div class="hero-mini-text">
+                        <strong>کوه صفه</strong>
+                        <span>ارتفاع: ۲٬۲۴۰ متر</span>
+                        <span>درجه سختی: <b>متوسط</b></span>
+                    </div>
+                    <svg class="ico hero-mini-chev"><use href="#i-chevron-left"/></svg>
+                </div>
+                <p class="hero-demo-note">نمونهٔ نمایشی</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Why Soffeh -->
+    <div class="home-block">
+        <div class="home-container">
+            <header class="home-heading">
+                <h2>چرا صفه؟</h2>
+                <p>ابزاری ساده و کاربردی برای کوهنوردان، طبیعت‌گردان و همهٔ علاقه‌مندان به کوهستان</p>
+            </header>
+
+            <div class="why-grid">
+                <button type="button" class="why-card" data-goto="map">
+                    <span class="why-icon"><svg class="ico"><use href="#i-layers"/></svg></span>
+                    <h3>نقشهٔ دوبعدی و سه‌بعدی</h3>
+                    <p>مسیر را با رنگ‌بندی سرعت، خطوط توپوگرافی و زمین سه‌بعدی ببینید و با GPS خود ناوبری کنید.</p>
+                </button>
+                <button type="button" class="why-card" data-goto="analysis">
+                    <span class="why-icon"><svg class="ico"><use href="#i-profile"/></svg></span>
+                    <h3>پروفایل ارتفاعی و مقایسه</h3>
+                    <p>چند مسیر را با هم‌ترازی از شروع یا قله مقایسه کنید و الگوی شیب را بشناسید.</p>
+                </button>
+                <button type="button" class="why-card" data-goto="analysis">
+                    <span class="why-icon"><svg class="ico"><use href="#i-gauge"/></svg></span>
+                    <h3>سختی و زمان صعود</h3>
+                    <p>امتیاز سختی جامع و زمان تخمینی نای‌اسمیت اصلاح‌شده، کنار زمان واقعی ثبت‌شده.</p>
+                </button>
+                <button type="button" class="why-card" data-goto="weather">
+                    <span class="why-icon"><svg class="ico"><use href="#i-cloud-sun"/></svg></span>
+                    <h3>هواشناسی نقطه‌ای قله</h3>
+                    <p>پیش‌بینی ۷ روزه و ساعتی بالاترین نقطهٔ مسیر با چند مدل معتبر جهانی.</p>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick start -->
+    <div class="home-block home-block-alt">
+        <div class="home-container">
+            <header class="home-heading">
+                <h2>شروع سریع با قله‌های معروف</h2>
+                <p>یک مسیر را انتخاب کنید تا همین حالا تحلیل شود</p>
+            </header>
+            <div class="quick-routes">
+                <button type="button" class="quick-route" data-quick-route="دماوند"><svg class="ico"><use href="#i-mountain"/></svg><span>دماوند</span><small>۵۶۱۰ م</small></button>
+                <button type="button" class="quick-route" data-quick-route="سبلان"><svg class="ico"><use href="#i-mountain"/></svg><span>سبلان</span><small>۴۸۱۱ م</small></button>
+                <button type="button" class="quick-route" data-quick-route="علم کوه"><svg class="ico"><use href="#i-mountain"/></svg><span>علم‌کوه</span><small>۴۸۵۰ م</small></button>
+                <button type="button" class="quick-route" data-quick-route="کرکس"><svg class="ico"><use href="#i-mountain"/></svg><span>کرکس</span><small>۳۸۹۵ م</small></button>
+                <button type="button" class="quick-route" data-quick-route="دالان کوه"><svg class="ico"><use href="#i-mountain"/></svg><span>دالان کوه</span><small>۳۹۱۵ م</small></button>
+                <button type="button" class="quick-route" data-quick-route="صفه"><svg class="ico"><use href="#i-mountain"/></svg><span>صفه</span><small>۲۲۴۰ م</small></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="home-block">
+        <div class="home-container">
+            <header class="home-heading">
+                <h2>چطور کار می‌کند؟</h2>
+                <p>سه قدم تا یک تحلیل کامل</p>
+            </header>
+            <ol class="steps-grid">
+                <li><span class="step-num">۱</span><h3>مسیر را اضافه کنید</h3><p>فایل GPX ساعت، گارمین، Wikiloc یا Strava را بارگذاری کنید یا از مسیرهای پیش‌فرض استفاده کنید.</p></li>
+                <li><span class="step-num">۲</span><h3>مسیرها را مقایسه کنید</h3><p>نمودارهای ارتفاع، شیب، سختی و زمان صعود برای همهٔ مسیرها کنار هم نمایش داده می‌شود.</p></li>
+                <li><span class="step-num">۳</span><h3>برنامه‌ریزی کنید</h3><p>نقشه و هوای قله را ببینید و با ناوبری زنده روی مسیر بمانید.</p></li>
+            </ol>
+
+            <div class="privacy-band">
+                <span class="privacy-icon"><svg class="ico"><use href="#i-shield"/></svg></span>
+                <div class="privacy-text">
+                    <strong>پردازش کاملاً محلی</strong>
+                    <p>فایل‌های GPX فقط در مرورگر شما تحلیل می‌شوند و به هیچ سروری ارسال نمی‌شوند.</p>
+                </div>
+                <button type="button" class="btn-primary" data-goto="analysis" data-open-routes>
+                    <span>شروع تحلیل</span>
+                    <svg class="ico" aria-hidden="true"><use href="#i-arrow-left"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="home-footer">
+        <div class="home-container home-footer-row">
+            <span class="home-footer-brand">صفه · تحلیل و مقایسه مسیرهای کوهستانی</span>
+            <span class="home-footer-links">
+                <a href="mailto:j_rafiee@yahoo.com" dir="ltr"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>j_rafiee@yahoo.com</a>
+                <a href="https://t.me/javadrafie" target="_blank" rel="noopener noreferrer" dir="ltr"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg>@javadrafie</a>
+            </span>
+        </div>
+    </footer>
+</section>
 
 <div class="app-layout">
     <main class="main-content" id="main-content">
@@ -90,9 +300,9 @@
         <section id="section-guide" class="app-section" aria-labelledby="guide-heading">
             <div class="section-header-row">
                 <div class="section-title-group">
-                    <span style="font-size: 24px;">📖</span>
+                    <span class="section-icon"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg></span>
                     <div>
-                        <h2 id="guide-heading" class="section-title">راهنمای استفاده و معرفی سامانه</h2>
+                        <h2 id="guide-heading" class="section-title">راهنمای استفاده و معرفی صفه</h2>
                         <p class="section-subtitle">نحوه بارگذاری فایل GPX، مقایسه شاخص‌ها و تحلیل فنی مسیرها</p>
                     </div>
                 </div>
@@ -103,7 +313,7 @@
             </div>
 
             <div class="guide-hero">
-                <h2>تحلیل و مقایسه مسیرهای کوهستانی</h2>
+                <h2>صفه؛ تحلیل و مقایسه مسیرهای کوهستانی</h2>
                 <p>
                     این ابزار رایگان، فایل‌های خام GPX صعودها و پیمایش‌ها را به شاخص‌های دقیق، بصری و قابل‌مقایسه تبدیل می‌کند.
                     تمام پردازش‌ها به صورت کاملاً محلی در مرورگر شما انجام شده و هیچ فایلی به سرور ارسال نمی‌شود.
@@ -112,55 +322,55 @@
 
             <div class="guide-grid">
                 <div class="guide-feature-card">
-                    <span class="guide-feature-icon">📈</span>
+                    <span class="guide-feature-icon"><svg class="ico" aria-hidden="true"><use href="#i-profile"/></svg></span>
                     <div class="guide-feature-text">
                         <h4>پروفایل‌های ارتفاعی هم‌تراز</h4>
                         <p>امکان هم‌ترازی مسیرها بر اساس نقطه شروع، نقطه قله، یا اتصال ترتیبی برای پیمایش‌های چند روزه و خط‌الرأس‌ها.</p>
                     </div>
                 </div>
                 <div class="guide-feature-card">
-                    <span class="guide-feature-icon">📐</span>
+                    <span class="guide-feature-icon"><svg class="ico" aria-hidden="true"><use href="#i-slope"/></svg></span>
                     <div class="guide-feature-text">
                         <h4>تحلیل توزیع شیب</h4>
                         <p>دسته‌بندی خودکار شیب‌های مسیر رفت در دسته‌های ۶ گانه (خیلی آسان تا شیب‌های بسیار شدید و دیواره‌ای).</p>
                     </div>
                 </div>
                 <div class="guide-feature-card">
-                    <span class="guide-feature-icon">⚡</span>
+                    <span class="guide-feature-icon"><svg class="ico" aria-hidden="true"><use href="#i-zap"/></svg></span>
                     <div class="guide-feature-text">
                         <h4>امتیاز سختی جامع (Difficulty Score)</h4>
                         <p>محاسبه شاخص سختی ترکیبی از ترکیب مسافت ۳ بعدی، ارتفاع‌گیری، بار شیب، ارتفاع مطلق از سطح دریا و فرود.</p>
                     </div>
                 </div>
                 <div class="guide-feature-card">
-                    <span class="guide-feature-icon">⏱️</span>
+                    <span class="guide-feature-icon"><svg class="ico" aria-hidden="true"><use href="#i-clock"/></svg></span>
                     <div class="guide-feature-text">
                         <h4>زمان تخمینی نای‌اسمیت اصلاح‌شده</h4>
                         <p>برآورد زمان لازم برای صعود با فرمول نای‌اسمیت بهبودیافته با ضریب شیب، در کنار زمان واقعی ثبت‌شده در GPX.</p>
                     </div>
                 </div>
                 <div class="guide-feature-card">
-                    <span class="guide-feature-icon">🗺️</span>
+                    <span class="guide-feature-icon"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg></span>
                     <div class="guide-feature-text">
                         <h4>نقشه‌های ۲بعدی و ۳بعدی ماهواره‌ای</h4>
                         <p>نمایش مسیرها با رنگ‌بندی سرعت حرکت، خطوط توپوگرافی، زمین ناهموار سه‌بعدی و موقعیت‌یاب زنده GPS.</p>
                     </div>
                 </div>
                 <div class="guide-feature-card">
-                    <span class="guide-feature-icon">☀️</span>
+                    <span class="guide-feature-icon"><svg class="ico" aria-hidden="true"><use href="#i-cloud-sun"/></svg></span>
                     <div class="guide-feature-text">
                         <h4>هواشناسی نقطه‌ای قله</h4>
                         <p>پیش‌بینی ۷ روزه و ساعتی بالاترین نقطه مسیر با مدل‌های جهانی معتبر هواشناسی (ECMWF, GFS, ICON).</p>
                     </div>
                 </div>
                 <div class="guide-feature-card guide-contact-card">
-                    <span class="guide-feature-icon">✉️</span>
+                    <span class="guide-feature-icon"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg></span>
                     <div class="guide-feature-text">
                         <h4>ارتباط با سازنده</h4>
                         <p>نظر، پیشنهاد یا گزارش اشکال خود را بفرستید.</p>
                         <div class="guide-contact-links">
-                            <a href="mailto:j_rafiee@yahoo.com" dir="ltr">✉ j_rafiee@yahoo.com</a>
-                            <a href="https://t.me/javadrafie" target="_blank" rel="noopener noreferrer" dir="ltr">✈ @javadrafie</a>
+                            <a href="mailto:j_rafiee@yahoo.com" dir="ltr"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>j_rafiee@yahoo.com</a>
+                            <a href="https://t.me/javadrafie" target="_blank" rel="noopener noreferrer" dir="ltr"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg>@javadrafie</a>
                         </div>
                     </div>
                 </div>
@@ -200,7 +410,7 @@
 
             <div class="guide-accordion-group" style="margin-top:20px">
                 <details class="guide-accordion" id="guide-calculations">
-                    <summary>⚙️ راهنمای کامل فرمول‌ها و محاسبات</summary>
+                    <summary>راهنمای کامل فرمول‌ها و محاسبات</summary>
                     <div class="guide-accordion-content calc-doc" id="calc-doc-body"><p class="small">در حال بارگذاری…</p></div>
                 </details>
             </div>
@@ -208,10 +418,10 @@
         </section>
 
         <!-- SECTION 2: تحلیل مسیر -->
-        <section id="section-analysis" class="app-section active-section" aria-labelledby="analysis-heading">
+        <section id="section-analysis" class="app-section" aria-labelledby="analysis-heading">
             <div class="section-header-row">
                 <div class="section-title-group">
-                    <span style="font-size: 24px;">📊</span>
+                    <span class="section-icon"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg></span>
                     <div>
                         <h2 id="analysis-heading" class="section-title">تحلیل و مقایسه مسیرها</h2>
                         <p class="section-subtitle">پروفایل ارتفاعی، الگوی شیب، سختی و زمان صعود</p>
@@ -224,13 +434,13 @@
             </div>
 
             <div id="analysis-empty-state" class="empty-state-card" style="display: none;">
-                <div class="empty-state-icon">🏔️</div>
+                <div class="empty-state-icon"><svg class="ico" aria-hidden="true"><use href="#i-mountain"/></svg></div>
                 <h3 class="empty-state-title">هنوز مسیری انتخاب نشده است</h3>
                 <p class="empty-state-desc">
                     برای مشاهده نمودارهای مقایسه‌ای و تحلیل ارتفاع، حداقل یک یا چند مسیر پیش‌فرض را تیک بزنید یا فایل GPX خود را بارگذاری کنید.
                 </p>
                 <button type="button" class="primary-cta-btn workspace-trigger">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    <svg class="ico" aria-hidden="true"><use href="#i-route"/></svg>
                     <span>انتخاب مسیرها</span>
                 </button>
             </div>
@@ -294,7 +504,7 @@
         <section id="section-map" class="app-section" aria-labelledby="map-heading">
             <div class="section-header-row">
                 <div class="section-title-group">
-                    <span style="font-size: 24px;">🗺️</span>
+                    <span class="section-icon"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg></span>
                     <div>
                         <h2 id="map-heading" class="section-title">نقشه مسیرها</h2>
                         <p class="section-subtitle">نمایش دوبعدی و سه‌بعدی مسیرها، سرعت حرکت و موقعیت زنده</p>
@@ -310,10 +520,10 @@
                 <div class="map-title-row">
                     <div class="map-view-buttons">
                         <button type="button" id="map-2d-button" class="map-view-button active" onclick="show2DMap()">
-                            🗺️ نقشه دوبعدی
+                            <svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> نقشه دوبعدی
                         </button>
                         <button type="button" id="map-3d-button" class="map-view-button" onclick="show3DMap()">
-                            🏔️ زمین سه‌بعدی
+                            <svg class="ico" aria-hidden="true"><use href="#i-mountain"/></svg> زمین سه‌بعدی
                         </button>
                     </div>
 
@@ -344,7 +554,7 @@
         <section id="section-weather" class="app-section" aria-labelledby="weather-heading">
             <div class="section-header-row">
                 <div class="section-title-group">
-                    <span style="font-size: 24px;">☀️</span>
+                    <span class="section-icon"><svg class="ico" aria-hidden="true"><use href="#i-cloud-sun"/></svg></span>
                     <div>
                         <h2 id="weather-heading" class="section-title">هواشناسی قله</h2>
                         <p class="section-subtitle">پیش‌بینی نقطه‌ای ۷ روزه و ساعتی در بالاترین ارتفاع هر مسیر</p>
@@ -352,7 +562,8 @@
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <a href="https://irimo.ir/far/wd/10823-%D8%A8%D9%88%D9%84%D8%AA%D9%86-%DA%A9%D9%88%D9%87%D8%B3%D8%AA%D8%A7%D9%86.html" class="calculations-link" target="_blank" rel="noopener noreferrer">
-                        <span>🏔️ بولتن کوهستان</span>
+                        <svg class="ico" aria-hidden="true"><use href="#i-mountain"/></svg>
+                        <span>بولتن کوهستان</span>
                     </a>
                     <button type="button" class="workspace-trigger-btn workspace-trigger">
                         <span>مدیریت مسیرها</span>
@@ -371,7 +582,8 @@
     <aside class="sidebar" id="sidebar" aria-label="مدیریت مسیرهای انتخابی">
         <div class="sidebar-header">
             <h3 class="sidebar-title">
-                <span>📍 مدیریت مسیرها</span>
+                <svg class="ico" aria-hidden="true"><use href="#i-route"/></svg>
+                <span>مدیریت مسیرها</span>
                 <span class="route-count-badge badge-zero">۰</span>
             </h3>
             <button type="button" class="workspace-close-btn" aria-label="بستن پنجره">×</button>
@@ -395,8 +607,8 @@
                 <div class="gpx-upload-box">
                     <input type="file" id="gpx-file-input" accept=".gpx,application/gpx+xml" multiple aria-label="بارگذاری فایل GPX">
                     <div class="gpx-upload-content">
-                        <span class="gpx-upload-icon">📂</span>
-                        <span class="gpx-upload-title">+ انتخاب فایل GPX</span>
+                        <span class="gpx-upload-icon"><svg class="ico" aria-hidden="true"><use href="#i-upload"/></svg></span>
+                        <span class="gpx-upload-title">انتخاب فایل GPX</span>
                         <span class="gpx-upload-hint">پشتیبانی از چندین فایل همزمان</span>
                     </div>
                 </div>
@@ -406,13 +618,12 @@
                 <div class="workspace-section-header">
                     <span>مسیرهای پیش‌فرض کوهستان</span>
                 </div>
-                <input type="text" id="route-search-input" class="route-search-input" placeholder="🔍 جستجوی قله...">
+                <input type="search" id="route-search-input" class="route-search-input" placeholder="جستجوی قله..." aria-label="جستجوی قله">
                 <div id="default-routes">
-				
-				
-					<label>
+
+                    <label>
                         <input type="checkbox" class="default-route" data-name="قبله افوس" data-file="data/sample/قبله افوس.gpx">
-                        <span> قله قبله (اصفهان 3663م)</span>
+                        <span>قله قبله (اصفهان - ۳۶۶۳م)</span>
                     </label>
                     <label>
                         <input type="checkbox" class="default-route" data-name="صفه" data-file="data/sample/صفه.gpx">
@@ -471,32 +682,25 @@
 <!-- Mobile Bottom Navigation Bar -->
 <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="ناوبری اصلی موبایل">
     <div class="bottom-nav-grid">
-        <button type="button" class="bottom-nav-item" data-target="guide">
-            <span class="bottom-nav-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-            </span>
-            <span class="bottom-nav-label">راهنما</span>
+        <button type="button" class="bottom-nav-item active" data-target="home" aria-current="page">
+            <span class="bottom-nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-home"/></svg></span>
+            <span class="bottom-nav-label">خانه</span>
         </button>
-
-        <button type="button" class="bottom-nav-item active" data-target="analysis" aria-current="page">
-            <span class="bottom-nav-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-            </span>
+        <button type="button" class="bottom-nav-item" data-target="analysis">
+            <span class="bottom-nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-chart"/></svg></span>
             <span class="bottom-nav-label">تحلیل</span>
         </button>
-
         <button type="button" class="bottom-nav-item" data-target="map">
-            <span class="bottom-nav-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
-            </span>
+            <span class="bottom-nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg></span>
             <span class="bottom-nav-label">نقشه</span>
         </button>
-
         <button type="button" class="bottom-nav-item" data-target="weather">
-            <span class="bottom-nav-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-            </span>
+            <span class="bottom-nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-cloud-sun"/></svg></span>
             <span class="bottom-nav-label">هواشناسی</span>
+        </button>
+        <button type="button" class="bottom-nav-item" data-target="guide">
+            <span class="bottom-nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg></span>
+            <span class="bottom-nav-label">راهنما</span>
         </button>
     </div>
 </nav>

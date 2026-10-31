@@ -49,30 +49,30 @@ const CHART_ROUTE_COLORS = ROUTE_COLORS;
  */
 
 const CHART_SLOPE_COLORS = [
-    "#d5e5f4",   // خیلی آسان
-    "#a9c8e8",   // آسان
-    "#7aa9d8",   // متوسط
-    "#4d8bc9",   // شیب‌دار
-    "#2f6aa3",   // خیلی شیب‌دار
+    "#d4f1e9",   // خیلی آسان
+    "#a4e3d2",   // آسان
+    "#6fcfb7",   // متوسط
+    "#34b79a",   // شیب‌دار
+    "#1a8a76",   // خیلی شیب‌دار
     "#f2a03d"    // بسیار شدید
 ];
 
 const CHART_SERIES_COLORS = {
-    estimated: "#4d8bc9",
+    estimated: "#1aa88b",
     actual: "#f2a03d",
-    total: "#a3b3c4",
-    gain: "#4d8bc9",
+    total: "#9db3bd",
+    gain: "#1aa88b",
     maxElevation: "#f2a03d"
 };
 
 const CHART_DIFFICULTY_COLORSCALE = [
-    [0, "#a9c8e8"],
-    [0.5, "#4d8bc9"],
-    [1, "#22456b"]
+    [0, "#a4e3d2"],
+    [0.5, "#1aa88b"],
+    [1, "#0a3f4f"]
 ];
 
 const CHART_FONT_SANS =
-    "Tahoma, Arial, sans-serif";
+    "Vazirmatn, Tahoma, Arial, sans-serif";
 
 const CHART_FONT_MONO =
     "Consolas, 'Courier New', monospace";
@@ -136,7 +136,7 @@ function getChartPalette() {
         surface:
             dark ? "#202324" : "#ffffff",
 
-        accent: "#4d8bc9"
+        accent: "#1aa88b"
 
     };
 

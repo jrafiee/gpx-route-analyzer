@@ -30,8 +30,8 @@
 }
 
 .weather-route-filter-btn.active {
-    background: #4d8bc9;
-    border-color: #4d8bc9;
+    background: #0b7a66;
+    border-color: #0b7a66;
     color: white;
     font-weight: bold;
 }
@@ -43,7 +43,7 @@ body.dark-mode .weather-route-filter-btn {
 }
 
 body.dark-mode .weather-route-filter-btn.active {
-    background: #4d8bc9;
+    background: #0b7a66;
     color: white;
 }
 
@@ -85,8 +85,8 @@ body.dark-mode .weather-route-filter-btn.active {
     font-weight: 700;
     padding: 3px 8px;
     border-radius: 6px;
-    background: #eaf2f9;
-    color: #245f91;
+    background: #e3f5f0;
+    color: #0a5a4b;
 }
 
 .weather-model-scroll-hint {
@@ -199,27 +199,27 @@ body.dark-mode .weather-route-filter-btn.active {
 /* Active Selected Model */
 .weather-model-option.active,
 .weather-model-option:has(input:checked) {
-    border-color: #3182ce !important;
-    background: #ebf5ff !important;
-    box-shadow: 0 0 0 1px #3182ce, 0 3px 8px rgba(49, 130, 206, 0.2) !important;
+    border-color: #0b7a66 !important;
+    background: #e6f6f2 !important;
+    box-shadow: 0 0 0 1px #0b7a66, 0 3px 8px rgba(11, 122, 102, 0.2) !important;
 }
 
 .weather-model-option.active .weather-model-radio-circle,
 .weather-model-option:has(input:checked) .weather-model-radio-circle {
-    border-color: #3182ce;
-    background: #3182ce;
+    border-color: #0b7a66;
+    background: #0b7a66;
     box-shadow: inset 0 0 0 2.5px #ffffff;
 }
 
 .weather-model-option.active .weather-model-name,
 .weather-model-option:has(input:checked) .weather-model-name {
-    color: #1e4e79;
+    color: #0a5a4b;
 }
 
 .weather-model-option.active .weather-model-sub-badge,
 .weather-model-option:has(input:checked) .weather-model-sub-badge {
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: #cdeee6;
+    color: #0a5a4b;
     font-weight: 600;
 }
 
@@ -251,8 +251,8 @@ body.dark-mode .weather-route-filter-btn.active {
 }
 
 .weather-daily-item.active {
-    border-color: #4d8bc9;
-    box-shadow: 0 0 0 1px rgba(77, 139, 201, 0.25);
+    border-color: #0b7a66;
+    box-shadow: 0 0 0 1px rgba(11, 122, 102, 0.25);
 }
 
 .weather-daily-icon {
@@ -337,8 +337,8 @@ body.dark-mode .weather-route-filter-btn.active {
 }
 
 .weather-hourly-button.active {
-    background: #4d8bc9;
-    border-color: #4d8bc9;
+    background: #0b7a66;
+    border-color: #0b7a66;
     color: #fff;
 }
 
@@ -569,8 +569,8 @@ body.dark-mode .weather-model-selector {
 }
 
 body.dark-mode .weather-model-current-badge {
-    background: #1c2b3c;
-    color: #8ec5f5;
+    background: #11332f;
+    color: #7ff0d2;
 }
 
 body.dark-mode .weather-model-option {
@@ -590,20 +590,20 @@ body.dark-mode .weather-model-sub-badge {
 
 body.dark-mode .weather-model-option.active,
 body.dark-mode .weather-model-option:has(input:checked) {
-    background: #1a2c3f !important;
-    border-color: #4d8bc9 !important;
-    box-shadow: 0 0 0 1px #4d8bc9, 0 3px 8px rgba(77, 139, 201, 0.25) !important;
+    background: #12302c !important;
+    border-color: #0b7a66 !important;
+    box-shadow: 0 0 0 1px #0b7a66, 0 3px 8px rgba(11, 122, 102, 0.25) !important;
 }
 
 body.dark-mode .weather-model-option.active .weather-model-name,
 body.dark-mode .weather-model-option:has(input:checked) .weather-model-name {
-    color: #8ec5f5;
+    color: #7ff0d2;
 }
 
 body.dark-mode .weather-model-option.active .weather-model-sub-badge,
 body.dark-mode .weather-model-option:has(input:checked) .weather-model-sub-badge {
-    background: #183350;
-    color: #93c5fd;
+    background: #164038;
+    color: #7ff0d2;
 }
 
 body.dark-mode .hourly-forecast-wrapper {
@@ -672,7 +672,7 @@ body.dark-mode .weather-daily-item {
 }
 
 body.dark-mode .weather-daily-item.active {
-    border-color: #4d8bc9;
+    border-color: #0b7a66;
 }
 
 body.dark-mode .weather-daily-date {
@@ -700,8 +700,8 @@ body.dark-mode .weather-hourly-button:hover {
 }
 
 body.dark-mode .weather-hourly-button.active {
-    background: #4d8bc9;
-    border-color: #4d8bc9;
+    background: #0b7a66;
+    border-color: #0b7a66;
     color: #fff;
 }
 
@@ -768,7 +768,15 @@ body.dark-mode .weather-hourly-panel {
 
 body.dark-mode .weather-model-option.active .weather-model-radio-circle,
 body.dark-mode .weather-model-option:has(input:checked) .weather-model-radio-circle {
-    border-color: #4d8bc9;
-    background: #4d8bc9;
+    border-color: #0b7a66;
+    background: #0b7a66;
     box-shadow: inset 0 0 0 2px #202324;
 }
+
+/* dark mode: brighter teal for the selected model / borders */
+body.dark-mode .weather-model-option.active,
+body.dark-mode .weather-model-option:has(input:checked) {
+    border-color: #2fd9ae !important;
+    box-shadow: 0 0 0 1px #2fd9ae, 0 3px 8px rgba(47, 217, 174, 0.2) !important;
+}
+body.dark-mode .weather-daily-item.active { border-color: #2fd9ae; }

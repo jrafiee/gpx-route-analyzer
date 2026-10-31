@@ -82,7 +82,7 @@ function handleDesktopSectionSwitch() {
     if (previous === 0 && count > 0) {
         setActiveSection("analysis");
     } else if (previous > 0 && count === 0) {
-        setActiveSection("guide");
+        setActiveSection("home");
     }
 }
 
@@ -170,6 +170,11 @@ function redrawAllCharts() {
         updateRouteSummary();
     }
 
+    const emptyState = document.getElementById("analysis-empty-state");
+    if (emptyState) {
+        emptyState.style.display = analysisResults.length === 0 ? "block" : "none";
+    }
+
     if (analysisResults.length === 0) {
         chartsNeedRedraw = false;
         mapNeedsRedraw = false;
@@ -237,7 +242,46 @@ function initializeCalculationsGuide() {
     }
 }
 
+/*
+ * Home page actions:
+ *   [data-goto="section"]      open a section (data-open-routes also
+ *                              opens the route sheet on mobile)
+ *   [data-quick-route="name"]  tick a default route and open the analysis
+ */
+function initializeHomeActions() {
+    document.addEventListener("click", event => {
+        const goto = event.target.closest("[data-goto]");
+
+        if (goto) {
+            event.preventDefault();
+            setActiveSection(goto.dataset.goto);
+
+            if (goto.hasAttribute("data-open-routes") && window.innerWidth <= 900) {
+                openRouteWorkspace();
+            }
+
+            return;
+        }
+
+        const quick = event.target.closest("[data-quick-route]");
+
+        if (quick) {
+            const checkbox = Array.from(document.querySelectorAll(".default-route"))
+                .find(item => item.dataset.name === quick.dataset.quickRoute);
+
+            if (checkbox && !checkbox.checked) {
+                checkbox.checked = true;
+                checkbox.dispatchEvent(new Event("change"));
+            }
+
+            setActiveSection("analysis");
+        }
+    });
+}
+
 function initializeUIEvents() {
+    initializeHomeActions();
+
     document.querySelectorAll(".bottom-nav-item, .desktop-nav-item").forEach(item => {
         item.addEventListener("click", () => {
             setActiveSection(item.dataset.target);

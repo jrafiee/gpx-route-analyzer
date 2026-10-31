@@ -23,7 +23,7 @@ const ROUTE_COLORS = [
 let selectedFiles = [];
 let analysisResults = [];
 let draggedItem = null;
-let activeSection = "analysis"; // "guide" | "analysis" | "map" | "weather"
+let activeSection = "home"; // "home" | "guide" | "analysis" | "map" | "weather"
 let isWorkspaceOpen = false;
 
 /* =========================================================
@@ -73,15 +73,10 @@ function applyTheme() {
     const buttons = document.querySelectorAll(".theme-toggle");
 
     buttons.forEach(button => {
-        if (isDark) {
-            button.innerHTML = "☀️";
-            button.title = "حالت روشن";
-            button.setAttribute("aria-label", "تغییر به حالت روشن");
-        } else {
-            button.innerHTML = "🌙";
-            button.title = "حالت تاریک";
-            button.setAttribute("aria-label", "تغییر به حالت تاریک");
-        }
+        const icon = isDark ? "i-sun" : "i-moon";
+        button.innerHTML = '<svg class="ico" aria-hidden="true"><use href="#' + icon + '"/></svg>';
+        button.title = isDark ? "حالت روشن" : "حالت تاریک";
+        button.setAttribute("aria-label", isDark ? "تغییر به حالت روشن" : "تغییر به حالت تاریک");
     });
 
     if (isDark) {
@@ -168,12 +163,13 @@ function setMapDirection(mode) {
    ========================================================= */
 
 function setActiveSection(sectionId) {
-    const validSections = ["guide", "analysis", "map", "weather"];
+    const validSections = ["home", "guide", "analysis", "map", "weather"];
     if (!validSections.includes(sectionId)) {
         return;
     }
 
     activeSection = sectionId;
+    document.body.dataset.section = sectionId;
 
     validSections.forEach(id => {
         const el = document.getElementById(`section-${id}`);

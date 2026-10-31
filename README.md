@@ -1,4 +1,4 @@
-# Mountain Route Compare
+# Soffeh (صفه) — Mountain Route Compare
 
 A browser-based JavaScript application for analyzing and comparing hiking and mountaineering routes using GPX files.
 
@@ -35,7 +35,7 @@ mountain-route-compare/
 ├── sw.js
 ├── manifest.webmanifest
 ├── partials/calculations.html   (formula guide, loaded on demand)
-├── css/  style.css, responsive.css, toolbar.css, weather.css
+├── css/  style.css, home.css, responsive.css, toolbar.css, nav-theme.css, weather.css
 └── js/   app-state, gpx-reader, route-analysis, charts, ui,
           route-selection, speed, map-2d, map-3d, track-geometry,
           user-location, weather, pwa, app
