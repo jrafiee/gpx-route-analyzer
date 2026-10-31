@@ -1,5 +1,5 @@
 /* Service Worker - Mountain Route Compare */
-const VERSION = "v11";
+const VERSION = "v12";
 const SHELL_CACHE = "mrc-shell-" + VERSION;
 const RUNTIME_CACHE = "mrc-runtime-" + VERSION;
 
@@ -16,6 +16,7 @@ const SHELL_FILES = [
   "js/weather.js", "js/app.js", "js/pwa.js",
   "partials/calculations.html",
   "icons/icon-192.png", "icons/icon-512.png",
+  "icons/icon-maskable-512.png", "icons/favicon.svg", "icons/favicon-32.png", "icons/apple-touch-icon.png",
   // own copies of the libraries (missing files are simply skipped)
   "vendor/plotly/plotly-basic-2.35.2.min.js",
   "vendor/leaflet/leaflet.js", "vendor/leaflet/leaflet.css",

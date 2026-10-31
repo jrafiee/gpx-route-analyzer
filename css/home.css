@@ -139,6 +139,8 @@ body[data-section="home"] .app-layout { min-height: 0; }
     font-weight: 800;
 }
 
+.hero-logo { width: 1.5em; height: 1.5em; flex-shrink: 0; margin-block: -0.2em; }
+
 .hero-title {
     margin: 6px 0 16px;
     font-size: clamp(28px, 4.2vw, 50px);
