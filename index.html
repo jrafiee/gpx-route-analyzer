@@ -64,6 +64,7 @@
     <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
     <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></symbol>
     <symbol id="i-slope" viewBox="0 0 24 24"><path d="M3 20h18L9 6z"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="16.2 7.8 14.1 14.1 7.8 16.2 9.9 9.9 16.2 7.8"/></symbol>
     <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></symbol>
 </svg>
 
@@ -133,6 +134,7 @@
                     <li><svg class="ico" aria-hidden="true"><use href="#i-profile"/></svg><span>پروفایل ارتفاعی<br>و مقایسهٔ مسیرها</span></li>
                     <li><svg class="ico" aria-hidden="true"><use href="#i-gauge"/></svg><span>برآورد سختی<br>و زمان صعود</span></li>
                     <li><svg class="ico" aria-hidden="true"><use href="#i-cloud-sun"/></svg><span>هواشناسی<br>قله</span></li>
+                    <li><svg class="ico" aria-hidden="true"><use href="#i-compass"/></svg><span>ناوبری زنده<br>روی مسیر</span></li>
                 </ul>
 
                 <div class="hero-cta">
@@ -156,51 +158,39 @@
                     <path opacity=".5" d="M70 290c30-40 80-50 120-30s70 10 100-30 80-50 120-10"/>
                 </svg>
 
-                <div class="hero-phone">
-                    <div class="phone-screen">
-                        <div class="phone-map">
-                            <svg viewBox="0 0 240 150" preserveAspectRatio="xMidYMid slice">
-                                <defs>
-                                    <linearGradient id="pm-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4a6f86"/><stop offset="1" stop-color="#27465a"/></linearGradient>
-                                    <linearGradient id="pm-land" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a6b4b"/><stop offset=".6" stop-color="#3d5240"/><stop offset="1" stop-color="#2b3d36"/></linearGradient>
-                                </defs>
-                                <rect width="240" height="150" fill="url(#pm-sky)"/>
-                                <path d="M0 52 38 30l28 16 34-22 40 24 36-14 64 22v94H0z" fill="#6c7f8c" opacity=".7"/>
-                                <path d="M0 70c50-18 96-6 140 4s70 14 100-6v82H0z" fill="url(#pm-land)"/>
-                                <path d="M18 132c34-8 52-30 86-42s50-30 78-52" stroke="#2fd9ae" stroke-width="3.2" stroke-linecap="round" fill="none"/>
-                                <circle cx="182" cy="38" r="9" fill="#2fd9ae"/>
-                                <path d="m178 41 4-7 4 7z" fill="#073328"/>
-                            </svg>
-                            <div class="phone-map-title"><strong>کوه صفه</strong><span>اصفهان</span></div>
-                        </div>
-                        <div class="phone-profile">
-                            <svg viewBox="0 0 240 80" preserveAspectRatio="none">
-                                <defs>
-                                    <linearGradient id="pp-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2fd9ae" stop-opacity=".55"/><stop offset="1" stop-color="#2fd9ae" stop-opacity="0"/></linearGradient>
-                                </defs>
-                                <path d="M0 58 28 52l30 4 36-16 30-22 22-10 24 14 30 16 30-8 30 10v40H0z" fill="url(#pp-fill)"/>
-                                <path d="M0 58 28 52l30 4 36-16 30-22 22-10 24 14 30 16 30-8 30 10" stroke="#2fd9ae" stroke-width="2" fill="none" stroke-linejoin="round"/>
-                                <circle cx="146" cy="8" r="3.5" fill="#fff"/>
-                            </svg>
-                        </div>
-                        <dl class="phone-stats">
-                            <div><dt>زمان صعود</dt><dd dir="ltr">2:20 h</dd></div>
-                            <div><dt>مسافت</dt><dd dir="ltr">7.6 km</dd></div>
-                            <div><dt>ارتفاع نهایی</dt><dd dir="ltr">2,240 m</dd></div>
-                        </dl>
-                    </div>
-                </div>
-
-                <div class="hero-mini">
-                    <span class="hero-mini-icon"><svg class="ico"><use href="#i-mountain"/></svg></span>
-                    <div class="hero-mini-text">
-                        <strong>کوه صفه</strong>
-                        <span>ارتفاع: ۲٬۲۴۰ متر</span>
-                        <span>درجه سختی: <b>متوسط</b></span>
-                    </div>
-                    <svg class="ico hero-mini-chev"><use href="#i-chevron-left"/></svg>
-                </div>
-                <p class="hero-demo-note">نمونهٔ نمایشی</p>
+                <!-- Elevation-profile comparison sketch (faded at both sides) -->
+                <svg class="hero-profiles" viewBox="0 0 600 300" fill="none" preserveAspectRatio="xMidYMid meet">
+                    <defs>
+                        <linearGradient id="hp-fade" x1="0" y1="0" x2="1" y2="0">
+                            <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+                            <stop offset=".22" stop-color="#fff" stop-opacity="1"/>
+                            <stop offset=".78" stop-color="#fff" stop-opacity="1"/>
+                            <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+                        </linearGradient>
+                        <mask id="hp-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="300">
+                            <rect width="600" height="300" fill="url(#hp-fade)"/>
+                        </mask>
+                        <linearGradient id="hp-fill-a" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#2fd9ae" stop-opacity=".30"/>
+                            <stop offset="1" stop-color="#2fd9ae" stop-opacity="0"/>
+                        </linearGradient>
+                        <linearGradient id="hp-fill-b" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="#f2a03d" stop-opacity=".18"/>
+                            <stop offset="1" stop-color="#f2a03d" stop-opacity="0"/>
+                        </linearGradient>
+                    </defs>
+                    <g mask="url(#hp-mask)" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M0 250 70 232 140 238 220 188 290 132 340 70 380 96 450 150 520 168 600 192V300H0z" fill="url(#hp-fill-a)" stroke="none"/>
+                        <path d="M0 262 80 240 170 226 250 196 330 160 410 112 460 84 520 128 600 150V300H0z" fill="url(#hp-fill-b)" stroke="none"/>
+                        <path d="M0 250 70 232 140 238 220 188 290 132 340 70 380 96 450 150 520 168 600 192" stroke="#2fd9ae" stroke-width="2.4"/>
+                        <path d="M0 262 80 240 170 226 250 196 330 160 410 112 460 84 520 128 600 150" stroke="#f2a03d" stroke-width="2.2"/>
+                        <path d="M0 276 90 262 190 252 270 226 350 206 430 170 500 150 560 160 600 172" stroke="#8cc8ff" stroke-width="1.8" opacity=".85"/>
+                        <path d="M0 288 110 280 220 270 320 246 420 222 520 196 600 188" stroke="#ffffff" stroke-width="1.4" stroke-dasharray="2 7" opacity=".55"/>
+                        <path d="m340 62 8 14h-16z" fill="#2fd9ae" stroke="none"/>
+                        <path d="m460 76 8 14h-16z" fill="#f2a03d" stroke="none"/>
+                        <path d="M340 80V230M460 92V230" stroke="#ffffff" stroke-width="1" stroke-dasharray="2 6" opacity=".22"/>
+                    </g>
+                </svg>
             </div>
         </div>
     </div>
