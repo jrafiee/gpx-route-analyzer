@@ -26,7 +26,7 @@ function loadMapLibre() {
 
     if (!maplibrePromise) {
 
-        // own copy first (vendor/maplibre/), CDN as a fallback
+        // CDN first (no 404 noise), own copy (vendor/maplibre/) as a fallback
         const localBase =
             new URL("vendor/maplibre/", document.baseURI).href;
 
@@ -37,22 +37,22 @@ function loadMapLibre() {
 
         link.rel = "stylesheet";
 
-        link.href = localBase + "maplibre-gl.css";
+        link.href = cdnBase + "maplibre-gl.css";
 
         link.onerror = () => {
 
             link.onerror = null;
 
-            link.href = cdnBase + "maplibre-gl.css";
+            link.href = localBase + "maplibre-gl.css";
 
         };
 
         document.head.appendChild(link);
 
         maplibrePromise =
-            import(localBase + "maplibre-gl.mjs")
+            import(cdnBase + "maplibre-gl.mjs")
                 .catch(
-                    () => import(cdnBase + "maplibre-gl.mjs")
+                    () => import(localBase + "maplibre-gl.mjs")
                 )
                 .then(
                     module => {

@@ -970,7 +970,10 @@ function applyTechnicalAxes(layout, formula) {
  * `minSlots` routes so one or two routes do not get fat bars.
  */
 
-function applySlimBars(layout, routeCount, minSlots = 4) {
+function applySlimBars(layout, routeCount) {
+
+    /* the x axis has exactly one slot per route,
+       so one route -> one centered bar, two routes -> two slots ... */
 
     layout.xaxis = {
 
@@ -978,13 +981,32 @@ function applySlimBars(layout, routeCount, minSlots = 4) {
 
         range: [
             -0.5,
-            Math.max(routeCount, minSlots) - 0.5
+            Math.max(routeCount, 1) - 0.5
         ]
 
     };
 
 }
 
+
+/*
+ * Bar width (fraction of one category slot). With very few routes
+ * a slot is wide, so the fraction is reduced to keep the bars slim.
+ */
+
+function getSlimBarWidth(routeCount) {
+
+    if (routeCount <= 1) {
+        return 0.2;
+    }
+
+    if (routeCount === 2) {
+        return 0.28;
+    }
+
+    return 0.34;
+
+}
 
 /*
  * Vertical guide following the cursor on line charts.
@@ -1009,8 +1031,6 @@ function applySpikeLine(layout) {
 
 }
 
-
-const CHART_SLIM_BAR_WIDTH = 0.34;
 
 /* =========================================================
    Bar charts: when a legend item is switched off, the y axis
@@ -1716,7 +1736,7 @@ function drawSlopeDistribution(
                         item => item.values[categoryIndex]
                     ),
 
-                width: CHART_SLIM_BAR_WIDTH,
+                width: getSlimBarWidth(results.length),
 
                 customdata:
                     uphillData.map(
@@ -2137,7 +2157,7 @@ function drawDifficultyScoreChart(
         x: names,
         y: scores,
 
-        width: CHART_SLIM_BAR_WIDTH,
+        width: getSlimBarWidth(results.length),
 
         type: "bar",
 
