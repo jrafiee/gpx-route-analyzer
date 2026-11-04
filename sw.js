@@ -1,15 +1,15 @@
 /* Service Worker - Mountain Route Compare */
-const VERSION = "v13";
+const VERSION = "v14";
 const SHELL_CACHE = "mrc-shell-" + VERSION;
 const RUNTIME_CACHE = "mrc-runtime-" + VERSION;
 
 /* map tiles live in their own cache that survives version bumps */
 const TILE_CACHE = "mrc-tiles-v1";
-const TILE_LIMIT = 6000;
+const TILE_LIMIT = 8000;
 
 const SHELL_FILES = [
   "./", "index.html", "manifest.webmanifest",
-  "css/style.css", "css/responsive.css", "css/toolbar.css", "css/nav-theme.css", "css/weather.css",
+  "css/style.css", "css/home.css", "css/responsive.css", "css/toolbar.css", "css/nav-theme.css", "css/weather.css",
   "js/app-state.js", "js/gpx-reader.js", "js/route-analysis.js", "js/charts.js",
   "js/ui.js", "js/route-selection.js", "js/speed.js", "js/map-2d.js",
   "js/map-3d.js", "js/track-geometry.js", "js/user-location.js",
@@ -30,7 +30,7 @@ const CACHEABLE_HOSTS = ["cdn.plot.ly", "unpkg.com"];
 
 /* map tile servers */
 const TILE_HOST_RE =
-  /(^|\.)(tile\.openstreetmap\.org|tile\.opentopomap\.org|server\.arcgisonline\.com|tiles\.mapterhorn\.com)$/;
+  /(^|\.)(tile\.openstreetmap\.org|tile\.opentopomap\.org|server\.arcgisonline\.com|mapterhorn\.com|demotiles\.maplibre\.org)$/;
 
 /* pathnames of the shell files (used to pick the right cache) */
 const SHELL_PATHS = new Set(
@@ -80,6 +80,18 @@ async function trimTiles(cache) {
   }
 }
 
+/* TileJSON: network first (it can change), cached copy when offline */
+async function tileJsonResponse(req, url) {
+  const cache = await caches.open(TILE_CACHE);
+  try {
+    const res = await fetch(req);
+    if (res.ok) cache.put(url.href, res.clone());
+    return res;
+  } catch (e) {
+    return (await cache.match(url.href)) || Response.error();
+  }
+}
+
 /* tiles: cache first (visited areas also work offline) */
 async function tileResponse(req, url) {
   const cache = await caches.open(TILE_CACHE);
@@ -111,7 +123,11 @@ self.addEventListener("fetch", event => {
   const sameOrigin = url.origin === self.location.origin;
 
   if (!sameOrigin && TILE_HOST_RE.test(url.hostname)) {
-    event.respondWith(tileResponse(req, url));
+    event.respondWith(
+      url.pathname.endsWith(".json")
+        ? tileJsonResponse(req, url)
+        : tileResponse(req, url)
+    );
     return;
   }
 

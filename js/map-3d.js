@@ -122,200 +122,382 @@ function initialize3DMap() {
 }
 
 
-function createMap3D() {
+/* =========================================================
+   3D base layers
 
-    if (
-        map3dInitialized
-    ) {
+   One DEM source (used by BOTH the terrain and the hillshade, so
+   its tiles are downloaded once) and three raster base layers
+   that the user can switch between:
+     sat    : Esri World Imagery
+     hybrid : satellite + OpenTopoMap contour lines (semi transparent)
+     topo   : OpenTopoMap
+     osm    : OpenStreetMap
+   ========================================================= */
 
-        return;
+const BASE_LAYER_STORAGE_KEY = "map3d-base";
 
+const BASE_LAYER_MODES = {
+
+    sat: {
+        label: "ماهواره‌ای",
+        layers: ["base-sat"],
+        topoOpacity: 1,
+        hillshade: 0.30
+    },
+
+    hybrid: {
+        label: "ماهواره + تراز",
+        layers: ["base-sat", "base-topo"],
+        topoOpacity: 0.45,
+        hillshade: 0.22
+    },
+
+    topo: {
+        label: "توپوگرافی",
+        layers: ["base-topo"],
+        topoOpacity: 1,
+        hillshade: 0.15
+    },
+
+    osm: {
+        label: "خیابانی",
+        layers: ["base-osm"],
+        topoOpacity: 1,
+        hillshade: 0.35
     }
 
+};
 
-    if (
-        !window.maplibregl
-    ) {
+const BASE_LAYER_IDS = ["base-sat", "base-topo", "base-osm"];
 
-        console.error(
-            "MapLibre GL JS is not loaded."
+let currentBase3D = (function () {
+
+    try {
+
+        const saved = localStorage.getItem(BASE_LAYER_STORAGE_KEY);
+
+        if (saved && BASE_LAYER_MODES[saved]) {
+            return saved;
+        }
+
+    } catch (e) { /* ignore */ }
+
+    return "sat";
+
+})();
+
+
+function applyBaseLayer3D(mode) {
+
+    const config = BASE_LAYER_MODES[mode];
+
+    if (!config || !map3d) {
+        return;
+    }
+
+    currentBase3D = mode;
+
+    try {
+        localStorage.setItem(BASE_LAYER_STORAGE_KEY, mode);
+    } catch (e) { /* ignore */ }
+
+    BASE_LAYER_IDS.forEach(id => {
+
+        if (!map3d.getLayer(id)) {
+            return;
+        }
+
+        map3d.setLayoutProperty(
+            id,
+            "visibility",
+            config.layers.includes(id) ? "visible" : "none"
         );
 
-        return;
+    });
 
+    if (map3d.getLayer("base-topo")) {
+        map3d.setPaintProperty("base-topo", "raster-opacity", config.topoOpacity);
     }
 
+    if (map3d.getLayer("hillshade")) {
+        map3d.setPaintProperty("hillshade", "hillshade-exaggeration", config.hillshade);
+    }
 
-    map3d =
-        new window.maplibregl.Map({
-
-            container:
-                "map-3d",
-
-            center:
-                [51.5, 32.0],
-
-            zoom:
-                7,
-
-            pitch:
-                55,
-
-            bearing:
-                0,
-
-            maxPitch:
-                85,
-
-            style: {
-
-                version:
-                    8,
-
-
-                /*
-                 * Glyphs are required for the route-number
-                 * symbol layer.
-                 */
-
-                glyphs:
-                    "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
-
-
-                sources: {
-
-                    osm: {
-
-                        type:
-                            "raster",
-
-                        tiles: [
-                            "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        ],
-
-                        tileSize:
-                            256,
-
-                        maxzoom:
-                            19,
-
-                        attribution:
-                            "&copy; OpenStreetMap contributors"
-
-                    },
-
-
-                    terrainSource: {
-
-                        type:
-                            "raster-dem",
-
-                        url:
-                            "https://tiles.mapterhorn.com/tilejson.json",
-
-                        tileSize:
-                            256
-
-                    },
-
-
-                    hillshadeSource: {
-
-                        type:
-                            "raster-dem",
-
-                        url:
-                            "https://tiles.mapterhorn.com/tilejson.json",
-
-                        tileSize:
-                            256
-
-                    }
-
-                },
-
-
-                layers: [
-
-                    {
-
-                        id:
-                            "osm",
-
-                        type:
-                            "raster",
-
-                        source:
-                            "osm"
-
-                    },
-
-
-                    {
-
-                        id:
-                            "hillshade",
-
-                        type:
-                            "hillshade",
-
-                        source:
-                            "hillshadeSource",
-
-                        paint: {
-
-                            "hillshade-exaggeration":
-                                0.35
-
-                        }
-
-                    }
-
-                ]
-
-            }
-
+    document
+        .querySelectorAll(".map3d-base-btn")
+        .forEach(button => {
+            button.classList.toggle("active", button.dataset.mode === mode);
         });
 
+}
 
-    map3d.on(
-        "load",
-        function() {
 
-            map3d.setTerrain({
+function injectBaseControlStyles() {
 
-                source:
-                    "terrainSource",
+    if (document.getElementById("map3d-base-styles")) {
+        return;
+    }
 
-                exaggeration:
-                    1.4
+    const style = document.createElement("style");
+
+    style.id = "map3d-base-styles";
+
+    style.textContent = `
+    .map3d-base-ctrl {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 6px;
+        background: var(--card-bg, #fff);
+        border: 1px solid var(--border-color, #ccc);
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
+        direction: rtl;
+    }
+    .map3d-base-btn {
+        min-width: 110px;
+        padding: 6px 10px;
+        border: 1px solid var(--border-color, #ccc);
+        border-radius: 7px;
+        background: transparent;
+        color: var(--text-primary, #222);
+        font-family: inherit;
+        font-size: 12px;
+        text-align: right;
+        cursor: pointer;
+    }
+    .map3d-base-btn:hover { background: var(--accent-light, #eee); }
+    .map3d-base-btn.active {
+        background: var(--accent, #0b7a66);
+        border-color: var(--accent, #0b7a66);
+        color: #fff;
+        font-weight: 700;
+    }
+    `;
+
+    document.head.appendChild(style);
+
+}
+
+
+function createBaseLayerControl() {
+
+    injectBaseControlStyles();
+
+    return {
+
+        onAdd: function () {
+
+            const container = document.createElement("div");
+
+            container.className = "maplibregl-ctrl map3d-base-ctrl";
+
+            Object.entries(BASE_LAYER_MODES).forEach(([mode, config]) => {
+
+                const button = document.createElement("button");
+
+                button.type = "button";
+                button.className = "map3d-base-btn";
+                button.dataset.mode = mode;
+                button.textContent = config.label;
+
+                button.classList.toggle("active", mode === currentBase3D);
+
+                button.addEventListener("click", () => applyBaseLayer3D(mode));
+
+                container.appendChild(button);
 
             });
 
+            this._container = container;
 
-            map3dInitialized =
-                true;
+            return container;
 
+        },
 
-            drawRoutesOn3DMap(
-                analysisResults
-            );
+        onRemove: function () {
 
-        }
-    );
-
-
-    map3d.on(
-        "error",
-        function(event) {
-
-            console.error(
-                "3D map error:",
-                event
-            );
+            if (this._container && this._container.parentNode) {
+                this._container.parentNode.removeChild(this._container);
+            }
 
         }
+
+    };
+
+}
+
+
+function createMap3D() {
+
+    if (map3dInitialized) {
+        return;
+    }
+
+    if (!window.maplibregl) {
+        console.error("MapLibre GL JS is not loaded.");
+        return;
+    }
+
+    map3d = new window.maplibregl.Map({
+
+        container: "map-3d",
+
+        center: [51.5, 32.0],
+        zoom: 7,
+        pitch: 55,
+        bearing: 0,
+        maxPitch: 85,
+
+        style: {
+
+            version: 8,
+
+            /* glyphs are required for the route-number symbol layer */
+            glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+
+            sources: {
+
+                satellite: {
+                    type: "raster",
+                    tiles: [
+                        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                    ],
+                    tileSize: 256,
+                    maxzoom: 19,
+                    attribution: "Tiles &copy; Esri"
+                },
+
+                topo: {
+                    type: "raster",
+                    tiles: [
+                        "https://tile.opentopomap.org/{z}/{x}/{y}.png"
+                    ],
+                    tileSize: 256,
+                    maxzoom: 17,
+                    attribution:
+                        "Map data &copy; OpenStreetMap contributors, SRTM | Map style &copy; OpenTopoMap"
+                },
+
+                osm: {
+                    type: "raster",
+                    tiles: [
+                        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    ],
+                    tileSize: 256,
+                    maxzoom: 19,
+                    attribution: "&copy; OpenStreetMap contributors"
+                },
+
+                /*
+                 * ONE elevation source for terrain AND hillshade
+                 * (it was declared twice before = tiles downloaded twice).
+                 * The TileJSON is the source of truth; encoding / tileSize /
+                 * maxzoom are set explicitly as well so nothing depends
+                 * on defaults ("mapbox" encoding would distort the terrain).
+                 */
+                dem: {
+                    type: "raster-dem",
+                    url: "https://tiles.mapterhorn.com/tilejson.json",
+                    encoding: "terrarium",
+                    tileSize: 512,
+                    maxzoom: 12,
+                    attribution: "Terrain &copy; Mapterhorn"
+                }
+
+            },
+
+            layers: [
+
+                {
+                    id: "base-osm",
+                    type: "raster",
+                    source: "osm",
+                    layout: { visibility: "none" }
+                },
+
+                {
+                    id: "base-sat",
+                    type: "raster",
+                    source: "satellite",
+                    layout: { visibility: "visible" }
+                },
+
+                {
+                    id: "base-topo",
+                    type: "raster",
+                    source: "topo",
+                    layout: { visibility: "none" },
+                    paint: { "raster-opacity": 1 }
+                },
+
+                {
+                    id: "hillshade",
+                    type: "hillshade",
+                    source: "dem",
+                    paint: {
+                        "hillshade-exaggeration": 0.3,
+                        "hillshade-shadow-color": "#000000",
+                        "hillshade-highlight-color": "#ffffff"
+                    }
+                }
+
+            ]
+
+        }
+
+    });
+
+    map3d.addControl(
+        new window.maplibregl.NavigationControl({ visualizePitch: true }),
+        "top-left"
     );
+
+    map3d.addControl(
+        new window.maplibregl.ScaleControl({ unit: "metric" }),
+        "bottom-left"
+    );
+
+    map3d.addControl(createBaseLayerControl(), "top-right");
+
+    map3d.on("load", function () {
+
+        map3d.setTerrain({
+            source: "dem",
+            exaggeration: 1.4
+        });
+
+        /* sky + haze: depth and realism at high pitch */
+        try {
+
+            map3d.setSky({
+                "sky-color": "#7fb4e6",
+                "horizon-color": "#dce9f4",
+                "fog-color": "#dce9f4",
+                "sky-horizon-blend": 0.5,
+                "horizon-fog-blend": 0.6,
+                "fog-ground-blend": 0.25
+            });
+
+        } catch (e) {
+
+            console.warn("Sky is not supported:", e);
+
+        }
+
+        applyBaseLayer3D(currentBase3D);
+
+        map3dInitialized = true;
+
+        drawRoutesOn3DMap(analysisResults);
+
+    });
+
+    map3d.on("error", function (event) {
+
+        console.error("3D map error:", event);
+
+    });
 
 }
 
