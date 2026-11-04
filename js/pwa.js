@@ -90,7 +90,10 @@ function readRouteOrderLocal() {
     }
 }
 
-async function saveRouteToStorage(file) {
+/*
+ * Record: { name (file name = key), blob, order, title (display name) }
+ */
+async function saveRouteToStorage(file, title) {
     if (isRestoringRoutes) return;
     try {
         const db = await openRouteDb();
@@ -98,6 +101,7 @@ async function saveRouteToStorage(file) {
         tx.objectStore(ROUTE_STORE).put({
             name: file.name,
             blob: file,
+            title: title || "",
             order: currentRouteOrder().indexOf(file.name)
         });
         await idbDone(tx);
@@ -105,6 +109,26 @@ async function saveRouteToStorage(file) {
         writeRouteOrderLocal();
         if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
     } catch (e) { console.warn("Save route failed:", e); }
+}
+
+/* the user renamed a route: update only the title of the record */
+async function saveRouteTitleToStorage(name, title) {
+    if (isRestoringRoutes) return;
+    try {
+        const db = await openRouteDb();
+        const tx = db.transaction(ROUTE_STORE, "readwrite");
+        const store = tx.objectStore(ROUTE_STORE);
+        const req = store.get(name);
+        req.onsuccess = () => {
+            const record = req.result;
+            if (record) {
+                record.title = title;
+                store.put(record);
+            }
+        };
+        await idbDone(tx);
+        db.close();
+    } catch (e) { console.warn("Save title failed:", e); }
 }
 
 async function deleteRouteFromStorage(name) {
@@ -146,12 +170,20 @@ async function restoreSavedRoutes() {
 
         isRestoringRoutes = true;
         for (const rec of records) {
-            const file = new File([rec.blob], rec.name, { type: "application/gpx+xml" });
-            const baseName = rec.name.replace(/\.gpx$/i, "");
+            const isKml = getRouteFileExtension(rec.name) === "kml";
+            const file = new File([rec.blob], rec.name, {
+                type: isKml ? "application/vnd.google-earth.kml+xml" : "application/gpx+xml"
+            });
+            const baseName = routeBaseName(rec.name);
             const cb = Array.from(document.querySelectorAll(".default-route"))
                 .find(c => c.dataset.name === baseName);
             if (cb) cb.checked = true;
-            await addGpxFile(file);
+
+            // saved title first; records from older versions: default
+            // routes keep their name, other files use the name inside the file
+            await addGpxFile(file, {
+                title: rec.title || (cb ? baseName : undefined)
+            });
         }
     } catch (e) {
         console.warn("Restore routes failed:", e);

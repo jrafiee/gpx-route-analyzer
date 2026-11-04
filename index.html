@@ -582,6 +582,7 @@
             <div class="workspace-section">
                 <div class="workspace-section-header">
                     <span>مسیرهای فعال برای مقایسه</span>
+                    <button type="button" id="download-all-routes" class="route-download-all" hidden>⬇ دانلود همه</button>
                     <span class="route-count-label" style="font-size: 11px; color: var(--text-muted);">۰ مسیر</span>
                 </div>
                 <div class="selected-routes-container" id="selected-routes">
@@ -591,13 +592,13 @@
 
             <div class="workspace-section">
                 <div class="workspace-section-header">
-                    <span>افزودن فایل GPX دلخواه</span>
+                    <span>افزودن فایل GPX یا KML دلخواه</span>
                 </div>
                 <div class="gpx-upload-box">
-                    <input type="file" id="gpx-file-input" accept=".gpx,application/gpx+xml" multiple aria-label="بارگذاری فایل GPX">
+                    <input type="file" id="gpx-file-input" accept=".gpx,.kml,application/gpx+xml,application/vnd.google-earth.kml+xml" multiple aria-label="بارگذاری فایل GPX یا KML">
                     <div class="gpx-upload-content">
                         <span class="gpx-upload-icon"><svg class="ico" aria-hidden="true"><use href="#i-upload"/></svg></span>
-                        <span class="gpx-upload-title">انتخاب فایل GPX</span>
+                        <span class="gpx-upload-title">انتخاب فایل GPX یا KML</span>
                         <span class="gpx-upload-hint">پشتیبانی از چندین فایل همزمان</span>
                     </div>
                 </div>

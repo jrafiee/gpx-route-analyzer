@@ -1,26 +1,44 @@
-
 /**
- * Read and parse a GPX File in the browser.
+ * Read and parse route files (GPX and KML) in the browser.
  *
- * This is the JavaScript equivalent of the Python load_gpx_file()
- * and extract_route_points() functions.
+ * - GPX: <trkpt>, <wpt>, name from <metadata><name> (or <trk><name>)
+ * - KML: <LineString>, <gx:Track>, <Point> placemarks, name from <Document><name>
+ * - Export: write a new title back into the file (for download)
  */
 
 
-/**
- * Read a GPX File and return its XML document.
- *
- * @param {File} file
- * @returns {Promise<Document>}
- */
-async function readGpxFile(file) {
+/* =========================================================
+   File type helpers
+   ========================================================= */
+
+const ROUTE_FILE_RE = /\.(gpx|kml)$/i;
+
+function isRouteFile(name) {
+    return ROUTE_FILE_RE.test(String(name || ""));
+}
+
+function getRouteFileExtension(name) {
+    const match = ROUTE_FILE_RE.exec(String(name || ""));
+    return match ? match[1].toLowerCase() : "";
+}
+
+function routeBaseName(name) {
+    return String(name || "").replace(ROUTE_FILE_RE, "");
+}
+
+
+/* =========================================================
+   XML helpers
+   ========================================================= */
+
+async function readXmlFile(file) {
     if (!file) {
-        throw new Error("No GPX file selected.");
+        throw new Error("No file selected.");
     }
 
-    if (!file.name.toLowerCase().endsWith(".gpx")) {
+    if (!isRouteFile(file.name)) {
         throw new Error(
-            `Expected a GPX file, got: ${file.name}`
+            `Expected a GPX or KML file, got: ${file.name}`
         );
     }
 
@@ -29,29 +47,124 @@ async function readGpxFile(file) {
     const parser = new DOMParser();
     const xml = parser.parseFromString(text, "application/xml");
 
-    const parserError = xml.querySelector("parsererror");
-
-    if (parserError) {
-        throw new Error(
-            `Invalid GPX file: ${file.name}`
-        );
+    if (xml.querySelector("parsererror")) {
+        throw new Error(`Invalid file: ${file.name}`);
     }
 
     return xml;
 }
 
+// kept for compatibility
+async function readGpxFile(file) {
+    return readXmlFile(file);
+}
+
+function xmlChildren(element, localName) {
+    if (!element) {
+        return [];
+    }
+
+    return Array.from(element.children).filter(
+        child => child.localName === localName
+    );
+}
+
+function xmlChildText(element, localName) {
+    const child = xmlChildren(element, localName)[0];
+
+    return child ? child.textContent.trim() : "";
+}
+
+function cleanRouteTitle(text) {
+    let title = String(text || "").replace(/\s+/g, " ").trim();
+
+    // Wikiloc adds "Wikiloc - " in front of every name
+    title = title.replace(/^wikiloc\s*[-–—:]\s*/i, "").trim();
+
+    return title;
+}
+
+
+/* =========================================================
+   Title (route name) inside the file
+   ========================================================= */
+
+function extractGpxTitle(xml) {
+    const root = xml.documentElement;
+
+    let title = xmlChildText(
+        xmlChildren(root, "metadata")[0],
+        "name"
+    );
+
+    // GPX 1.0 keeps the name directly under <gpx>
+    if (!title) {
+        title = xmlChildText(root, "name");
+    }
+
+    if (!title) {
+        title = xmlChildText(xmlChildren(root, "trk")[0], "name");
+    }
+
+    if (!title) {
+        title = xmlChildText(xmlChildren(root, "rte")[0], "name");
+    }
+
+    return cleanRouteTitle(title);
+}
+
+
+function getKmlTrackPlacemarks(xml) {
+    return Array.from(
+        xml.getElementsByTagNameNS("*", "Placemark")
+    ).filter(
+        placemark =>
+            placemark.getElementsByTagNameNS("*", "LineString").length > 0 ||
+            placemark.getElementsByTagNameNS("*", "Track").length > 0
+    );
+}
+
+
+function extractKmlTitle(xml) {
+    const root = xml.documentElement;
+
+    let title = xmlChildText(
+        xmlChildren(root, "Document")[0],
+        "name"
+    );
+
+    // Google Earth often stores the file name as the document name
+    if (ROUTE_FILE_RE.test(title)) {
+        title = "";
+    }
+
+    if (!title) {
+        const placemark = getKmlTrackPlacemarks(xml)[0];
+
+        if (placemark) {
+            title = xmlChildText(placemark, "name");
+        }
+    }
+
+    if (!title) {
+        const folder = xml.getElementsByTagNameNS("*", "Folder")[0];
+
+        if (folder) {
+            title = xmlChildText(folder, "name");
+        }
+    }
+
+    return cleanRouteTitle(title);
+}
+
+
+/* =========================================================
+   GPX
+   ========================================================= */
 
 /**
  * Extract valid track points from a parsed GPX document.
- *
- * Equivalent to Python extract_route_points().
- *
  * Only points with elevation are returned.
- *
- * Time is extracted when available.
- *
- * @param {Document} xml
- * @returns {Array}
  */
 function extractRoutePoints(xml) {
     const points = [];
@@ -120,29 +233,14 @@ function extractRoutePoints(xml) {
 
 /**
  * Extract waypoints (<wpt>) such as camps, springs, shelters, ...
- *
- * Returned items:
- * {
- *     latitude, longitude,
- *     elevation   (number | null),
- *     name, description, type, symbol   (strings, may be empty)
- * }
- *
- * @param {Document} xml
- * @returns {Array}
  */
 function extractWaypoints(xml) {
     const waypoints = [];
 
     Array.from(xml.getElementsByTagNameNS("*", "wpt")).forEach(waypoint => {
 
-        const latitude = parseFloat(
-            waypoint.getAttribute("lat")
-        );
-
-        const longitude = parseFloat(
-            waypoint.getAttribute("lon")
-        );
+        const latitude = parseFloat(waypoint.getAttribute("lat"));
+        const longitude = parseFloat(waypoint.getAttribute("lon"));
 
         if (
             !Number.isFinite(latitude) ||
@@ -151,33 +249,17 @@ function extractWaypoints(xml) {
             return;
         }
 
-        const readText = tag => {
+        const readText = tag => xmlChildText(waypoint, tag);
 
-            const element = Array.from(
-                waypoint.children
-            ).find(
-                child => child.localName === tag
-            );
-
-            return element
-                ? element.textContent.trim()
-                : "";
-
-        };
-
-        const elevationText =
-            readText("ele");
+        const elevationText = readText("ele");
 
         const elevation =
             elevationText === ""
                 ? NaN
                 : parseFloat(elevationText);
 
-        const description =
-            readText("desc");
-
-        const comment =
-            readText("cmt");
+        const description = readText("desc");
+        const comment = readText("cmt");
 
         let combined = description;
 
@@ -206,36 +288,347 @@ function extractWaypoints(xml) {
 }
 
 
-/**
- * Read a GPX File and extract its valid track points
- * and waypoints.
- *
- * @param {File} file
- * @returns {Promise<Object>}
- */
-async function loadGpxFile(file) {
-    const xml = await readGpxFile(file);
+/* =========================================================
+   KML
+   ========================================================= */
 
-    const points = extractRoutePoints(xml);
+/**
+ * Track points from <gx:Track> (with times) or, when there is no
+ * usable gx:Track, from <LineString> coordinates ("lon,lat,alt ...").
+ * Only points with elevation are kept (same rule as GPX).
+ */
+function extractKmlPoints(xml) {
+    let points = [];
+
+    function push(longitude, latitude, elevation, time) {
+        if (
+            !Number.isFinite(latitude) ||
+            !Number.isFinite(longitude) ||
+            !Number.isFinite(elevation)
+        ) {
+            return;
+        }
+
+        points.push({
+            latitude,
+            longitude,
+            elevation,
+            time: Number.isFinite(time) ? time : null
+        });
+    }
+
+    Array.from(xml.getElementsByTagNameNS("*", "Track")).forEach(track => {
+
+        const whens = [];
+        const coords = [];
+
+        for (const child of track.children) {
+            if (child.localName === "when") {
+                whens.push(child.textContent.trim());
+            } else if (child.localName === "coord") {
+                coords.push(child.textContent.trim());
+            }
+        }
+
+        coords.forEach((coord, i) => {
+            const parts = coord.split(/\s+/);
+
+            push(
+                parseFloat(parts[0]),
+                parseFloat(parts[1]),
+                parts.length > 2 ? parseFloat(parts[2]) : NaN,
+                whens[i] ? Date.parse(whens[i]) : NaN
+            );
+        });
+
+    });
+
+    if (points.length < 2) {
+
+        points = [];
+
+        Array.from(xml.getElementsByTagNameNS("*", "LineString")).forEach(line => {
+
+            const coordinates =
+                line.getElementsByTagNameNS("*", "coordinates")[0];
+
+            if (!coordinates) {
+                return;
+            }
+
+            coordinates.textContent
+                .trim()
+                .split(/\s+/)
+                .forEach(tuple => {
+                    const parts = tuple.split(",");
+
+                    push(
+                        parseFloat(parts[0]),
+                        parseFloat(parts[1]),
+                        parts.length > 2 ? parseFloat(parts[2]) : NaN,
+                        NaN
+                    );
+                });
+
+        });
+
+    }
+
+    if (points.length < 2) {
+        throw new Error(
+            "Route does not contain enough valid points."
+        );
+    }
+
+    return points;
+}
+
+
+/**
+ * Placemarks that are a single <Point> become waypoints.
+ */
+function extractKmlWaypoints(xml) {
+    const waypoints = [];
+
+    Array.from(xml.getElementsByTagNameNS("*", "Placemark")).forEach(placemark => {
+
+        if (
+            placemark.getElementsByTagNameNS("*", "LineString").length > 0 ||
+            placemark.getElementsByTagNameNS("*", "Track").length > 0
+        ) {
+            return;
+        }
+
+        const pointElement =
+            placemark.getElementsByTagNameNS("*", "Point")[0];
+
+        const coordinates = pointElement
+            ? pointElement.getElementsByTagNameNS("*", "coordinates")[0]
+            : null;
+
+        if (!coordinates) {
+            return;
+        }
+
+        const parts = coordinates.textContent.trim().split(",");
+
+        const longitude = parseFloat(parts[0]);
+        const latitude = parseFloat(parts[1]);
+        const elevation = parts.length > 2 ? parseFloat(parts[2]) : NaN;
+
+        if (
+            !Number.isFinite(latitude) ||
+            !Number.isFinite(longitude)
+        ) {
+            return;
+        }
+
+        // descriptions are often HTML
+        const description =
+            xmlChildText(placemark, "description")
+                .replace(/<[^>]*>/g, " ")
+                .replace(/[ \t]+/g, " ")
+                .trim();
+
+        waypoints.push({
+            latitude,
+            longitude,
+            elevation: Number.isFinite(elevation) ? elevation : null,
+            name: xmlChildText(placemark, "name"),
+            description,
+            type: "",
+            symbol: ""
+        });
+
+    });
+
+    return waypoints;
+}
+
+
+/* =========================================================
+   Load a route file (GPX or KML)
+
+   Returns { name (file name), title (name found inside the
+   file, may be ""), points, waypoints, format }
+   ========================================================= */
+
+async function loadRouteFile(file) {
+    const xml = await readXmlFile(file);
+
+    const isKml = getRouteFileExtension(file.name) === "kml";
+
+    const points = isKml
+        ? extractKmlPoints(xml)
+        : extractRoutePoints(xml);
 
     let waypoints = [];
 
     try {
-        waypoints = extractWaypoints(xml);
+        waypoints = isKml
+            ? extractKmlWaypoints(xml)
+            : extractWaypoints(xml);
     } catch (error) {
-        console.warn(
-            "Waypoint extraction failed:",
-            error
-        );
+        console.warn("Waypoint extraction failed:", error);
+    }
+
+    let title = "";
+
+    try {
+        title = isKml
+            ? extractKmlTitle(xml)
+            : extractGpxTitle(xml);
+    } catch (error) {
+        console.warn("Title extraction failed:", error);
     }
 
     return {
         name: file.name,
+        title,
         points,
-        waypoints
+        waypoints,
+        format: isKml ? "kml" : "gpx"
     };
 }
 
+// kept for compatibility
+async function loadGpxFile(file) {
+    return loadRouteFile(file);
+}
+
+
+/* =========================================================
+   Export: the same file with a new route name
+   ========================================================= */
+
+function setNameElement(parent, title) {
+    let nameElement = xmlChildren(parent, "name")[0];
+
+    if (!nameElement) {
+        nameElement = parent.ownerDocument.createElementNS(
+            parent.namespaceURI,
+            "name"
+        );
+
+        parent.insertBefore(nameElement, parent.firstChild);
+    }
+
+    nameElement.textContent = title;
+}
+
+
+function setGpxTitle(xml, title) {
+    const root = xml.documentElement;
+
+    if (root.getAttribute("version") === "1.0") {
+        setNameElement(root, title);
+    } else {
+        let metadata = xmlChildren(root, "metadata")[0];
+
+        if (!metadata) {
+            metadata = xml.createElementNS(root.namespaceURI, "metadata");
+            root.insertBefore(metadata, root.firstChild);
+        }
+
+        setNameElement(metadata, title);
+    }
+
+    // keep the track name in sync when the file has one
+    const track = xmlChildren(root, "trk")[0];
+
+    if (track && xmlChildren(track, "name")[0]) {
+        setNameElement(track, title);
+    }
+}
+
+
+function setKmlTitle(xml, title) {
+    const root = xml.documentElement;
+
+    let documentElement = xmlChildren(root, "Document")[0];
+
+    if (!documentElement) {
+        documentElement = xml.createElementNS(root.namespaceURI, "Document");
+
+        while (root.firstChild) {
+            documentElement.appendChild(root.firstChild);
+        }
+
+        root.appendChild(documentElement);
+    }
+
+    setNameElement(documentElement, title);
+}
+
+
+function sanitizeFileName(name) {
+    const clean = String(name || "")
+        .replace(/[\\/:*?"<>|\u0000-\u001f]+/g, "-")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/^\.+/, "");
+
+    return clean || "route";
+}
+
+
+async function buildRenamedRouteBlob(file, title) {
+    const xml = await readXmlFile(file);
+
+    const isKml = getRouteFileExtension(file.name) === "kml";
+
+    if (isKml) {
+        setKmlTitle(xml, title);
+    } else {
+        setGpxTitle(xml, title);
+    }
+
+    let text = new XMLSerializer().serializeToString(xml);
+
+    if (!/^\s*<\?xml/i.test(text)) {
+        text = '<?xml version="1.0" encoding="UTF-8"?>\n' + text;
+    }
+
+    return new Blob(
+        [text],
+        {
+            type: isKml
+                ? "application/vnd.google-earth.kml+xml"
+                : "application/gpx+xml"
+        }
+    );
+}
+
+
+function triggerBlobDownload(blob, fileName) {
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = fileName;
+
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+
+async function downloadRouteFile(file, title) {
+    const blob = await buildRenamedRouteBlob(file, title);
+
+    triggerBlobDownload(
+        blob,
+        sanitizeFileName(title) + "." + getRouteFileExtension(file.name)
+    );
+}
+
+
+/* =========================================================
+   Profile / geometry helpers
+   ========================================================= */
 
 /*
  * The profile of a route never changes, but it is needed by the

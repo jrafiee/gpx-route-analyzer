@@ -746,7 +746,7 @@
         }
 
         return analysisResults.find(
-            result => result.route === selectedTrackName
+            result => result.id === selectedTrackName
         ) || analysisResults[0];
 
     }
@@ -761,28 +761,29 @@
             return;
         }
 
-        const names =
+        const items =
             typeof analysisResults === "undefined"
                 ? []
-                : analysisResults.map(item => item.route);
+                : analysisResults;
 
-        if (names.length > 1) {
+        if (items.length > 1) {
 
-            const signature = names.join("\u0001");
+            const signature =
+                items.map(item => item.id + "\u0002" + item.route).join("\u0001");
 
             if (select.dataset.signature !== signature) {
 
                 select.innerHTML = "";
 
-                names.forEach((name, index) => {
-                    select.add(new Option(`${index + 1}. ${name}`, name));
+                items.forEach((item, index) => {
+                    select.add(new Option(`${index + 1}. ${item.route}`, item.id));
                 });
 
                 select.dataset.signature = signature;
 
             }
 
-            select.value = result.route;
+            select.value = result.id;
             select.hidden = false;
             label.hidden = true;
 
@@ -1609,7 +1610,7 @@
 
         const result = getReferenceResult();
 
-        navTrackedName = result ? result.route : null;
+        navTrackedName = result ? result.id : null;
 
         const points = result && result.routeData
             ? result.routeData.points
@@ -1753,7 +1754,7 @@
 
         applyDirMode();
 
-        if (result && navMap && navTrackedName !== result.route) {
+        if (result && navMap && navTrackedName !== result.id) {
             drawNavRoute(true);
         }
 

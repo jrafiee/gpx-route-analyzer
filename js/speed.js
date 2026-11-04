@@ -25,8 +25,10 @@ const SPEED_COLORS = {
     fastest:
         "#1a9850",
 
+    /* no timestamps (e.g. most KML files): clear, saturated blue,
+       not part of the red -> green speed scale */
     noData:
-        "#888888"
+        "#2979ff"
 
 };
 
