@@ -349,6 +349,19 @@ function createMap3D() {
         bearing: 0,
         maxPitch: 85,
 
+        // touch devices: one finger scrolls the page, two fingers move the map
+        cooperativeGestures:
+            typeof isTouchMapDevice === "function" && isTouchMapDevice(),
+
+        locale: {
+            "CooperativeGesturesHandler.MobileHelpText":
+                "برای حرکت روی نقشه از دو انگشت استفاده کنید",
+            "CooperativeGesturesHandler.WindowsHelpText":
+                "برای زوم، Ctrl را نگه دارید و اسکرول کنید",
+            "CooperativeGesturesHandler.MacHelpText":
+                "برای زوم، ⌘ را نگه دارید و اسکرول کنید"
+        },
+
         style: {
 
             version: 8,

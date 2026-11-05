@@ -32,6 +32,92 @@ const elevationChartState = {
 };
 
 
+
+/* =========================================================
+   Touch devices: the page must scroll with one finger.
+   Charts are "locked" (no drag, scroll passes through);
+   the zoom button unlocks zoom on the elevation chart.
+   ========================================================= */
+
+const chartTouchState = { zoom: false };
+
+function isTouchChartDevice() {
+    return !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+}
+
+function applyTouchChartMode(layout, containerId, zoomable) {
+
+    if (!isTouchChartDevice()) {
+        return;
+    }
+
+    const zoomOn = !!zoomable && chartTouchState.zoom;
+
+    layout.dragmode = zoomOn ? "zoom" : false;
+
+    const gd = document.getElementById(containerId);
+
+    if (gd) {
+        gd.classList.toggle("chart-touch-locked", !zoomOn);
+        gd.classList.toggle("chart-touch-zoom", zoomOn);
+    }
+
+}
+
+function syncChartZoomToggle() {
+
+    const btn = document.getElementById("chart-zoom-toggle");
+
+    if (!btn) {
+        return;
+    }
+
+    const on = chartTouchState.zoom;
+
+    btn.classList.toggle("active", on);
+
+    btn.textContent = on
+        ? "✋ پایان زوم (برگشت به اسکرول)"
+        : "🔍 فعال‌سازی زوم نمودار";
+
+}
+
+function ensureChartZoomToggle() {
+
+    if (!isTouchChartDevice()) {
+        return;
+    }
+
+    if (document.getElementById("chart-zoom-toggle")) {
+        syncChartZoomToggle();
+        return;
+    }
+
+    const toolbar =
+        document.querySelector("#elevation-container .chart-mode-buttons");
+
+    if (!toolbar) {
+        return;
+    }
+
+    const btn = document.createElement("button");
+
+    btn.type = "button";
+    btn.id = "chart-zoom-toggle";
+    btn.className = "map-view-button";
+
+    btn.addEventListener("click", () => {
+        chartTouchState.zoom = !chartTouchState.zoom;
+        syncChartZoomToggle();
+        redrawElevationChart();
+    });
+
+    toolbar.appendChild(btn);
+
+    syncChartZoomToggle();
+
+}
+
 /* =========================================================
    Shared style helpers
    ========================================================= */
@@ -543,6 +629,8 @@ function redrawElevationChart() {
 
 
 function syncElevationChartControls() {
+
+    ensureChartZoomToggle();
 
     const state = elevationChartState;
 
@@ -1354,6 +1442,8 @@ function drawElevationProfile(
     }
 
 
+    applyTouchChartMode(layout, containerId, true);
+
     Plotly.react(
         containerId,
         traces,
@@ -1588,6 +1678,8 @@ function drawOrderedElevationProfile(
     if (range) {
         layout.yaxis.range = range;
     }
+
+    applyTouchChartMode(layout, containerId, true);
 
     Plotly.react(
         containerId,
@@ -1840,6 +1932,8 @@ function drawSlopeDistribution(
         layout.yaxis.range = [0, maxStack * 1.14];
     }
 
+    applyTouchChartMode(layout, containerId, false);
+
     Plotly.react(
         containerId,
         traces,
@@ -2002,6 +2096,8 @@ function drawGroupedBarChart(
         layout.yaxis.range =
             [0, maxValue * (showLabels ? 1.15 : 1.06)];
     }
+
+    applyTouchChartMode(layout, containerId, false);
 
     Plotly.react(
         containerId,
@@ -2230,6 +2326,8 @@ function drawDifficultyScoreChart(
     if (range.max > 0) {
         layout.yaxis.range = [0, range.max * 1.15];
     }
+
+    applyTouchChartMode(layout, containerId, false);
 
     Plotly.react(
         containerId,

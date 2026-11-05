@@ -1,4 +1,60 @@
 /* =========================================================
+   Touch devices: one finger scrolls the page, two fingers
+   move / zoom the map (so the map does not trap the page).
+   ========================================================= */
+
+function isTouchMapDevice() {
+    return !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+}
+
+function enableTwoFingerGestures(leafletMap, message) {
+
+    if (!leafletMap || !isTouchMapDevice()) {
+        return;
+    }
+
+    const el = leafletMap.getContainer();
+
+    // pinch (touchZoom) still pans + zooms with two fingers
+    leafletMap.dragging.disable();
+
+    el.classList.add("two-finger-map");
+
+    const hint = document.createElement("div");
+
+    hint.className = "map-gesture-hint";
+    hint.textContent = message || "برای حرکت و زوم روی نقشه از دو انگشت استفاده کنید";
+
+    el.appendChild(hint);
+
+    let timer = null;
+
+    el.addEventListener("touchmove", event => {
+
+        if (event.touches.length === 1) {
+
+            hint.classList.add("visible");
+
+            clearTimeout(timer);
+
+            timer = setTimeout(() => hint.classList.remove("visible"), 1400);
+
+        } else {
+
+            hint.classList.remove("visible");
+
+            if (event.cancelable) {
+                event.preventDefault();
+            }
+
+        }
+
+    }, { passive: false });
+
+}
+
+
+/* =========================================================
    2D Map
    ========================================================= */
 
@@ -24,6 +80,8 @@ function initializeMap() {
 
 
     initializeMapLayers();
+
+    enableTwoFingerGestures(map);
 
 
     map.setView(

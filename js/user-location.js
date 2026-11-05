@@ -1555,6 +1555,10 @@
             attributionControl: false
         });
 
+        if (typeof enableTwoFingerGestures === "function") {
+            enableTwoFingerGestures(navMap);
+        }
+
         const topo = L.tileLayer(
             "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
             { maxZoom: 17, crossOrigin: true }
