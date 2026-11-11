@@ -511,3 +511,116 @@ body.dark-mode {
         flex: 1;
     }
 }
+
+
+/* ---------------------------------------------------------
+   اسلایدر زمان: کادر شفاف روی نقشهٔ سه‌بعدی (بالا، سمت چپ)
+   --------------------------------------------------------- */
+
+.wx3d-overlay {
+    position: absolute;
+    top: 10px;
+    left: 56px;                       /* کنار دکمه‌های زوم نقشه */
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: min(360px, calc(100% - 150px));
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 12px;
+    background: rgba(8, 22, 32, 0.42);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    color: #fff;
+    direction: rtl;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.wx3d-overlay[hidden] {
+    display: none;
+}
+
+.wx3d-overlay .wx3d-time-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.wx3d-overlay .wx3d-btn,
+.wx3d-overlay .wx3d-day {
+    min-height: 30px;
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    text-shadow: none;
+}
+
+.wx3d-overlay .wx3d-btn:hover,
+.wx3d-overlay .wx3d-day:hover {
+    background: rgba(255, 255, 255, 0.28);
+    border-color: #fff;
+}
+
+body .wx3d-overlay .wx3d-day.active {
+    background: var(--teal, #2fd9ae);
+    border-color: var(--teal, #2fd9ae);
+    color: #06261f;
+}
+
+.wx3d-overlay .wx3d-day {
+    min-height: 26px;
+    padding: 1px 10px;
+    font-size: 11.5px;
+}
+
+.wx3d-overlay .wx3d-slider {
+    accent-color: var(--teal, #2fd9ae);
+}
+
+/* موبایل: اسلایدر شفاف بالای نقشه، دکمه‌های نقشه کمی پایین‌تر */
+
+@media (max-width: 900px) {
+
+    .wx3d-overlay {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        width: auto;
+        gap: 4px;
+        padding: 6px 8px;
+    }
+
+    .wx3d-overlay .wx3d-days {
+        display: none;
+    }
+
+    .wx3d-overlay .wx3d-time-label {
+        font-size: 12px;
+    }
+
+    .wx3d-overlay .wx3d-btn {
+        min-width: 38px;
+        min-height: 30px;
+        padding: 2px 6px;
+        font-size: 12px;
+    }
+
+    #map-3d.wx3d-ov-on .maplibregl-ctrl-top-left,
+    #map-3d.wx3d-ov-on .maplibregl-ctrl-top-right {
+        margin-top: 72px;
+    }
+
+    /* دکمه‌های لایه‌ها: شبکهٔ ۳ ستونه */
+
+    .wx3d-modes {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .wx3d-mode {
+        flex: none;
+        padding: 4px 4px;
+        font-size: 11.5px;
+    }
+}

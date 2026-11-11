@@ -131,6 +131,50 @@
 
     }
 
+    /* دمای احساس: همان مقیاس رنگی دما */
+    COLORMAPS.apparent = Object.assign({}, COLORMAPS.temperature, {
+        label: "دمای احساس",
+        note: "دمای احساس = دمای همان ارتفاع + اختلاف دمای احساس و دمای واقعی در سطح مدل (اثر باد و رطوبت)."
+    });
+
+    /* بارش (mm/h): نقاط بدون بارش شفاف می‌شوند */
+    COLORMAPS.precipitation = {
+        label: "بارش",
+        unit: "mm/h",
+        min: 0,
+        max: 8,
+        fadeBelow: 0.1,
+        ticks: [0, 1, 2, 4, 6, 8],
+        stops: [
+            [0, "#bfe4f7"],
+            [0.5, "#6ec6f0"],
+            [1.5, "#2f7fe0"],
+            [3, "#3a49c9"],
+            [5, "#7b2fbf"],
+            [8, "#c0207c"]
+        ],
+        note: "بارش بر حسب میلی‌متر در ساعت است و اصلاح ارتفاعی ندارد؛ نقاط بدون بارش شفاف‌اند."
+    };
+
+    /* رعد و برق: بر پایهٔ CAPE (انرژی ناپایداری جو) */
+    COLORMAPS.thunder = {
+        label: "رعد و برق (CAPE)",
+        unit: "J/kg",
+        min: 0,
+        max: 3000,
+        fadeBelow: 100,
+        ticks: [0, 500, 1000, 1500, 2000, 3000],
+        stops: [
+            [0, "#f6e27a"],
+            [500, "#f6c040"],
+            [1000, "#f2a030"],
+            [1500, "#e5502a"],
+            [2000, "#c0207c"],
+            [3000, "#6a1b9a"]
+        ],
+        note: "احتمال رعد و برق از روی CAPE برآورد می‌شود؛ هرچه بیشتر باشد جو ناپایدارتر است. نقاط کم‌خطر شفاف‌اند."
+    };
+
     Object.values(COLORMAPS).forEach(buildLut);
 
 
@@ -375,7 +419,7 @@
 
         const { lats, lons } = gridCoordinates(area);
 
-        const hourly = ["temperature_2m", "wind_speed_10m"];
+        const hourly = ["temperature_2m", "wind_speed_10m", "apparent_temperature", "precipitation", "cape"];
 
         PRESSURE_LEVELS.forEach(level => {
             hourly.push(
@@ -489,7 +533,20 @@
             surfaces.push(surface);
 
             for (let k = 0; k < times.length; k++) {
-                profiles[k][pointIndex] = buildProfile(surface, hourly, k);
+                const profile = buildProfile(surface, hourly, k);
+
+                if (profile) {
+
+                    const at = hourly.apparent_temperature ? hourly.apparent_temperature[k] : null;
+                    const t2 = hourly.temperature_2m ? hourly.temperature_2m[k] : null;
+
+                    profile.off = isNum(at) && isNum(t2) ? at - t2 : 0;
+                    profile.p = hourly.precipitation ? hourly.precipitation[k] : NaN;
+                    profile.cape = hourly.cape ? hourly.cape[k] : NaN;
+
+                }
+
+                profiles[k][pointIndex] = profile;
             }
 
         });
@@ -842,6 +899,25 @@
 
     function evalProfile(profile, z, kind) {
 
+        if (kind === "precipitation") {
+            return isNum(profile.p) ? profile.p : NaN;
+        }
+
+        if (kind === "thunder") {
+            return isNum(profile.cape) ? profile.cape : NaN;
+        }
+
+        if (kind === "apparent") {
+            return evalProfileBase(profile, z, "temperature") +
+                (isNum(profile.off) ? profile.off : 0);
+        }
+
+        return evalProfileBase(profile, z, kind);
+
+    }
+
+    function evalProfileBase(profile, z, kind) {
+
         const zs = profile.z;
         const values = kind === "wind" ? profile.w : profile.t;
         const n = zs.length;
@@ -896,7 +972,13 @@
                 continue;
             }
 
-            sum += corners[c][1] * evalProfile(profile, z, kind);
+            const value = evalProfile(profile, z, kind);
+
+            if (!isNum(value)) {
+                continue;
+            }
+
+            sum += corners[c][1] * value;
             weight += corners[c][1];
 
         }
@@ -968,7 +1050,9 @@
                 out[p] = lut[index * 3];
                 out[p + 1] = lut[index * 3 + 1];
                 out[p + 2] = lut[index * 3 + 2];
-                out[p + 3] = 255;
+                out[p + 3] = colormap.fadeBelow
+                    ? Math.round(255 * clamp(v / colormap.fadeBelow, 0, 1))
+                    : 255;
 
             }
         }
@@ -1214,11 +1298,43 @@
 
         setStatus(
             state.demOk
-                ? "منبع: Open-Meteo (بهترین ترکیب مدل‌ها). مقدار هر نقطه بر پایهٔ ارتفاع همان نقطه از زمین محاسبه شده است. برای دیدن مقدار، روی نقشه کلیک کنید."
+                ? "منبع: Open-Meteo (بهترین ترکیب مدل‌ها). مقدار هر نقطه بر پایهٔ ارتفاع همان نقطه از زمین محاسبه شده است. برای دیدن مقدار، روی نقشه کلیک کنید." + modeNote()
                 : "ارتفاع دقیق زمین دریافت نشد؛ از ارتفاع تقریبی مدل استفاده شد و تفکیک ارتفاعی کم است.",
             state.demOk ? "" : "warn",
             state.demOk ? null : retryLoad
         );
+
+    }
+
+    function modeNote() {
+
+        const map = COLORMAPS[state.variable];
+
+        return map && map.note ? " " + map.note : "";
+
+    }
+
+    /*
+     * اسلایدر زمان: کادر شفاف روی خود نقشهٔ سه‌بعدی (گوشهٔ بالا)
+     */
+
+    function setOverlayVisible(on) {
+
+        if (!dom.overlay) {
+            return;
+        }
+
+        const host = document.getElementById("map-3d");
+
+        if (on && host && dom.overlay.parentNode !== host) {
+            host.appendChild(dom.overlay);
+        }
+
+        dom.overlay.hidden = !on;
+
+        if (host) {
+            host.classList.toggle("wx3d-ov-on", !!on);
+        }
 
     }
 
@@ -1238,7 +1354,7 @@
 
         // با خاموش بودن، کل بدنه (اسلایدر زمان، کدری، راهنما) پنهان است
         dom.body.hidden = mode === "off";
-        dom.hint.hidden = mode !== "off";
+        setOverlayVisible(mode !== "off");
         dom.panel.classList.toggle("is-on", mode !== "off");
 
         if (mode === "off") {
@@ -1322,7 +1438,11 @@
         const temperature = interpField(profiles, elev.gx[i], elev.gy[j], z, "temperature");
         const wind = interpField(profiles, elev.gx[i], elev.gy[j], z, "wind");
 
-        return { z, temperature, wind };
+        const apparent = interpField(profiles, elev.gx[i], elev.gy[j], z, "apparent");
+        const precipitation = interpField(profiles, elev.gx[i], elev.gy[j], z, "precipitation");
+        const thunder = interpField(profiles, elev.gx[i], elev.gy[j], z, "thunder");
+
+        return { z, temperature, apparent, wind, precipitation, thunder };
 
     }
 
@@ -1369,6 +1489,18 @@
 
             if (Number.isFinite(sample.wind)) {
                 lines.push(`باد: <b>${Math.round(sample.wind)}</b> km/h`);
+            }
+
+            if (Number.isFinite(sample.apparent)) {
+                lines.push(`دمای احساس: <b>${sample.apparent.toFixed(1)}</b> °C`);
+            }
+
+            if (Number.isFinite(sample.precipitation)) {
+                lines.push(`بارش: <b>${sample.precipitation.toFixed(1)}</b> mm/h`);
+            }
+
+            if (Number.isFinite(sample.thunder)) {
+                lines.push(`پتانسیل رعد و برق (CAPE): <b>${Math.round(sample.thunder)}</b> J/kg`);
             }
 
             // رنگ پس‌زمینه و متن پنجره در map-weather.css (حالت روشن و تاریک) تنظیم شده است
@@ -1662,13 +1794,15 @@
 
                 <div class="wx3d-head-text">
                     <span class="wx3d-title">🌦️ لایهٔ هواشناسی روی زمین سه‌بعدی</span>
-                    <span id="wx3d-hint" class="wx3d-hint">برای سرعت بیشتر، این لایه خاموش است و تا روشن نکنید چیزی دانلود نمی‌شود.</span>
                 </div>
 
                 <div class="wx3d-modes" role="group" aria-label="نوع لایه">
                     <button type="button" class="wx3d-mode active" data-mode="off" aria-pressed="true">خاموش</button>
                     <button type="button" class="wx3d-mode" data-mode="temperature" aria-pressed="false">🌡️ دما</button>
+                    <button type="button" class="wx3d-mode" data-mode="apparent" aria-pressed="false">🥶 دمای احساس</button>
                     <button type="button" class="wx3d-mode" data-mode="wind" aria-pressed="false">💨 سرعت باد</button>
+                    <button type="button" class="wx3d-mode" data-mode="precipitation" aria-pressed="false">🌧️ بارش</button>
+                    <button type="button" class="wx3d-mode" data-mode="thunder" aria-pressed="false">⚡ رعد و برق</button>
                 </div>
 
             </div>
@@ -1678,23 +1812,6 @@
             <div class="wx3d-body" id="wx3d-body" hidden>
 
                 <div id="wx3d-status" class="wx3d-status" role="status" aria-live="polite"></div>
-
-                <div class="wx3d-card">
-
-                    <div class="wx3d-card-title">زمان پیش‌بینی</div>
-
-                    <div class="wx3d-time">
-                        <button id="wx3d-play" class="wx3d-btn" type="button" aria-label="پخش">▶</button>
-                        <button id="wx3d-prev" class="wx3d-btn" type="button" aria-label="یک ساعت قبل" dir="ltr">−1h</button>
-                        <input id="wx3d-slider" class="wx3d-slider" type="range" min="0" max="0" step="1" value="0" dir="ltr" disabled aria-label="زمان پیش‌بینی">
-                        <button id="wx3d-next" class="wx3d-btn" type="button" aria-label="یک ساعت بعد" dir="ltr">+1h</button>
-                    </div>
-
-                    <div id="wx3d-time-label" class="wx3d-time-label"></div>
-
-                    <div id="wx3d-days" class="wx3d-days"></div>
-
-                </div>
 
                 <div class="wx3d-card wx3d-card-split">
 
@@ -1715,14 +1832,32 @@
         container.insertBefore(panel, container.firstChild);
 
         dom.panel = panel;
-        dom.hint = panel.querySelector("#wx3d-hint");
+        /* اسلایدر زمان: کادر شفاف روی نقشه (هنگام روشن شدن لایه به #map-3d اضافه می‌شود) */
+        const overlay = document.createElement("div");
+
+        overlay.id = "wx3d-overlay";
+        overlay.className = "wx3d-overlay";
+        overlay.hidden = true;
+
+        overlay.innerHTML = `
+            <div id="wx3d-time-label" class="wx3d-time-label"></div>
+            <div class="wx3d-time">
+                <button id="wx3d-play" class="wx3d-btn" type="button" aria-label="پخش">▶</button>
+                <button id="wx3d-prev" class="wx3d-btn" type="button" aria-label="یک ساعت قبل" dir="ltr">−1h</button>
+                <input id="wx3d-slider" class="wx3d-slider" type="range" min="0" max="0" step="1" value="0" dir="ltr" disabled aria-label="زمان پیش‌بینی">
+                <button id="wx3d-next" class="wx3d-btn" type="button" aria-label="یک ساعت بعد" dir="ltr">+1h</button>
+            </div>
+            <div id="wx3d-days" class="wx3d-days"></div>
+        `;
+
+        dom.overlay = overlay;
         dom.loadbar = panel.querySelector("#wx3d-loadbar");
         dom.body = panel.querySelector("#wx3d-body");
         dom.modeButtons = Array.from(panel.querySelectorAll(".wx3d-mode"));
-        dom.slider = panel.querySelector("#wx3d-slider");
-        dom.play = panel.querySelector("#wx3d-play");
-        dom.timeLabel = panel.querySelector("#wx3d-time-label");
-        dom.days = panel.querySelector("#wx3d-days");
+        dom.slider = overlay.querySelector("#wx3d-slider");
+        dom.play = overlay.querySelector("#wx3d-play");
+        dom.timeLabel = overlay.querySelector("#wx3d-time-label");
+        dom.days = overlay.querySelector("#wx3d-days");
         dom.legend = panel.querySelector("#wx3d-legend");
         dom.status = panel.querySelector("#wx3d-status");
 
@@ -1748,8 +1883,8 @@
             }
         });
 
-        panel.querySelector("#wx3d-prev").addEventListener("click", () => stepHour(-1));
-        panel.querySelector("#wx3d-next").addEventListener("click", () => stepHour(1));
+        overlay.querySelector("#wx3d-prev").addEventListener("click", () => stepHour(-1));
+        overlay.querySelector("#wx3d-next").addEventListener("click", () => stepHour(1));
 
         opacityInput.addEventListener("input", () => {
 

@@ -140,6 +140,7 @@ const BASE_LAYER_MODES = {
 
     sat: {
         label: "ماهواره‌ای",
+        icon: "🛰️",
         layers: ["base-sat"],
         topoOpacity: 1,
         hillshade: 0.30
@@ -147,6 +148,7 @@ const BASE_LAYER_MODES = {
 
     hybrid: {
         label: "ماهواره + تراز",
+        icon: "🏞️",
         layers: ["base-sat", "base-topo"],
         topoOpacity: 0.45,
         hillshade: 0.22
@@ -154,6 +156,7 @@ const BASE_LAYER_MODES = {
 
     topo: {
         label: "توپوگرافی",
+        icon: "⛰️",
         layers: ["base-topo"],
         topoOpacity: 1,
         hillshade: 0.15
@@ -161,6 +164,7 @@ const BASE_LAYER_MODES = {
 
     osm: {
         label: "خیابانی",
+        icon: "🏙️",
         layers: ["base-osm"],
         topoOpacity: 1,
         hillshade: 0.35
@@ -267,6 +271,23 @@ function injectBaseControlStyles() {
         cursor: pointer;
     }
     .map3d-base-btn:hover { background: var(--accent-light, #eee); }
+    .map3d-base-ico { margin-inline-end: 6px; }
+    @media (max-width: 900px) {
+        .map3d-base-ctrl { gap: 3px; padding: 3px; border-radius: 9px; }
+        .map3d-base-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            width: 34px;
+            height: 34px;
+            padding: 0;
+            font-size: 17px;
+            line-height: 1;
+        }
+        .map3d-base-lbl { display: none; }
+        .map3d-base-ico { margin: 0; }
+    }
     .map3d-base-btn.active {
         background: var(--accent, #0b7a66);
         border-color: var(--accent, #0b7a66);
@@ -299,7 +320,11 @@ function createBaseLayerControl() {
                 button.type = "button";
                 button.className = "map3d-base-btn";
                 button.dataset.mode = mode;
-                button.textContent = config.label;
+                button.title = config.label;
+                button.setAttribute("aria-label", config.label);
+                button.innerHTML =
+                    '<span class="map3d-base-ico" aria-hidden="true">' + config.icon + '</span>' +
+                    '<span class="map3d-base-lbl">' + config.label + '</span>';
 
                 button.classList.toggle("active", mode === currentBase3D);
 
