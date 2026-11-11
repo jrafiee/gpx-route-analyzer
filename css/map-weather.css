@@ -1,0 +1,513 @@
+/* =========================================================
+   پنل لایهٔ هواشناسی نقشهٔ سه‌بعدی + پنجرهٔ اطلاعات روی نقشه
+   بعد از toolbar.css بارگذاری شود.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   پنل: یک کادر مستقل و متمایز بالای نقشه
+   --------------------------------------------------------- */
+
+.wx3d-panel {
+    --wx-edge: color-mix(in srgb, var(--accent) 60%, var(--border-color));
+
+    margin: 12px;
+    border: 2px solid var(--wx-edge);
+    border-radius: 16px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    box-shadow: 0 6px 20px rgba(11, 34, 48, 0.12);
+    overflow: hidden;
+}
+
+body.dark-mode .wx3d-panel {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+}
+
+/* سربرگ: عنوان + دکمه‌های خاموش / دما / باد */
+
+.wx3d-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    padding: 12px 16px;
+    background: color-mix(in srgb, var(--accent) 10%, var(--card-bg));
+}
+
+.wx3d-panel.is-on .wx3d-head {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.wx3d-head-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.wx3d-title {
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.wx3d-hint {
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+}
+
+.wx3d-hint[hidden] {
+    display: none;
+}
+
+.wx3d-modes {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.wx3d-mode,
+.wx3d-btn,
+.wx3d-day {
+    min-height: 36px;
+    padding: 4px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+}
+
+.wx3d-mode:hover,
+.wx3d-btn:hover,
+.wx3d-day:hover {
+    border-color: var(--primary-blue);
+    background: var(--accent-light);
+}
+
+.wx3d-mode.active,
+.wx3d-day.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-weight: 700;
+}
+
+body.dark-mode .wx3d-mode.active,
+body.dark-mode .wx3d-day.active {
+    color: #06261f;
+}
+
+/* ---------------------------------------------------------
+   نوار پیشرفت (هنگام دریافت داده)
+   --------------------------------------------------------- */
+
+.wx3d-loadbar {
+    position: relative;
+    height: 4px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.wx3d-loadbar[hidden] {
+    display: none;
+}
+
+.wx3d-loadbar span {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 35%;
+    border-radius: 4px;
+    background: var(--accent);
+    animation: wx3d-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes wx3d-slide {
+    0%   { left: -35%; }
+    100% { left: 100%; }
+}
+
+/* دکمهٔ لایهٔ فعال هنگام دریافت داده کمی چشمک می‌زند */
+
+.wx3d-panel.is-loading .wx3d-mode.active:not([data-mode="off"]) {
+    animation: wx3d-pulse 1s ease-in-out infinite;
+}
+
+@keyframes wx3d-pulse {
+    50% { opacity: .6; }
+}
+
+/* ---------------------------------------------------------
+   بدنه: کارت‌های جدا برای زمان و راهنما
+   --------------------------------------------------------- */
+
+.wx3d-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+}
+
+.wx3d-body[hidden] {
+    display: none;
+}
+
+.wx3d-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-main);
+}
+
+.wx3d-card-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+}
+
+.wx3d-card-split {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px 24px;
+}
+
+.wx3d-time {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.wx3d-btn {
+    min-width: 44px;
+    padding: 4px 10px;
+    font-family: Consolas, "Courier New", monospace;
+}
+
+.wx3d-slider {
+    flex: 1;
+    min-width: 0;
+    height: 28px;
+    accent-color: var(--primary-blue);
+}
+
+.wx3d-time-label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.wx3d-days {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.wx3d-days:empty {
+    display: none;
+}
+
+.wx3d-day {
+    min-height: 30px;
+    padding: 2px 12px;
+    font-size: 12px;
+}
+
+/* راهنمای رنگ */
+
+.wx3d-legend {
+    flex: 1 1 260px;
+    max-width: 560px;
+    direction: ltr;
+}
+
+.wx3d-legend:empty {
+    display: none;
+}
+
+.wx3d-legend-title {
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    direction: rtl;
+    text-align: right;
+}
+
+.wx3d-legend-bar {
+    height: 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+}
+
+.wx3d-legend-ticks {
+    position: relative;
+    height: 18px;
+    margin-top: 3px;
+}
+
+.wx3d-legend-ticks span {
+    position: absolute;
+    transform: translateX(-50%);
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.wx3d-legend-ticks span:first-child {
+    transform: none;
+}
+
+.wx3d-legend-ticks span:last-child {
+    transform: translateX(-100%);
+}
+
+/* کدری لایه (فقط وقتی لایه روشن است دیده می‌شود، چون داخل بدنه است) */
+
+.wx3d-opacity {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.wx3d-opacity input {
+    width: 120px;
+    accent-color: var(--primary-blue);
+}
+
+.wx3d-opacity output {
+    min-width: 34px;
+    text-align: center;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* ---------------------------------------------------------
+   وضعیت: در حال دریافت / هشدار / خطا
+   --------------------------------------------------------- */
+
+.wx3d-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-main);
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+
+.wx3d-status:empty {
+    display: none;
+}
+
+.wx3d-status-text {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
+.wx3d-status.busy {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--border-color));
+    background: color-mix(in srgb, var(--accent) 9%, var(--card-bg));
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.wx3d-status.warn {
+    border-color: #e0a458;
+    background: rgba(240, 164, 90, 0.12);
+    color: #8a4b08;
+}
+
+.wx3d-status.error {
+    border-color: #e57373;
+    background: rgba(220, 38, 38, 0.09);
+    color: #b91c1c;
+    font-weight: 600;
+}
+
+body.dark-mode .wx3d-status.warn {
+    color: #f3b678;
+}
+
+body.dark-mode .wx3d-status.error {
+    border-color: #b85050;
+    color: #fca5a5;
+}
+
+.wx3d-spinner {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border: 2.5px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: wx3d-spin .8s linear infinite;
+}
+
+@keyframes wx3d-spin {
+    to { transform: rotate(360deg); }
+}
+
+.wx3d-status-icon {
+    flex-shrink: 0;
+}
+
+.wx3d-retry {
+    min-height: 32px;
+    padding: 2px 14px;
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.wx3d-retry:hover {
+    background: rgba(127, 127, 127, 0.15);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .wx3d-loadbar span,
+    .wx3d-spinner,
+    .wx3d-panel.is-loading .wx3d-mode.active {
+        animation-duration: 2.5s;
+    }
+}
+
+/* ---------------------------------------------------------
+   پنجرهٔ اطلاعات روی نقشهٔ سه‌بعدی (MapLibre popup)
+   در حالت تاریک: پس‌زمینهٔ تیره + نوشتهٔ روشن
+   (برای کلیک روی لایهٔ هوا، مسیرها و شمارهٔ مسیرها)
+   --------------------------------------------------------- */
+
+body {
+    --wx-popup-bg: #ffffff;
+    --wx-popup-fg: #10303d;
+    --wx-popup-line: #d5dee6;
+}
+
+body.dark-mode {
+    --wx-popup-bg: #202324;
+    --wx-popup-fg: #e8eaec;
+    --wx-popup-line: #3a3d3f;
+}
+
+.maplibregl-popup-content {
+    padding: 10px 14px;
+    border: 1px solid var(--wx-popup-line);
+    border-radius: 10px;
+    background: var(--wx-popup-bg);
+    color: var(--wx-popup-fg);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.9;
+    direction: rtl;
+    text-align: right;
+}
+
+.maplibregl-popup-content b,
+.maplibregl-popup-content strong {
+    color: inherit;
+}
+
+.maplibregl-popup-close-button {
+    color: var(--wx-popup-fg);
+    font-size: 18px;
+}
+
+.maplibregl-popup-close-button:hover {
+    background: rgba(127, 127, 127, 0.2);
+    color: var(--wx-popup-fg);
+}
+
+/* فلش پنجره هم‌رنگ پس‌زمینه */
+
+.maplibregl-popup-anchor-top .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+    border-bottom-color: var(--wx-popup-bg);
+}
+
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+    border-top-color: var(--wx-popup-bg);
+}
+
+.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+    border-right-color: var(--wx-popup-bg);
+}
+
+.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+    border-left-color: var(--wx-popup-bg);
+}
+
+/* ---------------------------------------------------------
+   موبایل
+   --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+
+    .wx3d-panel {
+        margin: 8px;
+        border-radius: 14px;
+    }
+
+    .wx3d-head {
+        padding: 10px 12px;
+    }
+
+    .wx3d-modes {
+        width: 100%;
+    }
+
+    .wx3d-mode {
+        flex: 1 1 0;
+        padding: 4px 8px;
+        font-size: 12px;
+    }
+
+    .wx3d-body {
+        padding: 10px;
+    }
+
+    .wx3d-card {
+        padding: 10px 12px;
+    }
+
+    .wx3d-card-split {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .wx3d-legend {
+        max-width: none;
+        flex-basis: auto;
+    }
+
+    .wx3d-opacity {
+        width: 100%;
+    }
+
+    .wx3d-opacity input {
+        flex: 1;
+    }
+}

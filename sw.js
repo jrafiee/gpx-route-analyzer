@@ -1,5 +1,5 @@
 /* Service Worker - Mountain Route Compare */
-const VERSION = "v16";
+const VERSION = "v17";
 const SHELL_CACHE = "mrc-shell-" + VERSION;
 const RUNTIME_CACHE = "mrc-runtime-" + VERSION;
 
@@ -9,11 +9,11 @@ const TILE_LIMIT = 8000;
 
 const SHELL_FILES = [
   "./", "index.html", "manifest.webmanifest",
-  "css/style.css", "css/home.css", "css/responsive.css", "css/toolbar.css", "css/nav-theme.css", "css/weather.css",
+  "css/style.css", "css/home.css", "css/responsive.css", "css/toolbar.css", "css/nav-theme.css", "css/weather.css", "css/map-weather.css",
   "js/app-state.js", "js/gpx-reader.js", "js/route-analysis.js", "js/charts.js",
   "js/ui.js", "js/route-selection.js", "js/speed.js", "js/map-2d.js",
   "js/map-3d.js", "js/track-geometry.js", "js/user-location.js",
-  "js/weather.js", "js/app.js", "js/pwa.js",
+  "js/weather.js", "js/map-3d-weather.js", "js/app.js", "js/pwa.js",
   "partials/calculations.html",
   "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-maskable-512.png", "icons/favicon.svg", "icons/favicon-32.png", "icons/apple-touch-icon.png",
