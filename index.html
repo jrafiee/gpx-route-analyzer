@@ -26,8 +26,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap">
 
-<!-- Libraries: loaded from CDN (versioned URLs, cached by the service worker). To self-host, run download-vendor.sh and switch these URLs to vendor/ -->
-<script defer src="https://cdn.plot.ly/plotly-basic-2.35.2.min.js"></script>
+<!-- Plotly is self-hosted (vendor/); Leaflet still comes from the CDN. If a file fails, app.js falls back to the CDN copy. -->
+<script defer src="vendor/plotly/plotly-basic-2.35.2.min.js"></script>
 
 <!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">

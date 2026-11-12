@@ -1,5 +1,5 @@
 /* Service Worker - Mountain Route Compare */
-const VERSION = "v18";
+const VERSION = "v19";
 const SHELL_CACHE = "mrc-shell-" + VERSION;
 const RUNTIME_CACHE = "mrc-runtime-" + VERSION;
 

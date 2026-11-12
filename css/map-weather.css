@@ -624,3 +624,190 @@ body .wx3d-overlay .wx3d-day.active {
         font-size: 11.5px;
     }
 }
+
+
+/* ---------------------------------------------------------
+   چک‌باکس فعال‌سازی لایه + مخفی بودن دکمه‌ها در حالت خاموش
+   --------------------------------------------------------- */
+
+.wx3d-modes[hidden] {
+    display: none !important;
+}
+
+.wx3d-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 4px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+}
+
+.wx3d-toggle input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.wx3d-toggle:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--accent-light);
+}
+
+/* ---------------------------------------------------------
+   پنجرهٔ اطلاعات: CSS مپ‌لیبره بعد از این فایل بارگذاری می‌شود،
+   پس برای غلبه بر آن از !important استفاده شده است.
+   --------------------------------------------------------- */
+
+body .maplibregl-popup .maplibregl-popup-content {
+    background: #ffffff !important;
+    color: #10303d !important;
+    border: 1px solid #d5dee6;
+}
+
+body.dark-mode .maplibregl-popup .maplibregl-popup-content {
+    background: #202324 !important;
+    color: #e8eaec !important;
+    border: 1px solid #3a3d3f;
+}
+
+body .maplibregl-popup .maplibregl-popup-close-button {
+    color: #10303d;
+}
+
+body.dark-mode .maplibregl-popup .maplibregl-popup-close-button {
+    color: #e8eaec;
+}
+
+body .maplibregl-popup-anchor-top .maplibregl-popup-tip,
+body .maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+body .maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+    border-bottom-color: #ffffff !important;
+}
+
+body .maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+body .maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+body .maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+    border-top-color: #ffffff !important;
+}
+
+body .maplibregl-popup-anchor-left .maplibregl-popup-tip {
+    border-right-color: #ffffff !important;
+}
+
+body .maplibregl-popup-anchor-right .maplibregl-popup-tip {
+    border-left-color: #ffffff !important;
+}
+
+body.dark-mode .maplibregl-popup-anchor-top .maplibregl-popup-tip,
+body.dark-mode .maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+body.dark-mode .maplibregl-popup-anchor-top-right .maplibregl-popup-tip {
+    border-bottom-color: #202324 !important;
+}
+
+body.dark-mode .maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+body.dark-mode .maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+body.dark-mode .maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+    border-top-color: #202324 !important;
+}
+
+body.dark-mode .maplibregl-popup-anchor-left .maplibregl-popup-tip {
+    border-right-color: #202324 !important;
+}
+
+body.dark-mode .maplibregl-popup-anchor-right .maplibregl-popup-tip {
+    border-left-color: #202324 !important;
+}
+
+
+/* ---------------------------------------------------------
+   یادداشت زیر راهنمای رنگ (بازهٔ پویا)
+   --------------------------------------------------------- */
+
+.wx3d-legend-note {
+    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--text-muted);
+    direction: rtl;
+    text-align: right;
+}
+
+/* ---------------------------------------------------------
+   پنجرهٔ اطلاعات هواشناسی (کلیک روی نقشه)
+   --------------------------------------------------------- */
+
+.wx3d-popup {
+    min-width: 215px;
+}
+
+.wx3d-popup .maplibregl-popup-content {
+    padding: 10px 14px 12px;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+}
+
+.wx3d-pop-head {
+    margin: 0 0 6px;
+    padding: 0 0 8px;
+    padding-inline-end: 20px;          /* جا برای دکمهٔ بستن */
+    border-bottom: 1px solid rgba(127, 127, 127, 0.3);
+    font-size: 12.5px;
+    font-weight: 800;
+    line-height: 1.6;
+}
+
+.wx3d-pop-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-inline: -6px;
+    padding: 3px 6px;
+    border-radius: 7px;
+    line-height: 1.7;
+}
+
+.wx3d-pop-row.is-active {
+    background: rgba(47, 217, 174, 0.18);
+}
+
+.wx3d-pop-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    opacity: 0.85;
+    white-space: nowrap;
+}
+
+.wx3d-pop-ico {
+    width: 18px;
+    text-align: center;
+}
+
+.wx3d-pop-val {
+    direction: ltr;
+    unicode-bidi: isolate;            /* علامت منفی همیشه سمت چپِ عدد */
+    text-align: left;
+    white-space: nowrap;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.wx3d-pop-val small {
+    margin-inline-start: 4px;
+    font-size: 10.5px;
+    font-weight: 500;
+    opacity: 0.7;
+}

@@ -30,6 +30,7 @@
     const FORECAST_DAYS = 3;
 
     const GRID_N = 6;                                    // شبکهٔ ۶×۶
+    const TRACK_RADIUS_M = 1500;                         // شعاع اطراف مسیر که داده برایش دریافت و نمایش داده می‌شود
     const PRESSURE_LEVELS = [925, 850, 700, 600, 500, 400];
     const LAPSE_RATE = 0.0065;                           // °C بر متر
     const CACHE_TTL_MS = 15 * 60 * 1000;
@@ -175,7 +176,110 @@
         note: "احتمال رعد و برق از روی CAPE برآورد می‌شود؛ هرچه بیشتر باشد جو ناپایدارتر است. نقاط کم‌خطر شفاف‌اند."
     };
 
-    Object.values(COLORMAPS).forEach(buildLut);
+    /*
+     * مقیاس رنگ پویا: stopها به‌صورت کسری (۰ تا ۱) نگه داشته می‌شوند و
+     * هر بار روی بازهٔ واقعی داده (کمینه تا بیشینه) کشیده می‌شوند.
+     */
+    Object.values(COLORMAPS).forEach(map => {
+        const span = map.max - map.min;
+        map.defMin = map.min;
+        map.defMax = map.max;
+        map.fstops = map.stops.map(s => [(s[0] - map.min) / span, s[1]]);
+        buildLut(map);
+    });
+
+    const RANGE_RULES = {
+        temperature: { span: 10 },
+        apparent: { span: 10 },
+        wind: { span: 20, floor: 0 },
+        precipitation: { span: 1, zero: true },
+        thunder: { span: 500, zero: true }
+    };
+
+    function niceStep(raw) {
+        const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+        const f = raw / pow;
+        const nice = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
+        return nice * pow;
+    }
+
+    /* عدد با علامت منفی درست (−) و بدون «-۰» */
+    function fmtNum(value, digits) {
+        let text = Number(value).toFixed(digits || 0);
+        if (Number(text) === 0) {
+            text = (0).toFixed(digits || 0);
+        }
+        return text.replace("-", "\u2212");
+    }
+
+    function niceRange(kind, lo, hi) {
+
+        const rule = RANGE_RULES[kind] || { span: 1 };
+
+        if (rule.zero) {
+            lo = 0;
+        }
+
+        if (hi - lo < rule.span) {
+            if (rule.zero) {
+                hi = lo + rule.span;
+            } else {
+                const mid = (lo + hi) / 2;
+                lo = mid - rule.span / 2;
+                hi = mid + rule.span / 2;
+            }
+        }
+
+        const pad = (hi - lo) * 0.05;
+
+        if (!rule.zero) {
+            lo -= pad;
+        }
+
+        hi += pad;
+
+        if (rule.floor !== undefined) {
+            lo = Math.max(rule.floor, lo);
+        }
+
+        const step = niceStep((hi - lo) / 5);
+
+        let min = rule.zero ? 0 : Math.floor(lo / step) * step;
+        let max = Math.ceil(hi / step) * step;
+
+        if (max <= min) {
+            max = min + step;
+        }
+
+        return {
+            min: +min.toFixed(6),
+            max: +max.toFixed(6),
+            step: step
+        };
+
+    }
+
+    function applyRange(map, range) {
+
+        map.min = range.min;
+        map.max = range.max;
+
+        map.stops = map.fstops.map(
+            stop => [range.min + stop[0] * (range.max - range.min), stop[1]]
+        );
+
+        const ticks = [];
+
+        for (let v = range.min; v <= range.max + range.step * 1e-6; v += range.step) {
+            ticks.push(+v.toFixed(6));
+        }
+
+        map.ticks = ticks;
+        map.tickDigits = range.step < 0.1 ? 2 : (range.step < 1 ? 1 : 0);
+
+        buildLut(map);
+
+    }
 
 
     /* =====================================================
@@ -193,6 +297,7 @@
         opacity: 0.6,
         gen: 0,
         loading: false,
+        ranges: {},             // بازهٔ رنگ پویا برای هر لایه
         playing: false,
         timer: null,
         renderPending: false,
@@ -356,8 +461,8 @@
             return null;
         }
 
-        const padLat = Math.max((north - south) * 0.6, 0.2);
-        const padLon = Math.max((east - west) * 0.6, 0.25);
+        const padLat = TRACK_RADIUS_M / 111320 * 1.15;
+        const padLon = padLat / Math.max(Math.cos((north + south) / 2 * Math.PI / 180), 0.01);
 
         return {
             south: Math.max(-84, south - padLat),
@@ -368,21 +473,124 @@
 
     }
 
-    function areaCovers(outer, inner) {
+    function areaSignature(area) {
 
-        const eps = 1e-6;
+        const ids = (typeof analysisResults !== "undefined" ? analysisResults : [])
+            .map(result => result.id)
+            .sort()
+            .join("|");
 
-        const covers =
-            outer.south <= inner.south + eps &&
-            outer.north >= inner.north - eps &&
-            outer.west <= inner.west + eps &&
-            outer.east >= inner.east - eps;
+        return ids + "#" + [area.south, area.north, area.west, area.east]
+            .map(v => v.toFixed(4))
+            .join(",");
 
-        const notTooBig =
-            (outer.north - outer.south) <= 2.5 * (inner.north - inner.south) &&
-            (outer.east - outer.west) <= 2.5 * (inner.east - inner.west);
+    }
 
-        return covers && notTooBig;
+    /*
+     * نقاط مسیر (با نقاط میانی در بخش‌های طولانی) تا فاصلهٔ stepM
+     */
+
+    function forEachTrackSample(stepM, fn) {
+
+        const results =
+            typeof analysisResults !== "undefined"
+                ? analysisResults
+                : [];
+
+        results.forEach(result => {
+
+            const points = result.routeData && result.routeData.points;
+
+            if (!points) {
+                return;
+            }
+
+            let prev = null;
+
+            for (let i = 0; i < points.length; i++) {
+
+                const p = points[i];
+
+                if (!isNum(p.latitude) || !isNum(p.longitude)) {
+                    continue;
+                }
+
+                if (prev) {
+
+                    const dLat = (p.latitude - prev.latitude) * 111320;
+                    const dLon = (p.longitude - prev.longitude) * 111320 *
+                        Math.cos(p.latitude * Math.PI / 180);
+
+                    const n = Math.floor(Math.hypot(dLat, dLon) / stepM);
+
+                    for (let k = 1; k <= n; k++) {
+                        const f = k / (n + 1);
+                        fn(
+                            prev.latitude + (p.latitude - prev.latitude) * f,
+                            prev.longitude + (p.longitude - prev.longitude) * f
+                        );
+                    }
+
+                }
+
+                fn(p.latitude, p.longitude);
+
+                prev = p;
+
+            }
+
+        });
+
+    }
+
+    /*
+     * فقط نقاط شبکه‌ای که برای سلول‌های اطراف مسیر لازم‌اند
+     * (چهار گوشهٔ هر سلول) دریافت می‌شوند، نه کل شبکه.
+     */
+
+    function computeNeededPoints(area) {
+
+        const needed = new Set();
+
+        const padLat = TRACK_RADIUS_M / 111320;
+
+        const midLat = (area.south + area.north) / 2;
+
+        const padLon = padLat / Math.max(Math.cos(midLat * Math.PI / 180), 0.01);
+
+        const offsets = [-1, -0.5, 0, 0.5, 1];
+
+        forEachTrackSample(300, (lat, lon) => {
+
+            for (let a = 0; a < offsets.length; a++) {
+                for (let b = 0; b < offsets.length; b++) {
+
+                    const la = lat + offsets[a] * padLat;
+                    const lo = lon + offsets[b] * padLon;
+
+                    const gx = (lo - area.west) / (area.east - area.west) * (GRID_N - 1);
+                    const gy = (la - area.south) / (area.north - area.south) * (GRID_N - 1);
+
+                    const ix = clamp(Math.floor(gx), 0, GRID_N - 2);
+                    const iy = clamp(Math.floor(gy), 0, GRID_N - 2);
+
+                    needed.add(iy * GRID_N + ix);
+                    needed.add(iy * GRID_N + ix + 1);
+                    needed.add((iy + 1) * GRID_N + ix);
+                    needed.add((iy + 1) * GRID_N + ix + 1);
+
+                }
+            }
+
+        });
+
+        if (needed.size === 0) {
+            for (let k = 0; k < GRID_N * GRID_N; k++) {
+                needed.add(k);
+            }
+        }
+
+        return needed;
 
     }
 
@@ -391,7 +599,7 @@
        Weather data (Open-Meteo)
        ===================================================== */
 
-    function gridCoordinates(area) {
+    function gridCoordinates(area, needed) {
 
         const lats = [];
         const lons = [];
@@ -401,6 +609,10 @@
             const lat = area.south + (area.north - area.south) * iy / (GRID_N - 1);
 
             for (let ix = 0; ix < GRID_N; ix++) {
+
+                if (needed && !needed.has(iy * GRID_N + ix)) {
+                    continue;
+                }
 
                 const lon = area.west + (area.east - area.west) * ix / (GRID_N - 1);
 
@@ -415,9 +627,9 @@
 
     }
 
-    function buildWeatherUrl(area) {
+    function buildWeatherUrl(area, needed) {
 
-        const { lats, lons } = gridCoordinates(area);
+        const { lats, lons } = gridCoordinates(area, needed);
 
         const hourly = ["temperature_2m", "wind_speed_10m", "apparent_temperature", "precipitation", "cape"];
 
@@ -506,9 +718,9 @@
 
     }
 
-    function buildData(responses) {
+    function buildData(responses, indices) {
 
-        if (responses.length !== GRID_N * GRID_N) {
+        if (responses.length === 0 || responses.length !== indices.length) {
             throw new Error("پاسخ سرویس هواشناسی کامل نیست.");
         }
 
@@ -520,19 +732,24 @@
 
         const times = first.time;
 
-        const profiles = times.map(() => new Array(responses.length).fill(null));
+        const total = GRID_N * GRID_N;
 
-        const surfaces = [];
+        const profiles = times.map(() => new Array(total).fill(null));
 
-        responses.forEach((response, pointIndex) => {
+        const surfaces = new Array(total).fill(NaN);
+
+        responses.forEach((response, r) => {
+
+            const pointIndex = indices[r];
 
             const hourly = response.hourly || {};
 
             const surface = isNum(response.elevation) ? response.elevation : 0;
 
-            surfaces.push(surface);
+            surfaces[pointIndex] = surface;
 
             for (let k = 0; k < times.length; k++) {
+
                 const profile = buildProfile(surface, hourly, k);
 
                 if (profile) {
@@ -547,6 +764,7 @@
                 }
 
                 profiles[k][pointIndex] = profile;
+
             }
 
         });
@@ -555,9 +773,9 @@
 
     }
 
-    async function fetchWeather(area) {
+    async function fetchWeather(area, needed) {
 
-        const url = buildWeatherUrl(area);
+        const url = buildWeatherUrl(area, needed);
 
         const hit = weatherCache.get(url);
 
@@ -583,7 +801,10 @@
 
             const json = await response.json();
 
-            return buildData(Array.isArray(json) ? json : [json]);
+            return buildData(
+                Array.isArray(json) ? json : [json],
+                Array.from(needed).sort((a, b) => a - b)
+            );
 
         })();
 
@@ -868,7 +1089,59 @@
             }
         }
 
-        return { W, H, values, gx, gy, yN, yS };
+        const mask = buildTrackMask(area, W, H, yN, yS);
+
+        return { W, H, values, gx, gy, yN, yS, mask };
+
+    }
+
+    /*
+     * ماسک: فقط پیکسل‌هایی که در شعاع TRACK_RADIUS_M از مسیر هستند
+     */
+
+    function buildTrackMask(area, W, H, yN, yS) {
+
+        const mask = new Uint8Array(W * H);
+
+        const midLat = (area.south + area.north) / 2;
+
+        const pxX = (area.east - area.west) * 111320 * Math.cos(midLat * Math.PI / 180) / W;
+        const pxY = (area.north - area.south) * 111320 / H;
+
+        const rx = TRACK_RADIUS_M / pxX;
+        const ry = TRACK_RADIUS_M / pxY;
+
+        const step = Math.max(20, Math.min(pxX, pxY) / 2);
+
+        forEachTrackSample(step, (lat, lon) => {
+
+            const i0 = (lon - area.west) / (area.east - area.west) * W;
+            const j0 = (mercY(lat) - yN) / (yS - yN) * H;
+
+            const jStart = Math.max(0, Math.floor(j0 - ry));
+            const jEnd = Math.min(H - 1, Math.ceil(j0 + ry));
+            const iStart = Math.max(0, Math.floor(i0 - rx));
+            const iEnd = Math.min(W - 1, Math.ceil(i0 + rx));
+
+            for (let j = jStart; j <= jEnd; j++) {
+
+                const dy = (j + 0.5 - j0) / ry;
+
+                for (let i = iStart; i <= iEnd; i++) {
+
+                    const dx = (i + 0.5 - i0) / rx;
+
+                    if (dx * dx + dy * dy <= 1) {
+                        mask[j * W + i] = 1;
+                    }
+
+                }
+
+            }
+
+        });
+
+        return mask;
 
     }
 
@@ -989,6 +1262,94 @@
 
 
     /* =====================================================
+       Dynamic colour range
+       کمینه و بیشینهٔ مقدار لایه روی پیکسل‌های اطراف مسیرها،
+       در همهٔ ساعت‌های پیش‌بینی (تا با حرکت اسلایدر رنگ‌ها نپرند)
+       ===================================================== */
+
+    function computeRange(kind) {
+
+        const colormap = COLORMAPS[kind];
+
+        const { W, H, values, gx, gy, mask } = state.elev;
+
+        const STEP = 3;
+
+        let lo = Infinity;
+        let hi = -Infinity;
+
+        state.data.profiles.forEach(profiles => {
+
+            if (!profiles) {
+                return;
+            }
+
+            for (let j = 0; j < H; j += STEP) {
+                for (let i = 0; i < W; i += STEP) {
+
+                    const idx = j * W + i;
+
+                    if (mask && !mask[idx]) {
+                        continue;
+                    }
+
+                    const z = values[idx];
+
+                    if (!Number.isFinite(z)) {
+                        continue;
+                    }
+
+                    const v = interpField(profiles, gx[i], gy[j], z, kind);
+
+                    if (Number.isFinite(v)) {
+                        if (v < lo) { lo = v; }
+                        if (v > hi) { hi = v; }
+                    }
+
+                }
+            }
+
+        });
+
+        if (!Number.isFinite(lo) || !Number.isFinite(hi)) {
+            return {
+                min: colormap.defMin,
+                max: colormap.defMax,
+                step: niceStep((colormap.defMax - colormap.defMin) / 5),
+                fallback: true
+            };
+        }
+
+        return niceRange(kind, lo, hi);
+
+    }
+
+    function updateRange(kind) {
+
+        const colormap = COLORMAPS[kind];
+
+        if (!colormap || !state.data || !state.elev) {
+            return;
+        }
+
+        let range = state.ranges[kind];
+
+        if (!range) {
+            range = computeRange(kind);
+            state.ranges[kind] = range;
+        }
+
+        const key = range.min + "|" + range.max + "|" + range.step;
+
+        if (colormap.curKey !== key) {
+            colormap.curKey = key;
+            applyRange(colormap, range);
+        }
+
+    }
+
+
+    /* =====================================================
        Rendering
        ===================================================== */
 
@@ -1006,10 +1367,13 @@
         }
 
         const kind = state.variable;
+
+        updateRange(kind);
+
         const colormap = COLORMAPS[kind];
         const lut = colormap.lut;
 
-        const { W, H, values, gx, gy } = state.elev;
+        const { W, H, values, gx, gy, mask } = state.elev;
 
         const profiles = state.data.profiles[state.hourIndex];
 
@@ -1034,6 +1398,10 @@
                 const z = values[j * W + i];
 
                 if (!Number.isFinite(z)) {
+                    continue;
+                }
+
+                if (mask && !mask[j * W + i]) {
                     continue;
                 }
 
@@ -1174,6 +1542,7 @@
         state.data = null;
         state.area = null;
         state.elev = null;
+        state.ranges = {};
 
         weatherCache.clear();
 
@@ -1209,10 +1578,12 @@
 
         const generation = ++state.gen;
 
+        const sig = areaSignature(area);
+
         const needLoad =
             !state.data ||
             !state.area ||
-            !areaCovers(state.area, area);
+            state.sig !== sig;
 
         if (needLoad) {
 
@@ -1227,7 +1598,9 @@
 
             try {
 
-                const weatherJob = fetchWeather(area).then(data => {
+                const needed = computeNeededPoints(area);
+
+                const weatherJob = fetchWeather(area, needed).then(data => {
 
                     weatherDone = true;
 
@@ -1260,7 +1633,9 @@
                 state.area = area;
                 state.data = data;
                 state.demOk = !!dem;
+                state.sig = sig;
                 state.elev = buildElevationGrid(area, dem, data);
+                state.ranges = {};
 
                 if (!(state.userMoved && state.hourIndex < data.times.length)) {
                     state.hourIndex = nowIndex(data.times);
@@ -1296,13 +1671,19 @@
         updateTimeUI();
         render();
 
-        setStatus(
-            state.demOk
-                ? "منبع: Open-Meteo (بهترین ترکیب مدل‌ها). مقدار هر نقطه بر پایهٔ ارتفاع همان نقطه از زمین محاسبه شده است. برای دیدن مقدار، روی نقشه کلیک کنید." + modeNote()
-                : "ارتفاع دقیق زمین دریافت نشد؛ از ارتفاع تقریبی مدل استفاده شد و تفکیک ارتفاعی کم است.",
-            state.demOk ? "" : "warn",
-            state.demOk ? null : retryLoad
-        );
+        if (state.demOk) {
+
+            setStatus("");
+
+        } else {
+
+            setStatus(
+                "ارتفاع دقیق زمین دریافت نشد؛ از ارتفاع تقریبی مدل استفاده شد و تفکیک ارتفاعی کم است.",
+                "warn",
+                retryLoad
+            );
+
+        }
 
     }
 
@@ -1397,6 +1778,7 @@
         state.data = null;
         state.area = null;
         state.elev = null;
+        state.ranges = {};
 
         setLoading(false);
 
@@ -1424,6 +1806,10 @@
         const j = Math.floor((mercY(lat) - elev.yN) / (elev.yS - elev.yN) * elev.H);
 
         if (i < 0 || j < 0 || i >= elev.W || j >= elev.H) {
+            return null;
+        }
+
+        if (elev.mask && !elev.mask[j * elev.W + i]) {
             return null;
         }
 
@@ -1478,35 +1864,47 @@
 
             const time = state.data.times[state.hourIndex];
 
-            const lines = [
-                `<strong>${formatTimeLabel(time)}</strong>`,
-                `ارتفاع زمین: <b>${Math.round(sample.z)}</b> m`
+            const active = state.variable;
+
+            const rows = [
+                { kind: "z", icon: "⛰️", label: "ارتفاع زمین", value: sample.z, digits: 0, unit: "m" }
             ];
 
             if (Number.isFinite(sample.temperature)) {
-                lines.push(`دما: <b>${sample.temperature.toFixed(1)}</b> °C`);
-            }
-
-            if (Number.isFinite(sample.wind)) {
-                lines.push(`باد: <b>${Math.round(sample.wind)}</b> km/h`);
+                rows.push({ kind: "temperature", icon: "🌡️", label: "دما", value: sample.temperature, digits: 1, unit: "°C" });
             }
 
             if (Number.isFinite(sample.apparent)) {
-                lines.push(`دمای احساس: <b>${sample.apparent.toFixed(1)}</b> °C`);
+                rows.push({ kind: "apparent", icon: "🥶", label: "دمای احساس", value: sample.apparent, digits: 1, unit: "°C" });
+            }
+
+            if (Number.isFinite(sample.wind)) {
+                rows.push({ kind: "wind", icon: "💨", label: "سرعت باد", value: sample.wind, digits: 0, unit: "km/h" });
             }
 
             if (Number.isFinite(sample.precipitation)) {
-                lines.push(`بارش: <b>${sample.precipitation.toFixed(1)}</b> mm/h`);
+                rows.push({ kind: "precipitation", icon: "🌧️", label: "بارش", value: sample.precipitation, digits: 1, unit: "mm/h" });
             }
 
             if (Number.isFinite(sample.thunder)) {
-                lines.push(`پتانسیل رعد و برق (CAPE): <b>${Math.round(sample.thunder)}</b> J/kg`);
+                rows.push({ kind: "thunder", icon: "⚡", label: "رعد و برق (CAPE)", value: sample.thunder, digits: 0, unit: "J/kg" });
             }
 
+            const html =
+                '<div class="wx3d-pop">' +
+                `<div class="wx3d-pop-head">${formatTimeLabel(time)}</div>` +
+                rows.map(row =>
+                    `<div class="wx3d-pop-row${row.kind === active ? " is-active" : ""}">` +
+                    `<span class="wx3d-pop-label"><span class="wx3d-pop-ico" aria-hidden="true">${row.icon}</span>${row.label}</span>` +
+                    `<span class="wx3d-pop-val" dir="ltr">${fmtNum(row.value, row.digits)}<small>${row.unit}</small></span>` +
+                    "</div>"
+                ).join("") +
+                "</div>";
+
             // رنگ پس‌زمینه و متن پنجره در map-weather.css (حالت روشن و تاریک) تنظیم شده است
-            new root.maplibregl.Popup({ className: "wx3d-popup" })
+            new root.maplibregl.Popup({ className: "wx3d-popup", maxWidth: "300px" })
                 .setLngLat(event.lngLat)
-                .setHTML(lines.join("<br>"))
+                .setHTML(html)
                 .addTo(map3d);
 
         });
@@ -1628,6 +2026,8 @@
 
     function renderLegend() {
 
+        updateRange(state.variable);
+
         const colormap = COLORMAPS[state.variable];
 
         if (!colormap || !dom.legend) {
@@ -1642,14 +2042,17 @@
 
         const ticks = colormap.ticks
             .map(value =>
-                `<span style="left:${((value - colormap.min) / range * 100).toFixed(1)}%">${value}</span>`
+                `<span style="left:${((value - colormap.min) / range * 100).toFixed(1)}%">${fmtNum(value, colormap.tickDigits || 0)}</span>`
             )
             .join("");
 
         dom.legend.innerHTML =
             `<div class="wx3d-legend-title">راهنمای رنگ: ${colormap.label} (${colormap.unit})</div>` +
             `<div class="wx3d-legend-bar" style="background:linear-gradient(to right, ${gradient})"></div>` +
-            `<div class="wx3d-legend-ticks">${ticks}</div>`;
+            `<div class="wx3d-legend-ticks">${ticks}</div>` +
+            (state.ranges[state.variable] && !state.ranges[state.variable].fallback
+                ? '<div class="wx3d-legend-note">بازهٔ رنگ خودکار است و از کمینه و بیشینهٔ مقدار روی مسیرهای انتخاب‌شده (در همهٔ ساعت‌های پیش‌بینی) ساخته می‌شود.</div>'
+                : '');
 
     }
 
@@ -1796,8 +2199,12 @@
                     <span class="wx3d-title">🌦️ لایهٔ هواشناسی روی زمین سه‌بعدی</span>
                 </div>
 
-                <div class="wx3d-modes" role="group" aria-label="نوع لایه">
-                    <button type="button" class="wx3d-mode active" data-mode="off" aria-pressed="true">خاموش</button>
+                <label class="wx3d-toggle">
+                    <input type="checkbox" id="wx3d-enable" autocomplete="off">
+                    <span>نمایش لایهٔ هواشناسی</span>
+                </label>
+
+                <div class="wx3d-modes" id="wx3d-modes" role="group" aria-label="نوع لایه" hidden>
                     <button type="button" class="wx3d-mode" data-mode="temperature" aria-pressed="false">🌡️ دما</button>
                     <button type="button" class="wx3d-mode" data-mode="apparent" aria-pressed="false">🥶 دمای احساس</button>
                     <button type="button" class="wx3d-mode" data-mode="wind" aria-pressed="false">💨 سرعت باد</button>
@@ -1854,6 +2261,18 @@
         dom.loadbar = panel.querySelector("#wx3d-loadbar");
         dom.body = panel.querySelector("#wx3d-body");
         dom.modeButtons = Array.from(panel.querySelectorAll(".wx3d-mode"));
+        dom.modes = panel.querySelector("#wx3d-modes");
+        dom.enable = panel.querySelector("#wx3d-enable");
+
+        dom.enable.addEventListener("change", () => {
+
+            dom.modes.hidden = !dom.enable.checked;
+
+            if (!dom.enable.checked) {
+                setMode("off");
+            }
+
+        });
         dom.slider = overlay.querySelector("#wx3d-slider");
         dom.play = overlay.querySelector("#wx3d-play");
         dom.timeLabel = overlay.querySelector("#wx3d-time-label");

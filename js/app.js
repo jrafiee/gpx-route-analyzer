@@ -30,15 +30,28 @@ const LIBRARY_FALLBACKS = {
     L: "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 };
 
-function loadScriptOnce(src) {
+function loadScriptOnce(src, timeoutMs = 8000) {
 
     return new Promise((resolve, reject) => {
 
         const script = document.createElement("script");
 
+        const timer = setTimeout(() => {
+            script.remove();
+            reject(new Error("Timeout " + src));
+        }, timeoutMs);
+
         script.src = src;
-        script.onload = resolve;
-        script.onerror = () => reject(new Error("Cannot load " + src));
+
+        script.onload = () => {
+            clearTimeout(timer);
+            resolve();
+        };
+
+        script.onerror = () => {
+            clearTimeout(timer);
+            reject(new Error("Cannot load " + src));
+        };
 
         document.head.appendChild(script);
 
