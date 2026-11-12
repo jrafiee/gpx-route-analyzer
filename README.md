@@ -1,4 +1,4 @@
-# Soffeh (صفه) — Mountain Route Compare
+# Pakoob (پاکوب) — Mountain Route Compare
 
 A browser-based JavaScript application for analyzing and comparing hiking and mountaineering routes using GPX files.
 
