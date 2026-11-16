@@ -1,7 +1,6 @@
 /* =========================================================
-   Weather section styles
-   (moved out of weather.js, where they were injected at runtime,
-   and merged with the duplicated weather rules of style.css)
+   Weather section (forecast cards, model selector, hourly table)
+   + 3D map weather layer (at the end of the file)
    ========================================================= */
 
 .weather-route-filter-bar {
@@ -49,6 +48,9 @@ body.dark-mode .weather-route-filter-btn.active {
 
 /* Model Selector Container */
 .weather-model-selector {
+    position: sticky;
+    top: 60px;
+    z-index: 90;
     width: 100%;
     margin-bottom: 18px;
     padding: 14px 16px;
@@ -66,6 +68,9 @@ body.dark-mode .weather-route-filter-btn.active {
     flex-wrap: wrap;
     gap: 8px;
     margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary, #1e293b);
 }
 
 .weather-model-title-left {
@@ -96,54 +101,54 @@ body.dark-mode .weather-route-filter-btn.active {
 
 /* Weather Model Options Strip: Horizontal Scroll with Identical Sized Boxes */
 .weather-model-options {
-    display: flex !important;
-    flex-direction: row !important;
-    gap: 10px !important;
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch !important;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
-    padding: 4px 2px 8px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
+    padding: 4px 2px 8px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 /* STRICT UNIFORM BOX SIZE ON BOTH MOBILE AND DESKTOP: 140px x 76px */
 .weather-model-option {
-    position: relative !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    justify-content: center !important;
-    flex: 0 0 140px !important;
-    width: 140px !important;
-    min-width: 140px !important;
-    max-width: 140px !important;
-    height: 76px !important;
-    min-height: 76px !important;
-    max-height: 76px !important;
-    padding: 8px 10px !important;
-    border: 1.5px solid var(--border-color, #cbd5e1) !important;
-    border-radius: 12px !important;
-    background: #ffffff !important;
-    cursor: pointer !important;
-    user-select: none !important;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    box-sizing: border-box !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-    text-align: right !important;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    flex: 0 0 140px;
+    width: 140px;
+    min-width: 140px;
+    max-width: 140px;
+    height: 76px;
+    min-height: 76px;
+    max-height: 76px;
+    padding: 8px 10px;
+    border: 1.5px solid var(--border-color, #cbd5e1);
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    text-align: right;
 }
 
 .weather-model-option:hover {
-    border-color: #94a3b8 !important;
-    background: #f8fafc !important;
+    border-color: #94a3b8;
+    background: #f8fafc;
 }
 
 .weather-model-option input[type="radio"] {
-    position: absolute !important;
-    opacity: 0 !important;
-    width: 0 !important;
-    height: 0 !important;
-    pointer-events: none !important;
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
 }
 
 .weather-model-card-inner {
@@ -199,9 +204,9 @@ body.dark-mode .weather-route-filter-btn.active {
 /* Active Selected Model */
 .weather-model-option.active,
 .weather-model-option:has(input:checked) {
-    border-color: #0b7a66 !important;
-    background: #e6f6f2 !important;
-    box-shadow: 0 0 0 1px #0b7a66, 0 3px 8px rgba(11, 122, 102, 0.2) !important;
+    border-color: #0b7a66;
+    background: #e6f6f2;
+    box-shadow: 0 0 0 1px #0b7a66, 0 3px 8px rgba(11, 122, 102, 0.2);
 }
 
 .weather-model-option.active .weather-model-radio-circle,
@@ -277,7 +282,7 @@ body.dark-mode .weather-route-filter-btn.active {
 
 .weather-daily-date {
     font-size: 11px;
-    color: var(--muted-text, #666);
+    color: #666;
 }
 
 .weather-daily-temp {
@@ -359,6 +364,7 @@ body.dark-mode .weather-route-filter-btn.active {
     margin-top: 12px;
     padding: 12px 0 6px;
     box-sizing: border-box;
+    border-top: 1px solid var(--border-color, #e2e8f0);
 }
 
 .hourly-forecast-header {
@@ -422,11 +428,11 @@ body.dark-mode .weather-route-filter-btn.active {
 
 /* Horizontal Scroll Container */
 .hourly-table-scroll-container {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    -webkit-overflow-scrolling: touch !important;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     border: 1px solid var(--border-color, #e2e8f0);
     border-radius: 12px;
@@ -437,55 +443,55 @@ body.dark-mode .weather-route-filter-btn.active {
 
 /* The Horizontal Table */
 .hourly-forecast-table {
-    display: table !important;
-    table-layout: fixed !important;
-    width: 1632px !important;
-    min-width: 1632px !important;
-    max-width: 1632px !important;
-    border-collapse: separate !important;
-    border-spacing: 0 !important;
+    display: table;
+    table-layout: fixed;
+    width: 1632px;
+    min-width: 1632px;
+    max-width: 1632px;
+    border-collapse: separate;
+    border-spacing: 0;
     font-size: 12px;
-    direction: rtl !important;
+    direction: rtl;
     text-align: center;
     margin: 0;
 }
 
 /* Sticky First Column pinned to right edge */
 .hourly-sticky-col {
-    position: sticky !important;
-    right: 0 !important;
-    z-index: 25 !important;
-    width: 96px !important;
-    min-width: 96px !important;
-    max-width: 96px !important;
-    background: #f1f5f9 !important;
-    color: var(--text-primary, #1e293b) !important;
-    font-weight: 700 !important;
-    font-size: 11.5px !important;
-    text-align: right !important;
-    padding: 8px 10px 8px 6px !important;
+    position: sticky;
+    right: 0;
+    z-index: 25;
+    width: 96px;
+    min-width: 96px;
+    max-width: 96px;
+    background: #f1f5f9;
+    color: var(--text-primary, #1e293b);
+    font-weight: 700;
+    font-size: 11.5px;
+    text-align: right;
+    padding: 8px 10px 8px 6px;
     box-shadow: -3px 0 6px rgba(0, 0, 0, 0.06);
-    border-left: 2px solid var(--border-color, #e2e8f0) !important;
-    border-bottom: 1px solid var(--border-color, #e2e8f0) !important;
-    white-space: nowrap !important;
-    box-sizing: border-box !important;
-    vertical-align: middle !important;
+    border-left: 2px solid var(--border-color, #e2e8f0);
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    white-space: nowrap;
+    box-sizing: border-box;
+    vertical-align: middle;
 }
 
 /* All 24 Hour Columns */
 .hourly-th-cell,
 .hourly-td-cell {
-    display: table-cell !important;
-    width: 64px !important;
-    min-width: 64px !important;
-    max-width: 64px !important;
-    padding: 6px 4px !important;
+    display: table-cell;
+    width: 64px;
+    min-width: 64px;
+    max-width: 64px;
+    padding: 6px 4px;
     border-bottom: 1px solid var(--border-color, #e2e8f0);
     border-left: 1px solid var(--border-color, #e2e8f0);
-    white-space: nowrap !important;
-    box-sizing: border-box !important;
-    vertical-align: middle !important;
-    text-align: center !important;
+    white-space: nowrap;
+    box-sizing: border-box;
+    vertical-align: middle;
+    text-align: center;
     height: 40px;
 }
 
@@ -534,7 +540,7 @@ body.dark-mode .weather-route-filter-btn.active {
 }
 
 .hourly-chart-td {
-    padding: 0 !important;
+    padding: 0;
     height: 76px;
     background: var(--card-bg, #ffffff);
     vertical-align: middle;
@@ -574,13 +580,13 @@ body.dark-mode .weather-model-current-badge {
 }
 
 body.dark-mode .weather-model-option {
-    background: #272a2c !important;
-    border-color: #3a3d3f !important;
+    background: #272a2c;
+    border-color: #3a3d3f;
 }
 
 body.dark-mode .weather-model-option:hover {
-    background: #2f3336 !important;
-    border-color: #4f5356 !important;
+    background: #2f3336;
+    border-color: #4f5356;
 }
 
 body.dark-mode .weather-model-sub-badge {
@@ -590,9 +596,9 @@ body.dark-mode .weather-model-sub-badge {
 
 body.dark-mode .weather-model-option.active,
 body.dark-mode .weather-model-option:has(input:checked) {
-    background: #12302c !important;
-    border-color: #0b7a66 !important;
-    box-shadow: 0 0 0 1px #0b7a66, 0 3px 8px rgba(11, 122, 102, 0.25) !important;
+    background: #12302c;
+    border-color: #2fd9ae;
+    box-shadow: 0 0 0 1px #2fd9ae, 0 3px 8px rgba(47, 217, 174, 0.2);
 }
 
 body.dark-mode .weather-model-option.active .weather-model-name,
@@ -645,10 +651,10 @@ body.dark-mode .hourly-th-cell.hour-day {
 }
 
 body.dark-mode .hourly-sticky-col {
-    background: #2b2e30 !important;
-    color: #e5e5e5 !important;
-    border-bottom-color: #313538 !important;
-    border-left-color: #3a3d3f !important;
+    background: #2b2e30;
+    color: #e5e5e5;
+    border-bottom-color: #313538;
+    border-left-color: #3a3d3f;
     box-shadow: -3px 0 6px rgba(0, 0, 0, 0.3);
 }
 
@@ -672,7 +678,7 @@ body.dark-mode .weather-daily-item {
 }
 
 body.dark-mode .weather-daily-item.active {
-    border-color: #0b7a66;
+    border-color: #2fd9ae;
 }
 
 body.dark-mode .weather-daily-date {
@@ -710,6 +716,12 @@ body.dark-mode .weather-hourly-panel {
 }
 
 @media (max-width: 900px) {
+    .weather-model-selector {
+        top: 56px;
+        margin-bottom: 12px;
+        padding: 8px 10px;
+    }
+    .weather-model-selector-title { margin-bottom: 6px; }
     .weather-daily-row {
         padding: 10px 8px;
         gap: 8px;
@@ -721,13 +733,6 @@ body.dark-mode .weather-hourly-panel {
     .weather-hourly-panel {
         padding: 4px 8px 12px;
     }
-}
-
-/* Sticky model selector (stays below the top bar while scrolling) */
-.weather-model-selector {
-    position: sticky;
-    top: 60px;
-    z-index: 90;
 }
 
 /* Summit info line under each peak name: smaller, not bold */
@@ -742,29 +747,7 @@ body.dark-mode .weather-hourly-panel {
     font-weight: 400;
 }
 
-@media (max-width: 900px) {
-    .weather-model-selector {
-        top: 56px;
-        padding: 8px 10px;
-        margin-bottom: 12px;
-    }
-    .weather-model-selector-title {
-        margin-bottom: 6px;
-    }
-}
 
-
-/* ---- rules that existed only in the old style.css copy ---- */
-
-.weather-model-selector-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text-primary, #1e293b);
-}
-
-.hourly-forecast-wrapper {
-    border-top: 1px solid var(--border-color, #e2e8f0);
-}
 
 body.dark-mode .weather-model-option.active .weather-model-radio-circle,
 body.dark-mode .weather-model-option:has(input:checked) .weather-model-radio-circle {
@@ -773,10 +756,500 @@ body.dark-mode .weather-model-option:has(input:checked) .weather-model-radio-cir
     box-shadow: inset 0 0 0 2px #202324;
 }
 
-/* dark mode: brighter teal for the selected model / borders */
-body.dark-mode .weather-model-option.active,
-body.dark-mode .weather-model-option:has(input:checked) {
-    border-color: #2fd9ae !important;
-    box-shadow: 0 0 0 1px #2fd9ae, 0 3px 8px rgba(47, 217, 174, 0.2) !important;
+
+/* =========================================================
+   Hourly temperature trend (SVG made in weather.js)
+   =========================================================  */
+
+.temperature-chart { overflow: visible; }
+
+.temperature-zero-line { stroke: #94a3b8; stroke-width: 1; stroke-dasharray: 3 4; }
+
+.temperature-line { fill: none; stroke-width: 2.2; stroke-linecap: round; }
+.temperature-line-warm { stroke: #e53935; }
+.temperature-line-cold { stroke: #1e88e5; }
+
+.temperature-point { stroke: var(--card-bg, #fff); stroke-width: 1.5; }
+.temperature-point-warm { fill: #e53935; }
+.temperature-point-cold { fill: #1e88e5; }
+
+.temperature-value { font-family: Consolas, "Courier New", monospace; font-size: 11px; font-weight: 700; }
+.temperature-value-warm { fill: #e53935; }
+.temperature-value-cold { fill: #1e88e5; }
+
+body.dark-mode .temperature-line-warm { stroke: #ef5350; }
+body.dark-mode .temperature-line-cold { stroke: #64b5f6; }
+body.dark-mode .temperature-point-warm { fill: #ef5350; }
+body.dark-mode .temperature-point-cold { fill: #64b5f6; }
+body.dark-mode .temperature-value-warm { fill: #ef5350; }
+body.dark-mode .temperature-value-cold { fill: #64b5f6; }
+
+.weather-temperature-empty { padding: 12px; font-size: 12px; text-align: center; color: var(--text-muted, #94a3b8); }
+
+
+/* =========================================================
+   3D map: weather layer panel, time overlay, popups
+   and base-layer switcher
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   Panel: a separate framed box above the map
+   --------------------------------------------------------- */
+
+.wx3d-panel {
+    --wx-edge: color-mix(in srgb, var(--accent) 60%, var(--border-color));
+
+    margin: 12px;
+    border: 2px solid var(--wx-edge);
+    border-radius: 16px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    box-shadow: 0 6px 20px rgba(11, 34, 48, 0.12);
+    overflow: hidden;
 }
-body.dark-mode .weather-daily-item.active { border-color: #2fd9ae; }
+
+body.dark-mode .wx3d-panel { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45); }
+
+.wx3d-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 16px;
+    padding: 12px 16px;
+    background: color-mix(in srgb, var(--accent) 10%, var(--card-bg));
+}
+
+.wx3d-panel.is-on .wx3d-head { border-bottom: 1px solid var(--border-color); }
+
+.wx3d-head-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.wx3d-title { font-size: 15px; font-weight: 800; }
+
+/* enable checkbox */
+.wx3d-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 4px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+}
+
+.wx3d-toggle input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.wx3d-toggle:has(input:checked) { border-color: var(--accent); background: var(--accent-light); }
+
+/* layer buttons (hidden while the layer is off) */
+.wx3d-modes { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.wx3d-modes[hidden] { display: none !important; }
+
+.wx3d-mode {
+    min-height: 36px;
+    padding: 4px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+}
+
+.wx3d-mode:hover { border-color: var(--primary-blue); background: var(--accent-light); }
+.wx3d-mode.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+body.dark-mode .wx3d-mode.active { color: #06261f; }
+
+/* progress bar while data is loading */
+.wx3d-loadbar {
+    position: relative;
+    height: 4px;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.wx3d-loadbar[hidden] { display: none; }
+
+.wx3d-loadbar span {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 35%;
+    border-radius: 4px;
+    background: var(--accent);
+    animation: wx3d-slide 1.1s ease-in-out infinite;
+}
+
+@keyframes wx3d-slide {
+    0%   { left: -35%; }
+    100% { left: 100%; }
+}
+
+.wx3d-panel.is-loading .wx3d-mode.active { animation: wx3d-pulse 1s ease-in-out infinite; }
+
+@keyframes wx3d-pulse { 50% { opacity: .6; } }
+
+/* ---------------------------------------------------------
+   Body: legend + opacity (visible only while the layer is on)
+   --------------------------------------------------------- */
+
+.wx3d-body { display: flex; flex-direction: column; gap: 10px; padding: 12px; }
+.wx3d-body[hidden] { display: none; }
+
+.wx3d-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-main);
+}
+
+.wx3d-card-split {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 14px 24px;
+}
+
+/* colour legend */
+.wx3d-legend { flex: 1 1 260px; max-width: 560px; direction: ltr; }
+.wx3d-legend:empty { display: none; }
+
+.wx3d-legend-title {
+    margin-bottom: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    direction: rtl;
+    text-align: right;
+}
+
+.wx3d-legend-bar { height: 14px; border: 1px solid var(--border-color); border-radius: 7px; }
+.wx3d-legend-ticks { position: relative; height: 18px; margin-top: 3px; }
+
+.wx3d-legend-ticks span {
+    position: absolute;
+    transform: translateX(-50%);
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.wx3d-legend-ticks span:first-child { transform: none; }
+.wx3d-legend-ticks span:last-child { transform: translateX(-100%); }
+
+.wx3d-legend-note {
+    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--text-muted);
+    direction: rtl;
+    text-align: right;
+}
+
+.wx3d-opacity { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); }
+.wx3d-opacity input { width: 120px; accent-color: var(--primary-blue); }
+.wx3d-opacity output { min-width: 34px; text-align: center; font-weight: 700; color: var(--text-primary); }
+
+/* status: loading / warning / error */
+.wx3d-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-main);
+    font-size: 12.5px;
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+
+.wx3d-status:empty { display: none; }
+.wx3d-status-text { flex: 1 1 200px; min-width: 0; }
+.wx3d-status-icon { flex-shrink: 0; }
+
+.wx3d-status.busy {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--border-color));
+    background: color-mix(in srgb, var(--accent) 9%, var(--card-bg));
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.wx3d-status.warn { border-color: #e0a458; background: rgba(240, 164, 90, 0.12); color: #8a4b08; }
+.wx3d-status.error { border-color: #e57373; background: rgba(220, 38, 38, 0.09); color: #b91c1c; font-weight: 600; }
+
+body.dark-mode .wx3d-status.warn { color: #f3b678; }
+body.dark-mode .wx3d-status.error { border-color: #b85050; color: #fca5a5; }
+
+.wx3d-spinner {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    border: 2.5px solid color-mix(in srgb, var(--accent) 25%, transparent);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: wx3d-spin .8s linear infinite;
+}
+
+@keyframes wx3d-spin { to { transform: rotate(360deg); } }
+
+.wx3d-retry {
+    min-height: 32px;
+    padding: 2px 14px;
+    border: 1px solid currentColor;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.wx3d-retry:hover { background: rgba(127, 127, 127, 0.15); }
+
+@media (prefers-reduced-motion: reduce) {
+    .wx3d-loadbar span,
+    .wx3d-spinner,
+    .wx3d-panel.is-loading .wx3d-mode.active { animation-duration: 2.5s; }
+}
+
+/* ---------------------------------------------------------
+   Time overlay: transparent box on the 3D map (top left)
+   --------------------------------------------------------- */
+
+.wx3d-overlay {
+    position: absolute;
+    top: 10px;
+    left: 56px;                       /* next to the map zoom buttons */
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: min(360px, calc(100% - 150px));
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 12px;
+    background: rgba(8, 22, 32, 0.42);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    color: #fff;
+    direction: rtl;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.wx3d-overlay[hidden] { display: none; }
+
+.wx3d-time-label { font-size: 13px; font-weight: 700; color: #fff; }
+.wx3d-time { display: flex; align-items: center; gap: 8px; }
+.wx3d-days { display: flex; flex-wrap: wrap; gap: 6px; }
+.wx3d-days:empty { display: none; }
+
+.wx3d-overlay .wx3d-btn,
+.wx3d-overlay .wx3d-day {
+    min-height: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.14);
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    text-shadow: none;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+}
+
+.wx3d-overlay .wx3d-btn { min-width: 44px; padding: 4px 10px; font-family: Consolas, "Courier New", monospace; }
+.wx3d-overlay .wx3d-day { min-height: 26px; padding: 1px 10px; font-size: 11.5px; }
+
+.wx3d-overlay .wx3d-btn:hover,
+.wx3d-overlay .wx3d-day:hover { background: rgba(255, 255, 255, 0.28); border-color: #fff; }
+
+.wx3d-overlay .wx3d-day.active { background: var(--teal); border-color: var(--teal); color: #06261f; font-weight: 700; }
+
+.wx3d-slider { flex: 1; min-width: 0; height: 28px; accent-color: var(--teal); }
+
+/* ---------------------------------------------------------
+   Popups on the 3D map (MapLibre)
+
+   The MapLibre stylesheet is loaded after ours (on demand), so
+   colours need !important and a higher specificity.
+   --------------------------------------------------------- */
+
+body {
+    --wx-popup-bg: #ffffff;
+    --wx-popup-fg: #10303d;
+    --wx-popup-line: #d5dee6;
+}
+
+body.dark-mode {
+    --wx-popup-bg: #202324;
+    --wx-popup-fg: #e8eaec;
+    --wx-popup-line: #3a3d3f;
+}
+
+body .maplibregl-popup .maplibregl-popup-content {
+    border: 1px solid var(--wx-popup-line);
+    background: var(--wx-popup-bg) !important;
+    color: var(--wx-popup-fg) !important;
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.9;
+    direction: rtl;
+    text-align: right;
+}
+
+body .maplibregl-popup .maplibregl-popup-content b,
+body .maplibregl-popup .maplibregl-popup-content strong { color: inherit; }
+
+body .maplibregl-popup .maplibregl-popup-close-button { color: var(--wx-popup-fg); font-size: 18px; }
+
+/* arrow of the popup has the same colour as its background */
+body .maplibregl-popup-anchor-top .maplibregl-popup-tip,
+body .maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+body .maplibregl-popup-anchor-top-right .maplibregl-popup-tip { border-bottom-color: var(--wx-popup-bg) !important; }
+
+body .maplibregl-popup-anchor-bottom .maplibregl-popup-tip,
+body .maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+body .maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip { border-top-color: var(--wx-popup-bg) !important; }
+
+body .maplibregl-popup-anchor-left .maplibregl-popup-tip { border-right-color: var(--wx-popup-bg) !important; }
+body .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: var(--wx-popup-bg) !important; }
+
+/* weather info popup (click on the map) */
+.wx3d-popup { min-width: 215px; }
+
+.wx3d-popup .maplibregl-popup-content {
+    padding: 10px 14px 12px;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+}
+
+.wx3d-pop-head {
+    margin: 0 0 6px;
+    padding: 0 0 8px;
+    padding-inline-end: 20px;          /* room for the close button */
+    border-bottom: 1px solid rgba(127, 127, 127, 0.3);
+    font-size: 12.5px;
+    font-weight: 800;
+    line-height: 1.6;
+}
+
+.wx3d-pop-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-inline: -6px;
+    padding: 3px 6px;
+    border-radius: 7px;
+    line-height: 1.7;
+}
+
+.wx3d-pop-row.is-active { background: rgba(47, 217, 174, 0.18); }
+
+.wx3d-pop-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; opacity: 0.85; white-space: nowrap; }
+.wx3d-pop-ico { width: 18px; text-align: center; }
+
+.wx3d-pop-val {
+    direction: ltr;
+    unicode-bidi: isolate;            /* the minus sign stays left of the number */
+    text-align: left;
+    white-space: nowrap;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.wx3d-pop-val small { margin-inline-start: 4px; font-size: 10.5px; font-weight: 500; opacity: 0.7; }
+
+/* ---------------------------------------------------------
+   3D map base-layer switcher (buttons created in map-3d.js)
+   --------------------------------------------------------- */
+
+.map3d-base-ctrl {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
+    direction: rtl;
+}
+
+.map3d-base-btn {
+    min-width: 110px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-primary, #222);
+    font-family: inherit;
+    font-size: 12px;
+    text-align: right;
+    cursor: pointer;
+}
+
+.map3d-base-btn:hover { background: var(--accent-light, #eee); }
+.map3d-base-btn.active { background: var(--accent, #0b7a66); border-color: var(--accent, #0b7a66); color: #fff; font-weight: 700; }
+.map3d-base-ico { margin-inline-end: 6px; }
+
+/* ---------------------------------------------------------
+   Mobile (must stay after the rules above)
+   --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+
+    .wx3d-panel { margin: 8px; border-radius: 14px; }
+    .wx3d-head { padding: 10px 12px; }
+
+    .wx3d-modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+    .wx3d-mode { flex: none; padding: 4px; font-size: 11.5px; }
+
+    .wx3d-body { padding: 10px; }
+    .wx3d-card { padding: 10px 12px; }
+    .wx3d-card-split { flex-direction: column; align-items: stretch; }
+    .wx3d-legend { max-width: none; flex-basis: auto; }
+    .wx3d-opacity { width: 100%; }
+    .wx3d-opacity input { flex: 1; }
+
+    /* time overlay across the top, map buttons a little lower */
+    .wx3d-overlay { top: 8px; left: 8px; right: 8px; width: auto; gap: 4px; padding: 6px 8px; }
+    .wx3d-overlay .wx3d-days { display: none; }
+    .wx3d-time-label { font-size: 12px; }
+    .wx3d-overlay .wx3d-btn { min-width: 38px; min-height: 30px; padding: 2px 6px; font-size: 12px; }
+
+    #map-3d.wx3d-ov-on .maplibregl-ctrl-top-left,
+    #map-3d.wx3d-ov-on .maplibregl-ctrl-top-right { margin-top: 72px; }
+
+    /* base-layer switcher: icons only */
+    .map3d-base-ctrl { gap: 3px; padding: 3px; border-radius: 9px; }
+
+    .map3d-base-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 34px;
+        height: 34px;
+        min-width: 0;
+        padding: 0;
+        font-size: 17px;
+        line-height: 1;
+    }
+
+    .map3d-base-lbl { display: none; }
+    .map3d-base-ico { margin: 0; }
+}

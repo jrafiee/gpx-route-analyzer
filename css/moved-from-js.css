@@ -1,0 +1,86 @@
+/* =========================================================
+   CSS که از فایل‌های JS بیرون آورده شد.
+
+   ۱) بخش «user-location-dot» را به انتهای toolbar.css اضافه کنید
+      (قبلاً در user-location.js با injectStyles تزریق می‌شد).
+   ۲) بخش «map3d-base» را به انتهای map-weather.css اضافه کنید
+      (قبلاً در map-3d.js با injectBaseControlStyles تزریق می‌شد).
+   ========================================================= */
+
+
+/* ---------- toolbar.css: user-location-dot ---------- */
+
+.user-location-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #1a73e8;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.55),
+                0 1px 4px rgba(0, 0, 0, 0.45);
+    animation: user-location-pulse 2s infinite;
+}
+
+@keyframes user-location-pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.55), 0 1px 4px rgba(0, 0, 0, .45); }
+    70%  { box-shadow: 0 0 0 14px rgba(26, 115, 232, 0), 0 1px 4px rgba(0, 0, 0, .45); }
+    100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0), 0 1px 4px rgba(0, 0, 0, .45); }
+}
+
+
+/* ---------- map-weather.css: map3d-base ---------- */
+
+.map3d-base-ctrl {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, .25);
+    direction: rtl;
+}
+
+.map3d-base-btn {
+    min-width: 110px;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-primary, #222);
+    font-family: inherit;
+    font-size: 12px;
+    text-align: right;
+    cursor: pointer;
+}
+
+.map3d-base-btn:hover { background: var(--accent-light, #eee); }
+
+.map3d-base-ico { margin-inline-end: 6px; }
+
+@media (max-width: 900px) {
+    .map3d-base-ctrl { gap: 3px; padding: 3px; border-radius: 9px; }
+
+    .map3d-base-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        width: 34px;
+        height: 34px;
+        padding: 0;
+        font-size: 17px;
+        line-height: 1;
+    }
+
+    .map3d-base-lbl { display: none; }
+    .map3d-base-ico { margin: 0; }
+}
+
+.map3d-base-btn.active {
+    background: var(--accent, #0b7a66);
+    border-color: var(--accent, #0b7a66);
+    color: #fff;
+    font-weight: 700;
+}

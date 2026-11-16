@@ -1,12 +1,13 @@
 /* =========================================================
-   User location on 2D (Leaflet) and 3D (MapLibre) maps
-   + info panel (altitude, height to summit, distances ALONG
-     the GPX track)
+   Navigation (live GPS position on the route)
 
-   - Adds location buttons (own toolbar group) next to the 2D / 3D buttons
+   - "🧭 ناوبری" button next to the 2D / 3D buttons opens a full
+     screen navigation view: status (on track / deviation),
+     info panel (altitude, climb, distances ALONG the GPX track),
+     mini map, deviation sensitivity and pocket mode (mobile)
    - Uses navigator.geolocation.watchPosition
    - Location never leaves the browser and is not stored
-   - Load AFTER map-2d.js, map-3d.js and track-geometry.js
+   - Load AFTER app-state.js, map-2d.js and track-geometry.js
    ========================================================= */
 
 (function () {
@@ -16,7 +17,6 @@
     const state = {
         watchId: null,
         position: null,
-        centerOnNextFix: false,
         signalLost: false,
         matchTrack: null,
         matchAlong: null,
@@ -28,15 +28,7 @@
     // track chosen by the user when several routes are loaded
     let selectedTrackName = null;
 
-    const SRC_POINT = "user-location-point";
-    const SRC_ACCURACY = "user-location-accuracy";
-    const LYR_ACCURACY = "user-location-accuracy-fill";
-    const LYR_DOT = "user-location-dot";
-
     const PANEL_ID = "user-location-panel";
-
-    let marker2d = null;
-    let circle2d = null;
 
     /* navigation screen state */
     let navOpen = false;
@@ -75,138 +67,47 @@
     let navLight = readNavPref("nav-theme") === "light";
 
     let navThreshold = (function () {
-        try {
-            const v = Number(localStorage.getItem("nav-threshold"));
-            return NAV_THRESHOLDS.includes(v) ? v : 25;
-        } catch (e) {
-            return 25;
-        }
+        const value = Number(readNavPref("nav-threshold"));
+        return NAV_THRESHOLDS.includes(value) ? value : 25;
     })();
 
 
     /* =====================================================
-       Styles + buttons
+       Small DOM helpers
        ===================================================== */
 
-    function injectStyles() {
-
-        if (document.getElementById("user-location-styles")) {
-            return;
-        }
-
-        const style = document.createElement("style");
-
-        style.id = "user-location-styles";
-
-        style.textContent = `
-
-        .user-location-dot {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #1a73e8;
-            border: 3px solid #fff;
-            box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.55),
-                        0 1px 4px rgba(0, 0, 0, 0.45);
-            animation: user-location-pulse 2s infinite;
-        }
-
-        @keyframes user-location-pulse {
-            0%   { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.55), 0 1px 4px rgba(0,0,0,.45); }
-            70%  { box-shadow: 0 0 0 14px rgba(26, 115, 232, 0), 0 1px 4px rgba(0,0,0,.45); }
-            100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0), 0 1px 4px rgba(0,0,0,.45); }
-        }
-
-        `;
-
-        document.head.appendChild(style);
-
-    }
-
-
-    function setStatus(text) {
-
-        const element =
-            document.getElementById("user-location-status");
+    function panelText(id, text) {
+        const element = document.getElementById(id);
 
         if (element) {
-            element.textContent = text || "";
+            element.textContent = text;
         }
+    }
+
+    function panelHide(id, hidden) {
+        const element = document.getElementById(id);
+
+        if (element) {
+            element.hidden = hidden;
+        }
+    }
+
+    function setStatus(text) {
+        panelText("user-location-status", text || "");
 
         if (text && navOpen) {
             setNavStatus("wait", text, "");
         }
-
     }
 
-
     function updateButtons() {
-
-        const nav =
-            document.getElementById("user-location-button");
+        const nav = document.getElementById("user-location-button");
 
         if (nav) {
             nav.classList.toggle("active", navOpen);
         }
 
         updatePanel();
-
-    }
-
-
-    function createButtons() {
-
-        const mapButtons =
-            document.querySelector(
-                "#map-container .map-view-buttons"
-            );
-
-        if (
-            !mapButtons ||
-            document.getElementById("user-location-button")
-        ) {
-            return;
-        }
-
-        let toolbar = mapButtons.parentElement;
-
-        if (!toolbar.classList.contains("map-toolbar")) {
-
-            toolbar = document.createElement("div");
-
-            toolbar.className = "map-toolbar";
-
-            mapButtons.parentNode.insertBefore(toolbar, mapButtons);
-
-            toolbar.appendChild(mapButtons);
-
-        }
-
-        const group = document.createElement("div");
-
-        group.className = "map-location-group";
-
-        const nav = document.createElement("button");
-
-        nav.id = "user-location-button";
-        nav.type = "button";
-        nav.className = "map-view-button";
-        nav.textContent = "🧭 ناوبری";
-        nav.addEventListener("click", openNav);
-
-        const status = document.createElement("span");
-
-        status.id = "user-location-status";
-        status.className = "user-location-status";
-
-        group.appendChild(nav);
-
-        toolbar.appendChild(group);
-        toolbar.appendChild(status);
-
-        createPanel(toolbar);
-        createNavScreen();
-
     }
 
 
@@ -215,7 +116,6 @@
        ===================================================== */
 
     function startTracking() {
-
         if (!("geolocation" in navigator)) {
             setStatus("مرورگر شما از موقعیت‌یابی پشتیبانی نمی‌کند.");
             return;
@@ -225,8 +125,6 @@
             setStatus("موقعیت‌یابی فقط روی HTTPS (یا localhost) کار می‌کند.");
             return;
         }
-
-        state.centerOnNextFix = true;
 
         setStatus("در حال یافتن موقعیت...");
 
@@ -241,42 +139,36 @@
         );
 
         updateButtons();
-
     }
 
 
     function stopTracking() {
-
         if (state.watchId !== null) {
             navigator.geolocation.clearWatch(state.watchId);
         }
 
         state.watchId = null;
         state.position = null;
-        state.centerOnNextFix = false;
         state.signalLost = false;
         state.matchTrack = null;
         state.matchAlong = null;
-
-        remove2D();
-        remove3D();
-
         state.dir = 1;
         state.dirKnown = false;
         state.dirMode = "auto";
+
         renderDirButtons();
+
         navAlert.off = false;
         navAlert.last = 0;
+
         removeNavUser();
 
         setStatus("");
         updateButtons();
-
     }
 
 
     function onPosition(position) {
-
         const c = position.coords;
 
         state.position = {
@@ -288,30 +180,18 @@
 
         state.signalLost = false;
 
-        render2D();
-        render3D();
-
         setStatus("");
         updateButtons();
-
-        if (state.centerOnNextFix) {
-            state.centerOnNextFix = false;
-            centerOnUser();
-        }
-
     }
 
 
     function onError(error) {
-
         if (error.code === 1) {
-
             stopTracking();
 
             setStatus("دسترسی به موقعیت داده نشد. اجازه را در تنظیمات مرورگر فعال کنید.");
 
             return;
-
         }
 
         if (error.code === 2) {
@@ -323,267 +203,6 @@
         // keep the last valid position, only flag the signal
         state.signalLost = true;
         updatePanel();
-
-    }
-
-
-    /* =====================================================
-       Center
-       ===================================================== */
-
-    function centerOnUser() {
-
-        const p = state.position;
-
-        if (!p) {
-            return;
-        }
-
-        if (
-            currentMapMode === "3d" &&
-            map3d &&
-            map3dInitialized
-        ) {
-
-            map3d.easeTo({
-                center: [p.lon, p.lat],
-                zoom: Math.max(map3d.getZoom(), 13),
-                pitch: 55,
-                duration: 800
-            });
-
-        } else if (map) {
-
-            map.setView(
-                [p.lat, p.lon],
-                Math.max(map.getZoom(), 15),
-                { animate: true }
-            );
-
-        }
-
-    }
-
-
-    /* =====================================================
-       2D map (Leaflet)
-       ===================================================== */
-
-    function render2D() {
-
-        const p = state.position;
-
-        if (!p) {
-            return;
-        }
-
-        if (!map && typeof initializeMap === "function") {
-            initializeMap();
-        }
-
-        if (!map) {
-            return;
-        }
-
-        const latLng = [p.lat, p.lon];
-
-        const tooltip =
-            `موقعیت شما<br>دقت: ±${Math.round(p.accuracy)} متر`;
-
-        if (!marker2d || !map.hasLayer(marker2d)) {
-
-            circle2d = L.circle(
-                latLng,
-                {
-                    radius: p.accuracy,
-                    color: "#1a73e8",
-                    weight: 1,
-                    fillColor: "#1a73e8",
-                    fillOpacity: 0.12,
-                    interactive: false
-                }
-            ).addTo(map);
-
-            marker2d = L.marker(
-                latLng,
-                {
-                    icon: L.divIcon({
-                        className: "",
-                        html: '<div class="user-location-dot"></div>',
-                        iconSize: [22, 22],
-                        iconAnchor: [11, 11]
-                    }),
-                    zIndexOffset: 1000
-                }
-            ).addTo(map);
-
-            marker2d.bindTooltip(
-                tooltip,
-                { direction: "top", offset: [0, -12] }
-            );
-
-        } else {
-
-            marker2d.setLatLng(latLng);
-            circle2d.setLatLng(latLng);
-            circle2d.setRadius(p.accuracy);
-            marker2d.setTooltipContent(tooltip);
-
-        }
-
-    }
-
-
-    function remove2D() {
-
-        if (map) {
-
-            if (marker2d) {
-                map.removeLayer(marker2d);
-            }
-
-            if (circle2d) {
-                map.removeLayer(circle2d);
-            }
-
-        }
-
-        marker2d = null;
-        circle2d = null;
-
-    }
-
-
-    /* =====================================================
-       3D map (MapLibre)
-       ===================================================== */
-
-    function circlePolygon(lat, lon, radiusM) {
-
-        const steps = 64;
-
-        const dLat = radiusM / 111320;
-
-        const dLon =
-            radiusM /
-            (111320 * Math.max(Math.cos(lat * Math.PI / 180), 0.01));
-
-        const ring = [];
-
-        for (let i = 0; i <= steps; i++) {
-
-            const angle = (i / steps) * 2 * Math.PI;
-
-            ring.push([
-                lon + dLon * Math.cos(angle),
-                lat + dLat * Math.sin(angle)
-            ]);
-
-        }
-
-        return {
-            type: "Feature",
-            properties: {},
-            geometry: {
-                type: "Polygon",
-                coordinates: [ring]
-            }
-        };
-
-    }
-
-
-    function render3D() {
-
-        const p = state.position;
-
-        if (!p || !map3d || !map3dInitialized) {
-            return;
-        }
-
-        const pointData = {
-            type: "Feature",
-            properties: {},
-            geometry: {
-                type: "Point",
-                coordinates: [p.lon, p.lat]
-            }
-        };
-
-        const accuracyData =
-            circlePolygon(p.lat, p.lon, Math.max(p.accuracy, 1));
-
-        if (map3d.getSource(SRC_POINT)) {
-
-            map3d.getSource(SRC_POINT).setData(pointData);
-            map3d.getSource(SRC_ACCURACY).setData(accuracyData);
-
-        } else {
-
-            map3d.addSource(
-                SRC_ACCURACY,
-                { type: "geojson", data: accuracyData }
-            );
-
-            map3d.addSource(
-                SRC_POINT,
-                { type: "geojson", data: pointData }
-            );
-
-            map3d.addLayer({
-                id: LYR_ACCURACY,
-                type: "fill",
-                source: SRC_ACCURACY,
-                paint: {
-                    "fill-color": "#1a73e8",
-                    "fill-opacity": 0.18
-                }
-            });
-
-            map3d.addLayer({
-                id: LYR_DOT,
-                type: "circle",
-                source: SRC_POINT,
-                paint: {
-                    "circle-radius": 8,
-                    "circle-color": "#1a73e8",
-                    "circle-stroke-color": "#ffffff",
-                    "circle-stroke-width": 3
-                }
-            });
-
-        }
-
-        // keep the dot above the route layers
-        if (map3d.getLayer(LYR_ACCURACY)) {
-            map3d.moveLayer(LYR_ACCURACY);
-        }
-
-        if (map3d.getLayer(LYR_DOT)) {
-            map3d.moveLayer(LYR_DOT);
-        }
-
-    }
-
-
-    function remove3D() {
-
-        if (!map3d || !map3dInitialized) {
-            return;
-        }
-
-        [LYR_DOT, LYR_ACCURACY].forEach(id => {
-            if (map3d.getLayer(id)) {
-                map3d.removeLayer(id);
-            }
-        });
-
-        [SRC_POINT, SRC_ACCURACY].forEach(id => {
-            if (map3d.getSource(id)) {
-                map3d.removeSource(id);
-            }
-        });
-
     }
 
 
@@ -601,36 +220,20 @@
     }
 
     function formatSignedMeters(value) {
-
         const rounded = Math.round(value);
 
-        const sign =
-            rounded > 0 ? "+" : (rounded < 0 ? "\u2212" : "");
+        const sign = rounded > 0 ? "+" : (rounded < 0 ? "\u2212" : "");
 
         return sign + Math.abs(rounded).toLocaleString("en-US") + " m";
-
     }
 
     function formatDistance(meters) {
-
         return Math.round(meters) < 1000
             ? Math.round(meters) + " m"
             : (meters / 1000).toFixed(1) + " km";
-
-    }
-
-    function panelText(id, text) {
-
-        const element = document.getElementById(id);
-
-        if (element) {
-            element.textContent = text;
-        }
-
     }
 
     function setProgress(prefix, fraction) {
-
         const fill = document.getElementById(prefix + "-fill");
         const pct = document.getElementById(prefix + "-pct");
 
@@ -644,22 +247,10 @@
         if (pct) {
             pct.textContent = ok ? Math.round(f * 100) + "%" : "—";
         }
-
-    }
-
-    function panelHide(id, hidden) {
-
-        const element = document.getElementById(id);
-
-        if (element) {
-            element.hidden = hidden;
-        }
-
     }
 
 
-    function createPanel(toolbar) {
-
+    function createPanel() {
         if (document.getElementById(PANEL_ID)) {
             return;
         }
@@ -720,40 +311,30 @@
         panel
             .querySelector("#ulp-track")
             .addEventListener("change", event => {
-
                 selectedTrackName = event.target.value;
 
                 state.matchTrack = null;
                 state.matchAlong = null;
 
                 updatePanel();
-
             });
 
-        // the panel lives inside the navigation screen (see createNavScreen)
-        document.body.appendChild(panel);
-
+        // the panel lives inside the navigation screen
+        document.getElementById("nav-panel-slot").appendChild(panel);
     }
 
 
     function getReferenceResult() {
-
-        if (
-            typeof analysisResults === "undefined" ||
-            analysisResults.length === 0
-        ) {
+        if (typeof analysisResults === "undefined" || analysisResults.length === 0) {
             return null;
         }
 
-        return analysisResults.find(
-            result => result.id === selectedTrackName
-        ) || analysisResults[0];
-
+        return analysisResults.find(result => result.id === selectedTrackName) ||
+            analysisResults[0];
     }
 
 
     function syncTrackSelector(result) {
-
         const select = document.getElementById("ulp-track");
         const label = document.getElementById("ulp-route");
 
@@ -761,18 +342,13 @@
             return;
         }
 
-        const items =
-            typeof analysisResults === "undefined"
-                ? []
-                : analysisResults;
+        const items = typeof analysisResults === "undefined" ? [] : analysisResults;
 
         if (items.length > 1) {
-
             const signature =
                 items.map(item => item.id + "\u0002" + item.route).join("\u0001");
 
             if (select.dataset.signature !== signature) {
-
                 select.innerHTML = "";
 
                 items.forEach((item, index) => {
@@ -780,26 +356,20 @@
                 });
 
                 select.dataset.signature = signature;
-
             }
 
             select.value = result.id;
             select.hidden = false;
             label.hidden = true;
-
         } else {
-
             select.hidden = true;
             label.hidden = false;
             label.textContent = result ? result.route : "";
-
         }
-
     }
 
 
     function updatePanel() {
-
         const panel = document.getElementById(PANEL_ID);
 
         if (!panel) {
@@ -835,27 +405,18 @@
 
         panelText("ulp-meta", meta);
 
-        document
-            .getElementById("ulp-meta")
-            .classList.toggle("warn", state.signalLost);
+        document.getElementById("ulp-meta").classList.toggle("warn", state.signalLost);
 
         /* elevations */
 
-        const altitude =
-            p && Number.isFinite(p.altitude) ? p.altitude : null;
+        const altitude = p && Number.isFinite(p.altitude) ? p.altitude : null;
 
         const metrics = result ? result.metrics : null;
 
-        const summit =
-            metrics ? Number(metrics["Maximum Elevation (m)"]) : NaN;
+        const summit = metrics ? Number(metrics["Maximum Elevation (m)"]) : NaN;
+        const startElevation = metrics ? Number(metrics["Start Elevation (m)"]) : NaN;
 
-        const startElevation =
-            metrics ? Number(metrics["Start Elevation (m)"]) : NaN;
-
-        panelText(
-            "ulp-altitude",
-            altitude === null ? "—" : formatMeters(altitude)
-        );
+        panelText("ulp-altitude", altitude === null ? "—" : formatMeters(altitude));
 
         panelText(
             "ulp-to-summit",
@@ -887,26 +448,18 @@
         let onTrack = false;
 
         if (p && result) {
-
             const geometry = getTrackGeometry(result);
 
             if (geometry) {
-
                 const previous =
-                    state.matchTrack === result
-                        ? state.matchAlong
-                        : null;
+                    state.matchTrack === result ? state.matchAlong : null;
 
-                projection =
-                    projectOnTrack(geometry, p.lat, p.lon, previous);
+                projection = projectOnTrack(geometry, p.lat, p.lon, previous);
 
                 onTrack = isUserOnTrack(projection, p.accuracy);
 
                 if (onTrack) {
-                    if (
-                        state.matchTrack === result &&
-                        state.matchAlong !== null
-                    ) {
+                    if (state.matchTrack === result && state.matchAlong !== null) {
                         const delta = projection.along - state.matchAlong;
 
                         if (state.dirMode === "auto" && Math.abs(delta) > 8) {
@@ -918,9 +471,7 @@
                     state.matchTrack = result;
                     state.matchAlong = projection.along;
                 }
-
             }
-
         }
 
         panelHide("ulp-item-origin", !onTrack);
@@ -940,7 +491,6 @@
         const note = document.getElementById("ulp-offtrack");
 
         if (note) {
-
             const offTrack = !!projection && !onTrack;
 
             note.hidden = !offTrack;
@@ -949,21 +499,12 @@
                 note.textContent =
                     `خارج از مسیر · ${formatDistance(projection.distance)} تا مسیر`;
             }
-
         }
-
     }
 
 
     /* =====================================================
-       Navigation screen (full screen, always dark)
-
-       - status box: on track / deviation (distance + side)
-       - the info panel (altitude, climb, progress...) is
-         moved into this screen and shown large
-       - mini map with the route and the user
-       - deviation sensitivity buttons
-       - pocket mode (mobile): black screen + voice alerts
+       Navigation screen
        ===================================================== */
 
     /*
@@ -973,7 +514,6 @@
      */
 
     function setNavStatus(kind, main, sub, extra) {
-
         const box = document.getElementById("nav-status");
 
         if (!box) {
@@ -1002,12 +542,10 @@
             badge.className =
                 "nav-dir-badge" + (opts.dir ? " nav-dir-" + opts.dir.kind : "");
         }
-
     }
 
 
     function applyNavAppearance() {
-
         const screen = document.getElementById("nav-screen");
 
         if (!screen) {
@@ -1034,14 +572,12 @@
             sun.setAttribute("aria-pressed", navLight ? "true" : "false");
             sun.textContent = navLight ? "🌙 شب" : "☀️ آفتاب";
         }
-
     }
 
 
     /* manual direction: "out" = outbound (1), "back" = return (-1) */
 
     function applyDirMode() {
-
         if (state.dirMode === "out") {
             state.dir = 1;
             state.dirKnown = true;
@@ -1049,26 +585,20 @@
             state.dir = -1;
             state.dirKnown = true;
         }
-
     }
 
 
     function renderDirButtons() {
-
         document.querySelectorAll(".nav-dir-opt").forEach(button => {
-
             const active = button.dataset.mode === state.dirMode;
 
             button.classList.toggle("active", active);
             button.setAttribute("aria-pressed", active ? "true" : "false");
-
         });
-
     }
 
 
     function changeNavFont(delta) {
-
         const next = Math.min(
             NAV_FONT_STEPS.length - 1,
             Math.max(0, navFontStep + delta)
@@ -1083,23 +613,19 @@
         writeNavPref("nav-font-scale", NAV_FONT_STEPS[navFontStep]);
 
         applyNavAppearance();
-
     }
 
 
     function toggleNavLight() {
-
         navLight = !navLight;
 
         writeNavPref("nav-theme", navLight ? "light" : "dark");
 
         applyNavAppearance();
-
     }
 
 
     function createNavScreen() {
-
         if (document.getElementById("nav-screen")) {
             return;
         }
@@ -1166,52 +692,30 @@
 
         document.body.appendChild(screen);
 
-        const panel = document.getElementById(PANEL_ID);
+        createPanel();
 
-        if (panel) {
-            document.getElementById("nav-panel-slot").appendChild(panel);
-        }
+        const on = (id, handler) =>
+            document.getElementById(id).addEventListener("click", handler);
 
-        document
-            .getElementById("nav-close-btn")
-            .addEventListener("click", () => closeNav(false));
-
-        document
-            .getElementById("nav-pocket-btn")
-            .addEventListener("click", openPocket);
-
-        document
-            .getElementById("nav-font-minus")
-            .addEventListener("click", () => changeNavFont(-1));
-
-        document
-            .getElementById("nav-font-plus")
-            .addEventListener("click", () => changeNavFont(1));
-
-        document
-            .getElementById("nav-sun-btn")
-            .addEventListener("click", toggleNavLight);
+        on("nav-close-btn", () => closeNav(false));
+        on("nav-pocket-btn", openPocket);
+        on("nav-font-minus", () => changeNavFont(-1));
+        on("nav-font-plus", () => changeNavFont(1));
+        on("nav-sun-btn", toggleNavLight);
 
         applyNavAppearance();
 
         screen.querySelectorAll(".nav-dir-opt").forEach(button => {
-
             button.addEventListener("click", () => {
-
                 state.dirMode = button.dataset.mode;
 
                 applyDirMode();
-
                 renderDirButtons();
-
                 updatePanel();
-
             });
-
         });
 
         renderDirButtons();
-
         renderSensitivityButtons();
 
         /* pocket screen */
@@ -1226,7 +730,6 @@
             '<div class="pocket-hint">برای خروج از حالت جیب، دو بار سریع لمس کنید</div>';
 
         pocket.addEventListener("click", () => {
-
             const now = Date.now();
 
             if (now - lastPocketTap < 450) {
@@ -1234,32 +737,25 @@
             }
 
             lastPocketTap = now;
-
         });
 
         document.body.appendChild(pocket);
 
         window.addEventListener("popstate", () => {
-
             if (navOpen) {
                 closeNav(true);
             }
-
         });
 
         document.addEventListener("visibilitychange", () => {
-
             if (!document.hidden && navOpen) {
                 requestWakeLock();
             }
-
         });
-
     }
 
 
     function renderSensitivityButtons() {
-
         const holder = document.getElementById("nav-sens-buttons");
 
         if (!holder) {
@@ -1269,7 +765,6 @@
         holder.innerHTML = "";
 
         NAV_THRESHOLDS.forEach(value => {
-
             const button = document.createElement("button");
 
             button.type = "button";
@@ -1278,27 +773,20 @@
             button.textContent = value + " متر";
 
             button.addEventListener("click", () => {
-
                 navThreshold = value;
 
-                try {
-                    localStorage.setItem("nav-threshold", String(value));
-                } catch (e) { /* ignore */ }
+                writeNavPref("nav-threshold", value);
 
                 renderSensitivityButtons();
                 updatePanel();
-
             });
 
             holder.appendChild(button);
-
         });
-
     }
 
 
     function openNav() {
-
         if (navOpen) {
             return;
         }
@@ -1324,12 +812,10 @@
         requestWakeLock();
 
         updateButtons();
-
     }
 
 
     function closeNav(fromPopState) {
-
         if (!navOpen) {
             return;
         }
@@ -1348,83 +834,63 @@
         releaseWakeLock();
 
         if (navHistoryPushed) {
-
             navHistoryPushed = false;
 
             if (!fromPopState) {
                 history.back();
             }
-
         }
 
         updateButtons();
-
     }
 
 
     /* ---------- wake lock / audio ---------- */
 
     async function requestWakeLock() {
-
         try {
-
             if ("wakeLock" in navigator && !wakeLock) {
-
                 wakeLock = await navigator.wakeLock.request("screen");
 
                 wakeLock.addEventListener("release", () => {
                     wakeLock = null;
                 });
-
             }
-
         } catch (e) { /* not supported / denied */ }
-
     }
 
 
     function releaseWakeLock() {
-
         try {
-
             if (wakeLock) {
                 wakeLock.release();
             }
-
         } catch (e) { /* ignore */ }
 
         wakeLock = null;
-
     }
 
 
     function getAudio() {
-
         try {
-
             if (!audioCtx) {
-
                 const Ctx = window.AudioContext || window.webkitAudioContext;
 
                 if (Ctx) {
                     audioCtx = new Ctx();
                 }
-
             }
 
             if (audioCtx && audioCtx.state === "suspended") {
                 audioCtx.resume();
             }
-
         } catch (e) { /* ignore */ }
 
         return audioCtx;
-
     }
 
 
     function beep(count) {
-
         const ctx = getAudio();
 
         if (!ctx) {
@@ -1432,7 +898,6 @@
         }
 
         for (let i = 0; i < count; i++) {
-
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
 
@@ -1446,9 +911,7 @@
 
             osc.start(t);
             osc.stop(t + 0.22);
-
         }
-
     }
 
 
@@ -1461,15 +924,11 @@
      */
 
     function speakAlert(text, beepCount, fallbackText) {
-
         try {
-
             if ("speechSynthesis" in window) {
-
                 const voices = window.speechSynthesis.getVoices();
 
                 const fa = voices.find(v => /^fa/i.test(v.lang));
-
                 const en = voices.find(v => /^en/i.test(v.lang));
 
                 const utterance = new SpeechSynthesisUtterance(
@@ -1494,20 +953,16 @@
                 window.speechSynthesis.speak(utterance);
 
                 return;
-
             }
-
         } catch (e) { /* fall through to beeps */ }
 
         beep(beepCount);
-
     }
 
 
     /* ---------- pocket mode ---------- */
 
     function openPocket() {
-
         if (!navOpen || window.innerWidth > 900) {
             return;
         }
@@ -1517,16 +972,13 @@
         document.getElementById("pocket-screen").hidden = false;
 
         getAudio();
-
         requestWakeLock();
 
         speakAlert("حالت جیب فعال شد", 1, "pocket mode on");
-
     }
 
 
     function closePocket() {
-
         if (!pocketOpen) {
             return;
         }
@@ -1538,14 +990,12 @@
         try {
             window.speechSynthesis.cancel();
         } catch (e) { /* ignore */ }
-
     }
 
 
     /* ---------- navigation map ---------- */
 
     function initNavMap() {
-
         if (navMap || typeof L === "undefined") {
             return;
         }
@@ -1555,54 +1005,30 @@
             attributionControl: false
         });
 
-        if (typeof enableTwoFingerGestures === "function") {
-            enableTwoFingerGestures(navMap);
-        }
+        enableTwoFingerGestures(navMap);
 
-        const topo = L.tileLayer(
-            "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
-            { maxZoom: 17, crossOrigin: true }
-        );
+        const baseLayers = createBaseLayers();
 
-        const sat = L.tileLayer(
-            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-            { maxZoom: 19, crossOrigin: true }
-        );
+        baseLayers["توپوگرافی"].addTo(navMap);
 
-        const osm = L.tileLayer(
-            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-            { maxZoom: 19, crossOrigin: true }
-        );
-
-        topo.addTo(navMap);
-
-        L.control.layers(
-            {
-                "توپوگرافی": topo,
-                "ماهواره‌ای": sat,
-                "خیابانی": osm
-            },
-            null,
-            { position: "topright", collapsed: true }
-        ).addTo(navMap);
+        L.control.layers(baseLayers, null, {
+            position: "topright",
+            collapsed: true
+        }).addTo(navMap);
 
         navMap.setView([32.0, 51.5], 7);
 
         drawNavRoute(true);
 
         setTimeout(() => {
-
             if (navMap) {
                 navMap.invalidateSize();
             }
-
         }, 150);
-
     }
 
 
     function drawNavRoute(fit) {
-
         if (!navMap) {
             return;
         }
@@ -1616,9 +1042,7 @@
 
         navTrackedName = result ? result.id : null;
 
-        const points = result && result.routeData
-            ? result.routeData.points
-            : null;
+        const points = result && result.routeData ? result.routeData.points : null;
 
         if (!points || points.length < 2) {
             return;
@@ -1632,12 +1056,10 @@
         if (fit && !navUserMarker) {
             navMap.fitBounds(navRouteLine.getBounds(), { padding: [20, 20] });
         }
-
     }
 
 
     function renderNavMap(p, projection, off) {
-
         if (!navMap || !p) {
             return;
         }
@@ -1645,7 +1067,6 @@
         const latLng = [p.lat, p.lon];
 
         if (!navUserMarker) {
-
             navAccuracy = L.circle(latLng, {
                 radius: p.accuracy,
                 color: "#1a73e8",
@@ -1666,9 +1087,7 @@
             }).addTo(navMap);
 
             navMap.setView(latLng, 16);
-
         } else {
-
             navUserMarker.setLatLng(latLng);
             navAccuracy.setLatLng(latLng);
             navAccuracy.setRadius(p.accuracy);
@@ -1676,17 +1095,12 @@
             if (!navMap.getBounds().pad(-0.2).contains(latLng)) {
                 navMap.panTo(latLng);
             }
-
         }
 
         /* dashed line from the user to the nearest point of the track */
 
         if (projection && projection.point && projection.distance > 3) {
-
-            const line = [
-                latLng,
-                [projection.point.lat, projection.point.lon]
-            ];
+            const line = [latLng, [projection.point.lat, projection.point.lon]];
 
             const style = {
                 color: off ? "#ff5252" : "#4cd964",
@@ -1700,40 +1114,31 @@
                 navOffLine.setLatLngs(line);
                 navOffLine.setStyle(style);
             }
-
         } else if (navOffLine) {
-
             navMap.removeLayer(navOffLine);
             navOffLine = null;
-
         }
-
     }
 
 
     function removeNavUser() {
-
         if (!navMap) {
             return;
         }
 
         [navUserMarker, navAccuracy, navOffLine].forEach(layer => {
-
             if (layer) {
                 navMap.removeLayer(layer);
             }
-
         });
 
         navUserMarker = null;
         navAccuracy = null;
         navOffLine = null;
-
     }
 
 
     function destroyNavMap() {
-
         if (navMap) {
             navMap.remove();
         }
@@ -1744,14 +1149,12 @@
         navRouteLine = null;
         navOffLine = null;
         navTrackedName = null;
-
     }
 
 
     /* ---------- evaluation + alerts ---------- */
 
     function updateNavigation(projection, onTrack, p, result) {
-
         if (!navOpen) {
             return;
         }
@@ -1768,7 +1171,6 @@
         }
 
         if (!p) {
-
             setNavStatus(
                 "wait",
                 state.signalLost
@@ -1778,15 +1180,11 @@
             );
 
             return;
-
         }
 
         if (!projection) {
-
             setNavStatus("wait", "مسیر قابل محاسبه نیست", "");
-
             return;
-
         }
 
         /* GPS noise: allow half of the accuracy (max 10 m) */
@@ -1803,8 +1201,7 @@
 
         /* side relative to the walking direction */
 
-        const userSide =
-            projection.lateral * state.dir > 0 ? "چپ" : "راست";
+        const userSide = projection.lateral * state.dir > 0 ? "چپ" : "راست";
 
         const trackSide = userSide === "چپ" ? "راست" : "چپ";
 
@@ -1818,21 +1215,16 @@
                 ? { kind: "out", text: "⬆ مسیر رفت" }
                 : { kind: "back", text: "⬇ مسیر برگشت" };
 
-        const weak = state.signalLost
-            ? "⚠ سیگنال GPS ضعیف"
-            : "";
+        const weak = state.signalLost ? "⚠ سیگنال GPS ضعیف" : "";
 
         if (off) {
-
             setNavStatus(
                 "off",
                 `${Math.round(distance)} متر انحراف`,
                 `به سمت ${trackSide} بروید` + (weak ? " · " + weak : ""),
                 { arrow: arrow, dir: dirInfo }
             );
-
         } else {
-
             setNavStatus(
                 "ok",
                 "✓ در مسیر درست",
@@ -1840,29 +1232,24 @@
                     (weak ? " · " + weak : ""),
                 { dir: dirInfo }
             );
-
         }
 
         renderNavMap(p, projection, off);
 
         handleAlert(off, trackSide);
-
     }
 
 
     function handleAlert(off, trackSide) {
-
         const now = Date.now();
 
         if (off) {
-
             if (!navAlert.off) {
                 navAlert.off = true;
                 navAlert.last = 0;
             }
 
             if (pocketOpen && now - navAlert.last > 12000) {
-
                 navAlert.last = now;
 
                 speakAlert(
@@ -1874,60 +1261,71 @@
                 if (navigator.vibrate) {
                     navigator.vibrate([300, 150, 300]);
                 }
-
             }
-
         } else if (navAlert.off) {
-
             navAlert.off = false;
 
             if (pocketOpen) {
                 speakAlert("به مسیر برگشتید", 1, "dorost shod");
             }
-
         }
-
     }
 
 
     /* =====================================================
-       Hooks: redraw the location after routes are redrawn
+       Toolbar button
        ===================================================== */
 
-    function hook(name, after) {
+    function createButtons() {
+        const mapButtons = document.querySelector("#map-container .map-view-buttons");
 
-        const original = window[name];
-
-        if (typeof original !== "function") {
+        if (!mapButtons || document.getElementById("user-location-button")) {
             return;
         }
 
-        window[name] = function () {
+        let toolbar = mapButtons.parentElement;
 
-            const result = original.apply(this, arguments);
+        if (!toolbar.classList.contains("map-toolbar")) {
+            toolbar = document.createElement("div");
 
-            after();
+            toolbar.className = "map-toolbar";
 
-            return result;
+            mapButtons.parentNode.insertBefore(toolbar, mapButtons);
 
-        };
+            toolbar.appendChild(mapButtons);
+        }
 
+        const group = document.createElement("div");
+
+        group.className = "map-location-group";
+
+        const nav = document.createElement("button");
+
+        nav.id = "user-location-button";
+        nav.type = "button";
+        nav.className = "map-view-button";
+        nav.textContent = "🧭 ناوبری";
+        nav.addEventListener("click", openNav);
+
+        const status = document.createElement("span");
+
+        status.id = "user-location-status";
+        status.className = "user-location-status";
+
+        group.appendChild(nav);
+
+        toolbar.appendChild(group);
+        toolbar.appendChild(status);
+
+        createNavScreen();
     }
 
 
     function initialize() {
-
-        injectStyles();
-
         createButtons();
 
-        hook("drawRoutesOnMap", function () {
-            render2D();
-            updatePanel();
-        });
-
-        hook("drawRoutesOn3DMap", render3D);
-
+        // the panel is only refreshed when routes change
+        hookFunction("drawRoutesOnMap", updatePanel);
     }
 
 

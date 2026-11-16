@@ -1,23 +1,12 @@
 /* =========================================================
-   Global application state
+   Global application state + shared helpers
+   (must be the FIRST script: other files rely on these)
    ========================================================= */
 
-/*
- * Route colours (same order as the numbered markers on the maps).
- * Single source for the charts, the 2D map and the 3D map.
- */
-
+/* Route colours (same order as the numbered markers on the maps) */
 const ROUTE_COLORS = [
-    "#e53935",
-    "#1e88e5",
-    "#43a047",
-    "#fb8c00",
-    "#8e24aa",
-    "#00acc1",
-    "#6d4c41",
-    "#3949ab",
-    "#f4511e",
-    "#00897b"
+    "#e53935", "#1e88e5", "#43a047", "#fb8c00", "#8e24aa",
+    "#00acc1", "#6d4c41", "#3949ab", "#f4511e", "#00897b"
 ];
 
 let selectedFiles = [];
@@ -26,18 +15,57 @@ let draggedItem = null;
 let activeSection = "home"; // "home" | "guide" | "analysis" | "map" | "weather"
 let isWorkspaceOpen = false;
 
-/* =========================================================
-   Map state
-   ========================================================= */
-
+/* Map state */
 let map = null;
 let mapLayers = [];
 let map3d = null;
 let currentMapMode = "2d";
 let map3dInitialized = false;
 
+
+/* =========================================================
+   Shared helpers
+   ========================================================= */
+
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+/* touch screens: one finger scrolls the page */
+function isTouchDevice() {
+    return !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+}
+
+/* run `after` every time the global function `name` is called */
+function hookFunction(name, after) {
+    const original = window[name];
+
+    if (typeof original !== "function") {
+        return;
+    }
+
+    window[name] = function () {
+        const result = original.apply(this, arguments);
+
+        try {
+            after.apply(this, arguments);
+        } catch (error) {
+            console.error(error);
+        }
+
+        return result;
+    };
+}
+
+
 /* =========================================================
    Plot theme
+   (will be merged into getChartPalette() in charts.js)
    ========================================================= */
 
 function getPlotTheme() {
@@ -64,26 +92,28 @@ function getPlotTheme() {
     };
 }
 
+
 /* =========================================================
    Theme
    ========================================================= */
 
 function applyTheme() {
     const isDark = document.body.classList.contains("dark-mode");
-    const buttons = document.querySelectorAll(".theme-toggle");
 
-    buttons.forEach(button => {
-        const icon = isDark ? "i-sun" : "i-moon";
-        button.innerHTML = '<svg class="ico" aria-hidden="true"><use href="#' + icon + '"/></svg>';
+    document.querySelectorAll(".theme-toggle").forEach(button => {
+        button.innerHTML =
+            '<svg class="ico" aria-hidden="true"><use href="#' +
+            (isDark ? "i-sun" : "i-moon") + '"/></svg>';
         button.title = isDark ? "حالت روشن" : "حالت تاریک";
-        button.setAttribute("aria-label", isDark ? "تغییر به حالت روشن" : "تغییر به حالت تاریک");
+        button.setAttribute(
+            "aria-label",
+            isDark ? "تغییر به حالت روشن" : "تغییر به حالت تاریک"
+        );
     });
 
-    if (isDark) {
-        localStorage.setItem("theme", "dark");
-    } else {
-        localStorage.setItem("theme", "light");
-    }
+    try {
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+    } catch (e) { /* ignore */ }
 
     // only the charts depend on the theme (maps / weather are CSS driven)
     if (analysisResults.length > 0 && typeof requestChartsRedraw === "function") {
@@ -97,12 +127,19 @@ function toggleTheme() {
 }
 
 function initializeTheme() {
-    const savedTheme = localStorage.getItem("theme");
-    if (savedTheme === "dark") {
+    let saved = null;
+
+    try {
+        saved = localStorage.getItem("theme");
+    } catch (e) { /* ignore */ }
+
+    if (saved === "dark") {
         document.body.classList.add("dark-mode");
     }
+
     applyTheme();
 }
+
 
 /* =========================================================
    Map direction (outbound / return / both)
@@ -137,9 +174,9 @@ function setMapDirection(mode) {
 
     mapDirectionMode = mode;
 
-    document.querySelectorAll(`input[name="map-direction"][value="${mode}"]`).forEach(input => {
-        input.checked = true;
-    });
+    document
+        .querySelectorAll(`input[name="map-direction"][value="${mode}"]`)
+        .forEach(input => { input.checked = true; });
 
     if (analysisResults.length === 0) {
         return;
@@ -149,62 +186,53 @@ function setMapDirection(mode) {
         drawRoutesOnMap(analysisResults);
     }
 
-    if (
-        map3d &&
-        map3dInitialized &&
-        typeof drawRoutesOn3DMap === "function"
-    ) {
+    if (map3d && map3dInitialized && typeof drawRoutesOn3DMap === "function") {
         drawRoutesOn3DMap(analysisResults);
     }
 }
 
+
 /* =========================================================
-   Section Navigation (4 main sections)
+   Section navigation
    ========================================================= */
 
+const APP_SECTIONS = ["home", "guide", "analysis", "map", "weather"];
+
+function markActiveNav(selector, sectionId) {
+    document.querySelectorAll(selector).forEach(item => {
+        const active = item.dataset.target === sectionId;
+
+        item.classList.toggle("active", active);
+
+        if (active) {
+            item.setAttribute("aria-current", "page");
+        } else {
+            item.removeAttribute("aria-current");
+        }
+    });
+}
+
 function setActiveSection(sectionId) {
-    const validSections = ["home", "guide", "analysis", "map", "weather"];
-    if (!validSections.includes(sectionId)) {
+    if (!APP_SECTIONS.includes(sectionId)) {
         return;
     }
 
     activeSection = sectionId;
     document.body.dataset.section = sectionId;
 
-    validSections.forEach(id => {
+    APP_SECTIONS.forEach(id => {
         const el = document.getElementById(`section-${id}`);
-        if (el) {
-            if (id === sectionId) {
-                el.classList.add("active-section");
-                el.style.display = "block";
-            } else {
-                el.classList.remove("active-section");
-                el.style.display = "none";
-            }
+
+        if (!el) {
+            return;
         }
+
+        el.classList.toggle("active-section", id === sectionId);
+        el.style.display = id === sectionId ? "block" : "none";
     });
 
-    document.querySelectorAll(".bottom-nav-item").forEach(item => {
-        const target = item.dataset.target;
-        if (target === sectionId) {
-            item.classList.add("active");
-            item.setAttribute("aria-current", "page");
-        } else {
-            item.classList.remove("active");
-            item.removeAttribute("aria-current");
-        }
-    });
-
-    document.querySelectorAll(".desktop-nav-item").forEach(item => {
-        const target = item.dataset.target;
-        if (target === sectionId) {
-            item.classList.add("active");
-            item.setAttribute("aria-current", "page");
-        } else {
-            item.classList.remove("active");
-            item.removeAttribute("aria-current");
-        }
-    });
+    markActiveNav(".bottom-nav-item", sectionId);
+    markActiveNav(".desktop-nav-item", sectionId);
 
     // draw whatever was postponed while this section was hidden
     if (typeof flushPendingSectionWork === "function") {
@@ -224,38 +252,27 @@ function setActiveSection(sectionId) {
             }
         }, 80);
     } else if (sectionId === "analysis") {
-        setTimeout(() => {
-            window.dispatchEvent(new Event("resize"));
-        }, 80);
+        setTimeout(() => window.dispatchEvent(new Event("resize")), 80);
     }
 
     window.scrollTo({ top: 0, behavior: "instant" });
 }
 
+
 /* =========================================================
-   Route Workspace Drawer
+   Route workspace drawer
    ========================================================= */
 
 function updateRouteWorkspaceBadges() {
     const count = selectedFiles.length;
-    const badgeElements = document.querySelectorAll(".route-count-badge");
-    const labelElements = document.querySelectorAll(".route-count-label");
 
-    badgeElements.forEach(badge => {
+    document.querySelectorAll(".route-count-badge").forEach(badge => {
         badge.textContent = count;
-        if (count > 0) {
-            badge.classList.remove("badge-zero");
-        } else {
-            badge.classList.add("badge-zero");
-        }
+        badge.classList.toggle("badge-zero", count === 0);
     });
 
-    labelElements.forEach(label => {
-        if (count === 0) {
-            label.textContent = "بدون مسیر";
-        } else {
-            label.textContent = `${count} مسیر`;
-        }
+    document.querySelectorAll(".route-count-label").forEach(label => {
+        label.textContent = count === 0 ? "بدون مسیر" : `${count} مسیر`;
     });
 }
 
@@ -272,6 +289,7 @@ function openRouteWorkspace() {
     }
 
     isWorkspaceOpen = true;
+
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("workspace-overlay");
 
@@ -299,6 +317,7 @@ function openRouteWorkspace() {
 
 function hideRouteWorkspaceUI() {
     isWorkspaceOpen = false;
+
     const sidebar = document.getElementById("sidebar");
     const overlay = document.getElementById("workspace-overlay");
 
@@ -333,11 +352,3 @@ window.addEventListener("popstate", function () {
         hideRouteWorkspaceUI();
     }
 });
-
-function toggleRouteWorkspace() {
-    if (isWorkspaceOpen) {
-        closeRouteWorkspace();
-    } else {
-        openRouteWorkspace();
-    }
-}
