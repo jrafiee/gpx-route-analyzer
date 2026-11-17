@@ -19,20 +19,21 @@ function initializeMobileMenu() {
 
 let analysisChartsShown = false;
 
-function showAnalysisCharts() {
-    const eleCont = document.getElementById("elevation-container");
-    const slopeCont = document.getElementById("slope-difficulty-grid");
-    const barCont = document.getElementById("bar-charts-grid");
+/* the analysis charts live in one wrapper; the map card is in the map section */
+function setAnalysisChartsVisible(visible) {
+    const wrapper = document.getElementById("analysis-charts-wrapper");
     const mapCont = document.getElementById("map-container");
 
-    if (eleCont) eleCont.style.display = "block";
-    if (slopeCont) slopeCont.style.display = "grid";
-    if (barCont) barCont.style.display = "grid";
-    if (mapCont) mapCont.style.display = "block";
+    if (wrapper) wrapper.hidden = !visible;
+    if (mapCont) mapCont.hidden = !visible;
+}
+
+function showAnalysisCharts() {
+    setAnalysisChartsVisible(true);
 
     // Only needed when the containers were hidden before; a resize
     // event makes every Plotly chart re-layout, so it is not fired
-    // on every redraw any more.
+    // on every redraw.
     if (analysisChartsShown) {
         return;
     }
@@ -51,16 +52,7 @@ function showAnalysisCharts() {
 }
 
 function hideAnalysisCharts() {
-    const eleCont = document.getElementById("elevation-container");
-    const slopeCont = document.getElementById("slope-difficulty-grid");
-    const barCont = document.getElementById("bar-charts-grid");
-    const mapCont = document.getElementById("map-container");
-
-    if (eleCont) eleCont.style.display = "none";
-    if (slopeCont) slopeCont.style.display = "none";
-    if (barCont) barCont.style.display = "none";
-    if (mapCont) mapCont.style.display = "none";
-
+    setAnalysisChartsVisible(false);
     analysisChartsShown = false;
 }
 
@@ -166,13 +158,10 @@ function flushPendingSectionWork(section) {
 function redrawAllCharts() {
     updateRouteWorkspaceBadges();
     handleDesktopSectionSwitch();
-    if (typeof updateRouteSummary === "function") {
-        updateRouteSummary();
-    }
 
     const emptyState = document.getElementById("analysis-empty-state");
     if (emptyState) {
-        emptyState.style.display = analysisResults.length === 0 ? "block" : "none";
+        emptyState.hidden = analysisResults.length > 0;
     }
 
     if (analysisResults.length === 0) {

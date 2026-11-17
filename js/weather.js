@@ -182,58 +182,47 @@ function ensureWeatherRouteFilterBar(results) {
         cardsContainer.parentNode.insertBefore(filterBar, cardsContainer);
     }
 
-    if (!Array.isArray(results) || results.length <= 1) {
-        filterBar.style.display = "none";
+    const hasMany = Array.isArray(results) && results.length > 1;
+
+    // a filter that points to a route which no longer exists -> show all
+    if (!hasMany || !results.some(r => r.route === selectedWeatherRouteFilter)) {
         selectedWeatherRouteFilter = "all";
-        return;
     }
 
-    filterBar.style.display = "flex";
+    filterBar.style.display = hasMany ? "flex" : "none";
     filterBar.innerHTML = "";
 
-    const allBtn = document.createElement("button");
-    allBtn.type = "button";
-    allBtn.className = "weather-route-filter-btn" + (selectedWeatherRouteFilter === "all" ? " active" : "");
-    allBtn.textContent = `همه قله‌ها (${results.length})`;
-    allBtn.addEventListener("click", () => {
-        selectedWeatherRouteFilter = "all";
-        renderWeatherCardsVisibility();
-    });
-    filterBar.appendChild(allBtn);
+    if (!hasMany) return;
 
-    results.forEach((r, idx) => {
+    // data-route holds the exact route name ("all" = every route), so two
+    // names where one contains the other can never both look active
+    function addButton(value, label) {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "weather-route-filter-btn" + (selectedWeatherRouteFilter === r.route ? " active" : "");
-        btn.textContent = `${idx + 1}. ${r.route}`;
+        btn.className = "weather-route-filter-btn";
+        btn.dataset.route = value;
+        btn.textContent = label;
         btn.addEventListener("click", () => {
-            selectedWeatherRouteFilter = r.route;
+            selectedWeatherRouteFilter = value;
             renderWeatherCardsVisibility();
         });
         filterBar.appendChild(btn);
-    });
+    }
+
+    addButton("all", `همه قله‌ها (${results.length})`);
+    results.forEach((r, idx) => addButton(r.route, `${idx + 1}. ${r.route}`));
 }
 
 function renderWeatherCardsVisibility() {
-    const cards = document.querySelectorAll("#weather-cards .weather-card");
-    cards.forEach(card => {
-        const routeName = card.dataset.route;
-        if (selectedWeatherRouteFilter === "all" || selectedWeatherRouteFilter === routeName) {
-            card.style.display = "block";
-        } else {
-            card.style.display = "none";
-        }
+    document.querySelectorAll("#weather-cards .weather-card").forEach(card => {
+        const visible =
+            selectedWeatherRouteFilter === "all" ||
+            selectedWeatherRouteFilter === card.dataset.route;
+        card.style.display = visible ? "block" : "none";
     });
 
     document.querySelectorAll(".weather-route-filter-btn").forEach(btn => {
-        if (
-            (selectedWeatherRouteFilter === "all" && btn.textContent.startsWith("همه")) ||
-            btn.textContent.includes(selectedWeatherRouteFilter)
-        ) {
-            btn.classList.add("active");
-        } else {
-            btn.classList.remove("active");
-        }
+        btn.classList.toggle("active", btn.dataset.route === selectedWeatherRouteFilter);
     });
 }
 
@@ -805,12 +794,22 @@ function getRainCellColor(precipitation) {
 }
 
 async function reloadWeatherForecasts() {
-    if (!Array.isArray(currentWeatherResults) || currentWeatherResults.length === 0) return;
-    const generation = ++weatherRequestGeneration;
-    await drawWeatherForecasts(currentWeatherResults, generation);
+    await drawWeatherForecasts(currentWeatherResults);
 }
 
-async function drawWeatherForecasts(results, requestGeneration = null) {
+function createWeatherPlaceholder(result) {
+    const placeholder = document.createElement("div");
+    placeholder.className = "weather-card weather-loading";
+    placeholder.dataset.route = result.route;
+    placeholder.innerHTML = `
+        <div class="weather-loading-text">
+            در حال دریافت پیش‌بینی هوای قله <strong>${escapeHtml(result.route)}</strong>...
+        </div>
+    `;
+    return placeholder;
+}
+
+async function drawWeatherForecasts(results) {
     const container = document.getElementById("weather-container");
     const cardsContainer = document.getElementById("weather-cards");
     if (!container || !cardsContainer) return;
@@ -828,35 +827,25 @@ async function drawWeatherForecasts(results, requestGeneration = null) {
     ensureWeatherModelSelector();
     ensureWeatherRouteFilterBar(results);
 
-    cardsContainer.innerHTML = "";
-    const generation = requestGeneration !== null ? requestGeneration : ++weatherRequestGeneration;
+    const generation = ++weatherRequestGeneration;
 
     // placeholders first (keeps the route order), then all forecasts
     // are requested in parallel instead of one after another
-    const placeholders = results.map(result => {
-        const loading = document.createElement("div");
-        loading.className = "weather-card weather-loading";
-        loading.dataset.route = result.route;
-        loading.innerHTML = `
-            <div class="weather-loading-text">
-                در حال دریافت پیش‌بینی هوای قله <strong>${escapeHtml(result.route)}</strong>...
-            </div>
-        `;
-        cardsContainer.appendChild(loading);
-        return loading;
-    });
+    const placeholders = results.map(result => createWeatherPlaceholder(result));
+    cardsContainer.replaceChildren(...placeholders);
+    renderWeatherCardsVisibility();
 
     await Promise.all(results.map(async (result, index) => {
-        const loading = placeholders[index];
+        const placeholder = placeholders[index];
 
         try {
             const weatherResult = await getRouteWeather(result);
             if (generation !== weatherRequestGeneration) return;
-            loading.replaceWith(createWeatherCard(weatherResult));
+            placeholder.replaceWith(createWeatherCard(weatherResult));
         } catch (error) {
             if (generation !== weatherRequestGeneration) return;
-            loading.className = "weather-card weather-error";
-            loading.innerHTML = `
+            placeholder.className = "weather-card weather-error";
+            placeholder.innerHTML = `
                 <div class="weather-error-title">دریافت پیش‌بینی هوا ناموفق بود</div>
                 <div class="weather-error-route">${escapeHtml(result.route)}</div>
                 <div class="weather-error-message">${escapeHtml(error.message)}</div>

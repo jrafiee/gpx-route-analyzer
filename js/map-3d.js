@@ -82,7 +82,7 @@ function initialize3DMap() {
      topo   : OpenTopoMap
      osm    : OpenStreetMap
 
-   The styles of the switcher (.map3d-base-*) live in map-weather.css
+   The styles of the switcher (.map3d-base-*) live in weather.css
    ========================================================= */
 
 const BASE_LAYER_STORAGE_KEY = "map3d-base";

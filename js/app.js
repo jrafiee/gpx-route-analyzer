@@ -21,8 +21,10 @@ function loadHeroImage() {
 
 
 /*
- * Plotly / Leaflet are loaded from vendor/ (own server). If a file
- * is missing there, the CDN copy is loaded instead.
+ * Plotly / Leaflet are loaded from vendor/ (own server, see
+ * download-vendor.sh). If a script is missing there, the CDN copy is
+ * loaded instead (the Leaflet stylesheet has its own onerror fallback
+ * in index.html).
  */
 
 const LIBRARY_FALLBACKS = {
@@ -84,6 +86,9 @@ async function initializeApplication() {
     initializeMobileMenu();
 
     initializeUIEvents();
+
+    // the default-route checkboxes must exist before they get listeners
+    await loadSampleRouteList();
 
     initializeRouteSelection();
 

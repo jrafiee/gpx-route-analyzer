@@ -201,7 +201,67 @@ async function addGpxFile(file, options = {}) {
 
 /* =========================================================
    Default routes
+
+   The checklist in the sidebar and the "quick start" buttons on
+   the home page are built from data/sample/index.json. Add a route
+   there (and put its GPX next to it) - no HTML change needed.
    ========================================================= */
+
+async function loadSampleRouteList() {
+
+    const list = document.getElementById("default-routes");
+    const quick = document.getElementById("quick-routes");
+
+    try {
+
+        const response = await fetch("data/sample/index.json");
+
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+
+        const data = await response.json();
+
+        if (list) {
+            list.innerHTML = data.routes.map(route => `
+                <label>
+                    <input type="checkbox" class="default-route"
+                           data-name="${escapeHtml(route.name)}"
+                           data-file="${escapeHtml(route.file)}">
+                    <span>${escapeHtml(route.label)}</span>
+                </label>
+            `).join("");
+        }
+
+        if (quick) {
+            quick.innerHTML = data.quick.map(item => `
+                <button type="button" class="quick-route"
+                        data-quick-route="${escapeHtml(item.name)}">
+                    <svg class="ico" aria-hidden="true"><use href="#i-mountain"/></svg>
+                    <span>${escapeHtml(item.label)}</span>
+                    <small>${Number(item.elevation).toLocaleString("fa-IR", { useGrouping: false })} م</small>
+                </button>
+            `).join("");
+        }
+
+    } catch (error) {
+
+        console.error("Sample route list error:", error);
+
+        if (list) {
+            list.innerHTML =
+                '<div class="empty-message">فهرست مسیرهای پیش‌فرض بارگذاری نشد.</div>';
+        }
+
+        const block = quick && quick.closest(".home-block");
+
+        if (block) {
+            block.hidden = true;
+        }
+
+    }
+
+}
 
 async function handleDefaultRouteChange() {
 
@@ -662,7 +722,7 @@ function handleDragEnd(event) {
 
 function syncAnalysisOrder() {
 
-    saveRouteOrder();
+    writeRouteOrderLocal();
 
     const orderedIds =
         Array.from(

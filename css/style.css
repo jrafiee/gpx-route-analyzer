@@ -72,6 +72,9 @@ body {
 :focus-visible { outline: 2px solid var(--primary-blue); outline-offset: 2px; }
 .app-topbar :focus-visible { outline-color: var(--teal); }
 
+/* hidden SVG sprite at the top of <body> */
+.svg-sprite { position: absolute; }
+
 /* icons (SVG sprite) */
 .ico {
     width: 1.15em;
@@ -314,6 +317,7 @@ body .app-topbar .calculations-link {
 }
 
 .section-title-group { display: flex; align-items: center; gap: 10px; }
+.section-header-actions { display: flex; gap: 8px; }
 .section-title { margin: 0; font-size: 20px; font-weight: 700; color: var(--text-primary); }
 .section-subtitle { margin: 2px 0 0; font-size: 13px; color: var(--text-secondary); }
 
@@ -463,6 +467,7 @@ body .app-topbar .calculations-link {
 .guide-contact-links a:hover { border-color: var(--primary-blue); }
 
 .guide-accordion-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+.guide-accordion-group-spaced { margin-top: 20px; }
 
 .guide-accordion {
     background: var(--card-bg);
@@ -686,6 +691,8 @@ body .app-topbar .calculations-link {
     font-weight: 700;
     color: var(--text-primary);
 }
+
+.workspace-section-header .route-count-label { font-size: 11px; color: var(--text-muted); }
 
 .route-search-input {
     width: 100%;

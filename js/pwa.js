@@ -17,7 +17,7 @@ window.addEventListener("beforeinstallprompt", event => {
     event.preventDefault();
     deferredInstallPrompt = event;
 
-    const actions = document.querySelector(".header-install-slot, .page-header-actions");
+    const actions = document.querySelector(".header-install-slot");
     if (!actions || document.getElementById("install-button")) return;
 
     const btn = document.createElement("button");
@@ -91,7 +91,8 @@ function readRouteOrderLocal() {
 }
 
 /*
- * Record: { name (file name = key), blob, order, title (display name) }
+ * Record: { name (file name = key), blob, title (display name) }
+ * (records of older versions also have "order"; restoreSavedRoutes still reads it)
  */
 async function saveRouteToStorage(file, title) {
     if (isRestoringRoutes) return;
@@ -101,8 +102,7 @@ async function saveRouteToStorage(file, title) {
         tx.objectStore(ROUTE_STORE).put({
             name: file.name,
             blob: file,
-            title: title || "",
-            order: currentRouteOrder().indexOf(file.name)
+            title: title || ""
         });
         await idbDone(tx);
         db.close();
@@ -139,12 +139,9 @@ async function deleteRouteFromStorage(name) {
         tx.objectStore(ROUTE_STORE).delete(name);
         await idbDone(tx);
         db.close();
+        // the DOM item is already gone: keep the saved order in sync
+        writeRouteOrderLocal();
     } catch (e) { console.warn("Delete route failed:", e); }
-}
-
-async function saveRouteOrder() {
-    if (isRestoringRoutes) return;
-    writeRouteOrderLocal();
 }
 
 async function restoreSavedRoutes() {

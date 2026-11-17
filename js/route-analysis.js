@@ -229,31 +229,10 @@ function calculateSlopeDistribution(
         smoothingWindow += 1;
     }
 
-    let smoothElevation;
-
-    if (newElevation.length >= smoothingWindow) {
-        smoothElevation = convolveSame(
-            newElevation,
-            Array(smoothingWindow).fill(1 / smoothingWindow)
-        );
-
-        const half = Math.floor(smoothingWindow / 2);
-
-        // Avoid convolution edge effects
-        for (let i = 0; i < half; i++) {
-            smoothElevation[i] = newElevation[i];
-        }
-
-        for (
-            let i = newElevation.length - half;
-            i < newElevation.length;
-            i++
-        ) {
-            smoothElevation[i] = newElevation[i];
-        }
-    } else {
-        smoothElevation = newElevation;
-    }
+    const smoothElevation =
+        newElevation.length >= smoothingWindow
+            ? movingAverage(newElevation, smoothingWindow)
+            : newElevation;
 
     // One pass over the segments: categories, uphill distance,
     // ascent / descent, weighted grade, min / max grade
@@ -391,32 +370,21 @@ function interpolate(
 }
 
 
-function convolveSame(
-    values,
-    kernel
-) {
-    const result =
-        Array(values.length).fill(0);
+/*
+ * Centered moving average. The first / last `half` values are kept as
+ * they are (no convolution edge effect). Same arithmetic as the old
+ * convolveSame + edge fix, so the numbers do not change.
+ */
+function movingAverage(values, windowSize) {
+    const half = Math.floor(windowSize / 2);
+    const weight = 1 / windowSize;
+    const result = values.slice();
 
-    const kernelSize = kernel.length;
-    const half =
-        Math.floor(kernelSize / 2);
-
-    for (let i = 0; i < values.length; i++) {
+    for (let i = half; i < values.length - half; i++) {
         let sum = 0;
 
-        for (let j = 0; j < kernelSize; j++) {
-            const index =
-                i + j - half;
-
-            if (
-                index >= 0 &&
-                index < values.length
-            ) {
-                sum +=
-                    values[index] *
-                    kernel[j];
-            }
+        for (let j = -half; j <= half; j++) {
+            sum += values[i + j] * weight;
         }
 
         result[i] = sum;

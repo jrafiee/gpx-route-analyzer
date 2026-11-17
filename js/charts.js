@@ -41,13 +41,9 @@ const elevationChartState = {
 
 const chartTouchState = { zoom: false };
 
-function isTouchChartDevice() {
-    return !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
-}
-
 function applyTouchChartMode(layout, containerId, zoomable) {
 
-    if (!isTouchChartDevice()) {
+    if (!isTouchDevice()) {
         return;
     }
 
@@ -84,7 +80,7 @@ function syncChartZoomToggle() {
 
 function ensureChartZoomToggle() {
 
-    if (!isTouchChartDevice()) {
+    if (!isTouchDevice()) {
         return;
     }
 
@@ -123,13 +119,6 @@ function ensureChartZoomToggle() {
    ========================================================= */
 
 /*
- * Same colors (and same order) as the numbered route
- * markers on the 2D / 3D maps. Used by the line charts only.
- */
-
-const CHART_ROUTE_COLORS = ROUTE_COLORS;
-
-/*
  * Slope categories: light blue (easy) -> deep blue (steep),
  * and the one amber accent for the extreme category.
  */
@@ -164,13 +153,6 @@ const CHART_FONT_MONO =
     "Consolas, 'Courier New', monospace";
 
 
-function chartRouteColor(index) {
-    return CHART_ROUTE_COLORS[
-        index % CHART_ROUTE_COLORS.length
-    ];
-}
-
-
 function hexToRgba(hex, alpha) {
 
     const value =
@@ -187,17 +169,15 @@ function hexToRgba(hex, alpha) {
 
 function getChartPalette() {
 
-    const base =
-        getPlotTheme();
-
     const dark =
         document.body.classList.contains("dark-mode");
 
     return {
 
-        ...base,
-
         dark: dark,
+
+        textColor:
+            dark ? "#e5e5e5" : "#333",
 
         muted:
             dark ? "#c8cdd3" : "#454d57",
@@ -220,9 +200,7 @@ function getChartPalette() {
 
         /* colour of the card behind the chart */
         surface:
-            dark ? "#202324" : "#ffffff",
-
-        accent: "#1aa88b"
+            dark ? "#202324" : "#ffffff"
 
     };
 
@@ -322,20 +300,6 @@ function getSummitIndex(values) {
 /* =========================================================
    GPX waypoints on the profile charts
    ========================================================= */
-
-function chartEscapeText(value) {
-
-    return String(value).replace(
-        /[<>&]/g,
-        character => ({
-            "<": "&lt;",
-            ">": "&gt;",
-            "&": "&amp;"
-        })[character]
-    );
-
-}
-
 
 /*
  * Wrap long text into lines (Plotly does not wrap hover text).
@@ -493,11 +457,11 @@ function getRouteWaypointProfilePoints(
                 : elevations[bestIndex];
 
         const parts = [
-            `<b>${chartEscapeText(name)}</b>`
+            `<b>${escapeHtml(name)}</b>`
         ];
 
         if (label) {
-            parts.push(chartEscapeText(label));
+            parts.push(escapeHtml(label));
         }
 
         if (waypoint.description) {
@@ -506,7 +470,7 @@ function getRouteWaypointProfilePoints(
                 waypoint.description.substring(0, 300),
                 40
             ).forEach(line => {
-                parts.push(chartEscapeText(line));
+                parts.push(escapeHtml(line));
             });
 
         }
@@ -580,7 +544,7 @@ function buildWaypointTrace(result, color, x, y) {
 
         hovertemplate:
             "%{customdata}<extra>" +
-            chartEscapeText(result.route || "") +
+            escapeHtml(result.route || "") +
             "</extra>",
 
         marker: {
@@ -696,25 +660,6 @@ function syncElevationChartControls() {
 
 
 /*
- * Distance (km) of the highest point of the route.
- */
-
-function getSummitDistanceKm(distances, elevations) {
-
-    if (
-        !Array.isArray(distances) ||
-        !Array.isArray(elevations) ||
-        elevations.length === 0
-    ) {
-        return 0;
-    }
-
-    return distances[getSummitIndex(elevations)] || 0;
-
-}
-
-
-/*
  * Reference lines through the summit (x = 0 and/or y = 0).
  */
 
@@ -774,37 +719,6 @@ function addSummitReferenceLines(layout, vertical, horizontal) {
 /* =========================================================
    Legend / layout
    ========================================================= */
-
-/*
- * Horizontal legend above the plot area on every screen.
- */
-
-function getResponsiveLegend() {
-
-    const isMobile = window.innerWidth <= 900;
-
-    return {
-
-        orientation: "h",
-
-        x: 0,
-        xanchor: "left",
-
-        y: 1,
-        yanchor: "bottom",
-
-        bgcolor: "rgba(0,0,0,0)",
-
-        itemsizing: "constant",
-
-        font: {
-            size: isMobile ? 11 : 12
-        }
-
-    };
-
-}
-
 
 /*
  * Base layout shared by all charts.
@@ -945,7 +859,19 @@ function buildPlotLayout(
         },
 
         legend: {
-            ...getResponsiveLegend(),
+            /* horizontal legend above the plot area on every screen */
+            orientation: "h",
+
+            x: 0,
+            xanchor: "left",
+
+            y: 1,
+            yanchor: "bottom",
+
+            bgcolor: "rgba(0,0,0,0)",
+
+            itemsizing: "constant",
+
             font: {
                 size: isMobile ? 12 : 13,
                 color: palette.textColor
@@ -1252,7 +1178,7 @@ function drawElevationProfile(
         (result, index) => {
 
             const color =
-                chartRouteColor(index);
+                ROUTE_COLORS[index % ROUTE_COLORS.length];
 
             const profile =
                 isGain
@@ -1270,7 +1196,7 @@ function drawElevationProfile(
             // Horizontal shift: summit distance -> 0
             const shiftX =
                 state.summitCenter
-                    ? getSummitDistanceKm(distances, values)
+                    ? (distances[getSummitIndex(values)] || 0)
                     : 0;
 
             // Vertical shift: summit height -> 0
@@ -1464,7 +1390,7 @@ function drawElevationProfile(
 
 function drawOrderedElevationProfile(
     results,
-    containerId = "ordered-elevation-chart"
+    containerId
 ) {
 
     const palette =
@@ -1517,7 +1443,7 @@ function drawOrderedElevationProfile(
         (result, index) => {
 
             const color =
-                chartRouteColor(index);
+                ROUTE_COLORS[index % ROUTE_COLORS.length];
 
             const profile =
                 result.profiles.elevation;
@@ -1571,7 +1497,7 @@ function drawOrderedElevationProfile(
                 customdata: distances,
 
                 hovertemplate:
-                    `<b>${routeName}</b>` +
+                    `<b>${escapeHtml(routeName)}</b>` +
                     "<br>مسافت مسیر: %{customdata:.2f} km" +
                     "<br>ارتفاع: %{y:.0f} m" +
                     "<extra></extra>"

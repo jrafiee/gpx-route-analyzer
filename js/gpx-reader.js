@@ -54,11 +54,6 @@ async function readXmlFile(file) {
     return xml;
 }
 
-// kept for compatibility
-async function readGpxFile(file) {
-    return readXmlFile(file);
-}
-
 function xmlChildren(element, localName) {
     if (!element) {
         return [];
@@ -489,11 +484,6 @@ async function loadRouteFile(file) {
         waypoints,
         format: isKml ? "kml" : "gpx"
     };
-}
-
-// kept for compatibility
-async function loadGpxFile(file) {
-    return loadRouteFile(file);
 }
 
 

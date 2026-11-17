@@ -1,0 +1,111 @@
+{
+  "routes": [
+    {
+      "name": "شیرکوه",
+      "file": "data/sample/شیرکوه یزد.gpx",
+      "label": "شیر کوه (یزد)"
+    },
+    {
+      "name": "گرگش",
+      "file": "data/sample/گرگش.gpx",
+      "label": "گرگش (اصفهان)"
+    },
+    {
+      "name": "قبله افوس",
+      "file": "data/sample/قبله افوس.gpx",
+      "label": "قله قبله (اصفهان - ۳۶۶۳م)"
+    },
+    {
+      "name": "صفه",
+      "file": "data/sample/صفه.gpx",
+      "label": "صفه (اصفهان - ۲۲۴۰م)"
+    },
+    {
+      "name": "کرکس",
+      "file": "data/sample/کرکس.gpx",
+      "label": "کرکس (نطنز - ۳۸۹۵م)"
+    },
+    {
+      "name": "دالان کوه",
+      "file": "data/sample/دالان کوه.gpx",
+      "label": "دالان کوه (اصفهان - ۳۹۱۵م)"
+    },
+    {
+      "name": "دماوند",
+      "file": "data/sample/دماوند.gpx",
+      "label": "دماوند - جبهه جنوبی (۵۶۱۰م)"
+    },
+    {
+      "name": "دماوند از بارگاه سوم",
+      "file": "data/sample/دماوند از بارگاه سوم.gpx",
+      "label": "دماوند از بارگاه سوم (۵۶۱۰م)"
+    },
+    {
+      "name": "سبلان",
+      "file": "data/sample/سبلان.gpx",
+      "label": "سبلان - شمال‌شرقی (۴۸۱۱م)"
+    },
+    {
+      "name": "علم کوه",
+      "file": "data/sample/علم کوه.gpx",
+      "label": "علم کوه - حصارچال (۴۸۵۰م)"
+    },
+    {
+      "name": "سنبران",
+      "file": "data/sample/سنبران.gpx",
+      "label": "سنبران اشترانکوه (۴۱۵۰م)"
+    },
+    {
+      "name": "شاهانکوه",
+      "file": "data/sample/شاهانکوه.gpx",
+      "label": "شاهانکوه فریدونشهر (۴۰۴۰م)"
+    },
+    {
+      "name": "حوض دال دنا",
+      "file": "data/sample/حوض دال دنا.gpx",
+      "label": "حوض دال دنا (۴۳۵۰م)"
+    },
+    {
+      "name": "شاه کوه",
+      "file": "data/sample/شاه کوه.gpx",
+      "label": "شاه کوه اصفهان (۲۴۱۰م)"
+    },
+    {
+      "name": "کلار چیرو",
+      "file": "data/sample/کلار چیرو.gpx",
+      "label": "کلار چیرو (۳۶۲۰م)"
+    }
+  ],
+  "quick": [
+    {
+      "name": "دماوند",
+      "label": "دماوند",
+      "elevation": 5610
+    },
+    {
+      "name": "سبلان",
+      "label": "سبلان",
+      "elevation": 4811
+    },
+    {
+      "name": "علم کوه",
+      "label": "علم‌کوه",
+      "elevation": 4850
+    },
+    {
+      "name": "کرکس",
+      "label": "کرکس",
+      "elevation": 3895
+    },
+    {
+      "name": "دالان کوه",
+      "label": "دالان کوه",
+      "elevation": 3915
+    },
+    {
+      "name": "صفه",
+      "label": "صفه",
+      "elevation": 2240
+    }
+  ]
+}

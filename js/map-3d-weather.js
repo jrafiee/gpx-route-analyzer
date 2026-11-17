@@ -301,7 +301,8 @@
         playing: false,
         timer: null,
         renderPending: false,
-        eventsBound: false
+        eventsBound: false,
+        sig: null               // signature of the loaded area
     };
 
     const dom = {};
@@ -1687,14 +1688,6 @@
 
     }
 
-    function modeNote() {
-
-        const map = COLORMAPS[state.variable];
-
-        return map && map.note ? " " + map.note : "";
-
-    }
-
     /*
      * اسلایدر زمان: کادر شفاف روی خود نقشهٔ سه‌بعدی (گوشهٔ بالا)
      */
@@ -1901,7 +1894,7 @@
                 ).join("") +
                 "</div>";
 
-            // رنگ پس‌زمینه و متن پنجره در map-weather.css (حالت روشن و تاریک) تنظیم شده است
+            // رنگ پس‌زمینه و متن پنجره در weather.css (حالت روشن و تاریک) تنظیم شده است
             new root.maplibregl.Popup({ className: "wx3d-popup", maxWidth: "300px" })
                 .setLngLat(event.lngLat)
                 .setHTML(html)
@@ -2321,39 +2314,15 @@
 
 
     /* =====================================================
-       Hooks (same technique as user-location.js)
+       Hooks (hookFunction comes from app-state.js)
        ===================================================== */
-
-    function hook(name, after) {
-
-        const original = root[name];
-
-        if (typeof original !== "function") {
-            return;
-        }
-
-        root[name] = function () {
-
-            const result = original.apply(this, arguments);
-
-            try {
-                after.apply(this, arguments);
-            } catch (error) {
-                console.error(error);
-            }
-
-            return result;
-
-        };
-
-    }
 
     function initialize() {
 
         createPanel();
 
-        hook("drawRoutesOn3DMap", onRoutesDrawn);
-        hook("clear3DMap", onRoutesCleared);
+        hookFunction("drawRoutesOn3DMap", onRoutesDrawn);
+        hookFunction("clear3DMap", onRoutesCleared);
 
     }
 
@@ -2367,9 +2336,5 @@
 
     }
 
-    root.mapWeather3D = {
-        setMode,
-        getState: () => state
-    };
 
 })();

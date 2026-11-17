@@ -64,36 +64,6 @@ function hookFunction(name, after) {
 
 
 /* =========================================================
-   Plot theme
-   (will be merged into getChartPalette() in charts.js)
-   ========================================================= */
-
-function getPlotTheme() {
-    if (document.body.classList.contains("dark-mode")) {
-        return {
-            paperBg: "#202324",
-            plotBg: "#202324",
-            textColor: "#e5e5e5",
-            gridColor: "#3a3d3f",
-            zerolineColor: "#55585a",
-            lineColor: "#666",
-            tickColor: "#aaa"
-        };
-    }
-
-    return {
-        paperBg: "white",
-        plotBg: "white",
-        textColor: "#333",
-        gridColor: "#ddd",
-        zerolineColor: "#aaa",
-        lineColor: "#777",
-        tickColor: "#555"
-    };
-}
-
-
-/* =========================================================
    Theme
    ========================================================= */
 
