@@ -1,6 +1,11 @@
 {
   "routes": [
     {
+      "name": "بل",
+      "file": "data/sample/قله بل.gpx",
+      "label": "بل (فارس)"
+    },
+    {
       "name": "شیرکوه",
       "file": "data/sample/شیرکوه یزد.gpx",
       "label": "شیر کوه (یزد)"
