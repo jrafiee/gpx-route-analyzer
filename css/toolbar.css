@@ -601,3 +601,45 @@ body.nav-open { overflow: hidden; }
     .nav-map-col { min-height: 0; }
     .nav-map { flex: 1; height: auto; min-height: 400px; }
 }
+
+
+/* =========================================================
+   Row above the map: optional tools (offline download, weather
+   layer). Each tool = one toggle; its details open under the row.
+   ========================================================= */
+
+.map-extras { padding: 10px 12px 12px; border-bottom: 1px solid var(--border-color); }
+
+.map-extras [hidden] { display: none !important; }
+
+.map-extras-bar { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.map-extra-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 38px;
+    padding: 4px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+}
+
+.map-extra-toggle input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.map-extra-toggle:has(input:checked) { border-color: var(--accent); background: var(--accent-light); }
+
+.map-extra-toggle[data-extra="offline"] { order: 1; }
+.map-extra-toggle[data-extra="weather"] { order: 2; }
+
+.map-extras-panels > .offline-panel,
+.map-extras-panels > .wx3d-panel { margin: 10px 0 0; }
+
+@media (max-width: 900px) {
+    .map-extras { padding: 8px 8px 10px; }
+    .map-extra-toggle { flex: 1 1 150px; justify-content: center; }
+}

@@ -712,23 +712,31 @@
 
     function createPanel() {
 
-        const container = document.getElementById("map-container");
+        const extras = typeof getMapExtras === "function" ? getMapExtras() : null;
 
-        if (!container || document.getElementById("offline-panel")) {
+        if (!extras || document.getElementById("offline-panel")) {
             return;
         }
 
-        const panel = document.createElement("details");
+        /* toggle in the row above the map; the details open under the row */
+        const toggle = document.createElement("label");
+
+        toggle.className = "map-extra-toggle";
+        toggle.dataset.extra = "offline";
+        toggle.innerHTML =
+            '<input type="checkbox" id="off-toggle" autocomplete="off">' +
+            '<span>دانلود نقشه آفلاین</span>' +
+            '<span id="off-badge" class="offline-badge" hidden></span>';
+
+        extras.querySelector("#map-extras-bar").appendChild(toggle);
+
+        const panel = document.createElement("div");
 
         panel.id = "offline-panel";
         panel.className = "offline-panel";
+        panel.hidden = true;
 
         panel.innerHTML = `
-            <summary>
-                <span class="offline-title">📥 دانلود نقشه برای استفادهٔ آفلاین</span>
-                <span id="off-badge" class="offline-badge" hidden></span>
-            </summary>
-
             <div class="offline-body">
 
                 <p class="offline-note">
@@ -786,16 +794,10 @@
             </div>
         `;
 
-        const anchor = container.querySelector(".map-title-row");
-
-        if (anchor) {
-            anchor.after(panel);
-        } else {
-            container.insertBefore(panel, container.firstChild);
-        }
+        extras.querySelector("#map-extras-panels").appendChild(panel);
 
         dom.panel = panel;
-        dom.badge = panel.querySelector("#off-badge");
+        dom.badge = toggle.querySelector("#off-badge");
         dom.zoom = panel.querySelector("#off-zoom");
         dom.margin = panel.querySelector("#off-margin");
         dom.estimate = panel.querySelector("#off-estimate");
@@ -820,8 +822,13 @@
             element.addEventListener("change", scheduleEstimate);
         });
 
-        panel.addEventListener("toggle", () => {
-            if (panel.open) {
+        const toggleInput = toggle.querySelector("#off-toggle");
+
+        toggleInput.addEventListener("change", () => {
+
+            panel.hidden = !toggleInput.checked;
+
+            if (toggleInput.checked) {
                 refreshEstimate();
                 refreshStats();
             }
@@ -841,7 +848,7 @@
         // routes changed -> the estimate changes
         if (typeof hookFunction === "function") {
             hookFunction("drawRoutesOnMap", () => {
-                if (dom.panel && dom.panel.open && !state.running) {
+                if (dom.panel && !dom.panel.hidden && !state.running) {
                     refreshEstimate();
                 }
             });

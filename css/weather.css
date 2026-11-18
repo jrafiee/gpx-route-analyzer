@@ -822,29 +822,6 @@ body.dark-mode .wx3d-panel { box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45); }
 
 .wx3d-panel.is-on .wx3d-head { border-bottom: 1px solid var(--border-color); }
 
-.wx3d-head-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.wx3d-title { font-size: 15px; font-weight: 800; }
-
-/* enable checkbox */
-.wx3d-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 36px;
-    padding: 4px 12px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--card-bg);
-    color: var(--text-primary);
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    user-select: none;
-}
-
-.wx3d-toggle input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); cursor: pointer; }
-.wx3d-toggle:has(input:checked) { border-color: var(--accent); background: var(--accent-light); }
-
 /* layer buttons (hidden while the layer is off) */
 .wx3d-modes { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 .wx3d-modes[hidden] { display: none !important; }

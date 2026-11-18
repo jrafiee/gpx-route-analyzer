@@ -12,24 +12,6 @@
     overflow: hidden;
 }
 
-.offline-panel summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 12px 16px;
-    background: color-mix(in srgb, var(--accent) 8%, var(--card-bg));
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    user-select: none;
-    list-style: none;
-}
-
-.offline-panel summary::-webkit-details-marker { display: none; }
-.offline-panel summary::after { content: "＋"; color: var(--text-secondary); }
-.offline-panel[open] summary::after { content: "−"; }
-.offline-panel summary .offline-badge { margin-inline-start: auto; }
 
 .offline-badge {
     padding: 1px 9px;
@@ -48,7 +30,6 @@ body.dark-mode .offline-badge { color: #06261f; }
     flex-direction: column;
     gap: 12px;
     padding: 14px 16px 16px;
-    border-top: 1px solid var(--border-color);
 }
 
 .offline-note,

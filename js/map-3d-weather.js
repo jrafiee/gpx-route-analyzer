@@ -1720,6 +1720,10 @@
 
         state.variable = mode;
 
+        if (mode !== "off") {
+            state.lastMode = mode;
+        }
+
         dom.modeButtons.forEach(button => {
             const active = button.dataset.mode === mode;
             button.classList.toggle("active", active);
@@ -2167,16 +2171,32 @@
 
     function createPanel() {
 
-        const container = document.getElementById("map-3d-container");
+        const extras = typeof getMapExtras === "function" ? getMapExtras() : null;
 
-        if (!container || document.getElementById("wx3d-panel")) {
+        if (!extras || document.getElementById("wx3d-panel")) {
             return;
         }
+
+        /* the only always-visible control: one checkbox in the row above the map
+           (shown only in the 3D view) */
+        const toggle = document.createElement("label");
+
+        toggle.className = "map-extra-toggle";
+        toggle.dataset.extra = "weather";
+        toggle.hidden = true;
+        toggle.innerHTML =
+            '<input type="checkbox" id="wx3d-enable" autocomplete="off">' +
+            '<span>نمایش لایهٔ هواشناسی</span>';
+
+        extras.querySelector("#map-extras-bar").appendChild(toggle);
+
+        dom.toggle = toggle;
 
         const panel = document.createElement("div");
 
         panel.id = "wx3d-panel";
         panel.className = "wx3d-panel";
+        panel.hidden = true;
         panel.setAttribute("aria-busy", "false");
 
         /*
@@ -2188,16 +2208,7 @@
 
             <div class="wx3d-head">
 
-                <div class="wx3d-head-text">
-                    <span class="wx3d-title">🌦️ لایهٔ هواشناسی روی زمین سه‌بعدی</span>
-                </div>
-
-                <label class="wx3d-toggle">
-                    <input type="checkbox" id="wx3d-enable" autocomplete="off">
-                    <span>نمایش لایهٔ هواشناسی</span>
-                </label>
-
-                <div class="wx3d-modes" id="wx3d-modes" role="group" aria-label="نوع لایه" hidden>
+                <div class="wx3d-modes" id="wx3d-modes" role="group" aria-label="نوع لایه">
                     <button type="button" class="wx3d-mode" data-mode="temperature" aria-pressed="false">🌡️ دما</button>
                     <button type="button" class="wx3d-mode" data-mode="apparent" aria-pressed="false">🥶 دمای احساس</button>
                     <button type="button" class="wx3d-mode" data-mode="wind" aria-pressed="false">💨 سرعت باد</button>
@@ -2229,7 +2240,7 @@
 
         `;
 
-        container.insertBefore(panel, container.firstChild);
+        extras.querySelector("#map-extras-panels").appendChild(panel);
 
         dom.panel = panel;
         /* اسلایدر زمان: کادر شفاف روی نقشه (هنگام روشن شدن لایه به #map-3d اضافه می‌شود) */
@@ -2255,15 +2266,14 @@
         dom.body = panel.querySelector("#wx3d-body");
         dom.modeButtons = Array.from(panel.querySelectorAll(".wx3d-mode"));
         dom.modes = panel.querySelector("#wx3d-modes");
-        dom.enable = panel.querySelector("#wx3d-enable");
+        dom.enable = toggle.querySelector("#wx3d-enable");
 
         dom.enable.addEventListener("change", () => {
 
-            dom.modes.hidden = !dom.enable.checked;
+            // checking the box shows the temperature layer right away
+            setMode(dom.enable.checked ? (state.lastMode || "temperature") : "off");
 
-            if (!dom.enable.checked) {
-                setMode("off");
-            }
+            syncModeVisibility();
 
         });
         dom.slider = overlay.querySelector("#wx3d-slider");
@@ -2317,9 +2327,29 @@
        Hooks (hookFunction comes from app-state.js)
        ===================================================== */
 
+    /* the weather layer exists only on the 3D map */
+    function syncModeVisibility() {
+
+        const is3D =
+            typeof currentMapMode !== "undefined" && currentMapMode === "3d";
+
+        if (dom.toggle) {
+            dom.toggle.hidden = !is3D;
+        }
+
+        if (dom.panel) {
+            dom.panel.hidden = !(is3D && dom.enable && dom.enable.checked);
+        }
+
+    }
+
     function initialize() {
 
         createPanel();
+
+        hookFunction("showMapMode", syncModeVisibility);
+
+        syncModeVisibility();
 
         hookFunction("drawRoutesOn3DMap", onRoutesDrawn);
         hookFunction("clear3DMap", onRoutesCleared);

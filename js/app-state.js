@@ -63,6 +63,44 @@ function hookFunction(name, after) {
 }
 
 
+/*
+ * One row above the map for the optional tools (offline download,
+ * weather layer). Each tool adds a toggle to the bar and, when it is
+ * switched on, its details appear in the panels area under the bar.
+ * (offline-region.js and map-3d-weather.js use it)
+ */
+function getMapExtras() {
+    let root = document.getElementById("map-extras");
+
+    if (root) {
+        return root;
+    }
+
+    const container = document.getElementById("map-container");
+
+    if (!container) {
+        return null;
+    }
+
+    root = document.createElement("div");
+    root.id = "map-extras";
+    root.className = "map-extras";
+    root.innerHTML =
+        '<div class="map-extras-bar" id="map-extras-bar"></div>' +
+        '<div class="map-extras-panels" id="map-extras-panels"></div>';
+
+    const anchor = container.querySelector(".map-title-row");
+
+    if (anchor) {
+        anchor.after(root);
+    } else {
+        container.insertBefore(root, container.firstChild);
+    }
+
+    return root;
+}
+
+
 /* =========================================================
    Theme
    ========================================================= */
