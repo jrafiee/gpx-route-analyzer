@@ -1,5 +1,5 @@
 /* Service Worker - Mountain Route Compare */
-const VERSION = "v21";
+const VERSION = "v22";
 const SHELL_CACHE = "mrc-shell-" + VERSION;
 const RUNTIME_CACHE = "mrc-runtime-" + VERSION;
 
@@ -7,13 +7,29 @@ const RUNTIME_CACHE = "mrc-runtime-" + VERSION;
 const TILE_CACHE = "mrc-tiles-v1";
 const TILE_LIMIT = 8000;
 
+/* tiles downloaded on purpose (js/offline-region.js): never trimmed,
+   survive version bumps */
+const OFFLINE_CACHE = "mrc-offline-v1";
+
+/* while the page downloads an offline region it tells the service worker
+   (message "offline-download"); tiles are then not copied into TILE_CACHE
+   (the page stores them in OFFLINE_CACHE itself) */
+let downloadUntil = 0;
+
+self.addEventListener("message", event => {
+  const data = event.data;
+  if (data && data.type === "offline-download") {
+    downloadUntil = data.on ? Date.now() + 45000 : 0;
+  }
+});
+
 const SHELL_FILES = [
   "./", "index.html", "manifest.webmanifest",
-  "css/style.css", "css/toolbar.css", "css/responsive.css", "css/weather.css",
+  "css/style.css", "css/toolbar.css", "css/responsive.css", "css/weather.css", "css/offline.css",
   "js/app-state.js", "js/gpx-reader.js", "js/route-analysis.js", "js/charts.js",
   "js/ui.js", "js/route-selection.js", "js/speed.js", "js/map-2d.js",
   "js/map-3d.js", "js/track-geometry.js", "js/user-location.js",
-  "js/weather.js", "js/map-3d-weather.js", "js/app.js", "js/pwa.js",
+  "js/weather.js", "js/map-3d-weather.js", "js/offline-region.js", "js/app.js", "js/pwa.js",
   "partials/calculations.html", "data/sample/index.json",
   "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-maskable-512.png", "icons/favicon.svg", "icons/favicon-32.png", "icons/apple-touch-icon.png",
@@ -46,7 +62,7 @@ self.addEventListener("install", event => {
 });
 
 self.addEventListener("activate", event => {
-  const keep = [SHELL_CACHE, RUNTIME_CACHE, TILE_CACHE];
+  const keep = [SHELL_CACHE, RUNTIME_CACHE, TILE_CACHE, OFFLINE_CACHE];
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(keys
@@ -56,10 +72,10 @@ self.addEventListener("activate", event => {
   );
 });
 
-function store(cacheName, req, res) {
+function store(event, cacheName, req, res) {
   if (res && (res.ok || res.type === "opaque")) {
     const copy = res.clone();
-    caches.open(cacheName).then(c => c.put(req, copy));
+    event.waitUntil(caches.open(cacheName).then(c => c.put(req, copy)));
   }
   return res;
 }
@@ -92,21 +108,34 @@ async function tileJsonResponse(req, url) {
   }
 }
 
-/* tiles: cache first (visited areas also work offline) */
-async function tileResponse(req, url) {
-  const cache = await caches.open(TILE_CACHE);
+/* a tile from the offline cache (downloaded region) or the visited-tiles cache */
+async function matchTile(key) {
+  for (const name of [OFFLINE_CACHE, TILE_CACHE]) {
+    const cache = await caches.open(name);
+    const hit = await cache.match(key, { ignoreVary: true });
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/* tiles: cache first (offline region + visited areas also work offline) */
+async function tileResponse(event, req, url) {
   const key = tileKey(url);
 
-  const hit = await cache.match(key);
+  const hit = await matchTile(key);
   if (hit) return hit;
 
   try {
     const res = await fetch(req);
 
-    // only real (CORS) responses; opaque ones would waste storage quota
-    if (res.ok) {
-      cache.put(key, res.clone());
-      if (++tilePuts % 50 === 0) trimTiles(cache);
+    // the page is downloading a region: it stores the tile itself
+    if (res.ok && Date.now() >= downloadUntil) {
+      const cache = await caches.open(TILE_CACHE);
+      event.waitUntil(
+        cache.put(key, res.clone()).then(() => {
+          if (++tilePuts % 50 === 0) return trimTiles(cache);
+        })
+      );
     }
 
     return res;
@@ -126,7 +155,7 @@ self.addEventListener("fetch", event => {
     event.respondWith(
       url.pathname.endsWith(".json")
         ? tileJsonResponse(req, url)
-        : tileResponse(req, url)
+        : tileResponse(event, req, url)
     );
     return;
   }
@@ -140,7 +169,7 @@ self.addEventListener("fetch", event => {
   if (cdn) {
     event.respondWith(
       caches.match(req).then(cached =>
-        cached || fetch(req).then(res => store(RUNTIME_CACHE, req, res))
+        cached || fetch(req).then(res => store(event, RUNTIME_CACHE, req, res))
       )
     );
     return;
@@ -152,7 +181,7 @@ self.addEventListener("fetch", event => {
   event.respondWith(
     caches.match(req).then(cached => {
       const network = fetch(req)
-        .then(res => store(cacheName, req, res))
+        .then(res => store(event, cacheName, req, res))
         .catch(() =>
           cached ||
           (req.mode === "navigate" ? caches.match("index.html") : Response.error())

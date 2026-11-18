@@ -17,25 +17,25 @@ function loadMapLibre() {
     }
 
     if (!maplibrePromise) {
-        // CDN first (no 404 noise), own copy (vendor/maplibre/) as a fallback
+        // own copy first (pre-cached by the service worker, works offline), CDN as a fallback
         const localBase = new URL("vendor/maplibre/", document.baseURI).href;
         const cdnBase = `https://unpkg.com/maplibre-gl@${MAPLIBRE_VERSION}/dist/`;
 
         const link = document.createElement("link");
 
         link.rel = "stylesheet";
-        link.href = cdnBase + "maplibre-gl.css";
+        link.href = localBase + "maplibre-gl.css";
 
         link.onerror = () => {
             link.onerror = null;
-            link.href = localBase + "maplibre-gl.css";
+            link.href = cdnBase + "maplibre-gl.css";
         };
 
         document.head.appendChild(link);
 
         maplibrePromise =
-            import(cdnBase + "maplibre-gl.mjs")
-                .catch(() => import(localBase + "maplibre-gl.mjs"))
+            import(localBase + "maplibre-gl.mjs")
+                .catch(() => import(cdnBase + "maplibre-gl.mjs"))
                 .then(module => {
                     window.maplibregl = module;
                     return module;

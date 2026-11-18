@@ -14,6 +14,8 @@ route files are never uploaded.
 - Live navigation on the route (GPS, deviation alert, pocket mode)
 - 7-day / hourly summit forecast from several models (Open-Meteo)
 - Rename, re-order (drag) and download routes; routes are kept in IndexedDB
+- Offline maps: download the 2D / 3D tiles (and terrain) around the tracks
+  in advance (map section -> "دانلود نقشه برای استفادهٔ آفلاین")
 - Light / dark mode, Persian RTL interface, installable PWA, works offline
   (app shell, libraries and visited map tiles are cached)
 
@@ -37,6 +39,7 @@ css/
   toolbar.css     chart / map toolbars + full-screen navigation view
   responsive.css  mobile & tablet rules
   weather.css     weather section + 3D-map weather layer + base-layer switcher
+  offline.css     offline-map download panel
 
 js/   (load order = order in index.html)
   app-state.js        globals + shared helpers (escapeHtml, hookFunction, theme,
@@ -52,6 +55,7 @@ js/   (load order = order in index.html)
   track-geometry.js   projection of a GPS fix onto the track
   user-location.js    navigation screen
   map-3d-weather.js   weather overlay on the 3D map
+  offline-region.js   download the map around the routes for offline use
   weather.js          forecast cards
   pwa.js              service worker registration, install button, IndexedDB
   app.js              start-up
