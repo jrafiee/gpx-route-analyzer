@@ -129,12 +129,66 @@
 
     .app-topbar { padding: 8px 10px; }
 
-    /* icon only */
-    .workspace-trigger-btn span:first-of-type { display: none; }
+    .brand-latin { display: none; }
 
     #elevation-chart,
     #slope-chart,
     #difficulty-score-chart,
     #estimated-ascent-time-chart,
     #route-metrics-comparison-chart { height: 310px !important; }
+}
+
+
+/* =========================================================
+   Mobile: map section header, route button, direction options
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    /* map subtitle: always one line (smaller font on narrow screens) */
+    #section-map .section-title-group { width: 100%; min-width: 0; }
+    #section-map .section-title-group > div { flex: 1; min-width: 0; }
+
+    #section-map .section-subtitle {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        font-size: clamp(9.5px, 2.9vw, 12px);
+    }
+
+    /* outbound / return radios are hidden on phones */
+    .map-direction-options { display: none !important; }
+
+    /* the route-count button under each section title is removed;
+       the top bar button is the one place to manage routes */
+    .section-header-row .workspace-trigger-btn { display: none !important; }
+
+    body .app-topbar .workspace-trigger-btn {
+        background: var(--teal);
+        border-color: var(--teal);
+        color: #06261f;
+        font-weight: 700;
+    }
+
+    body .app-topbar .workspace-trigger-btn:hover { background: #5ff0cb; border-color: #5ff0cb; }
+
+    body .app-topbar .route-count-badge,
+    body .app-topbar .route-count-badge.badge-zero {
+        background: #06261f;
+        color: var(--teal);
+    }
+
+    /* gentle pulse while no route is selected */
+    body .app-topbar .workspace-trigger-btn:has(.badge-zero) {
+        animation: route-btn-pulse 2.2s ease-in-out infinite;
+    }
+}
+
+@keyframes route-btn-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(47, 217, 174, .55); }
+    50%      { box-shadow: 0 0 0 7px rgba(47, 217, 174, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body .app-topbar .workspace-trigger-btn:has(.badge-zero) { animation: none; }
 }

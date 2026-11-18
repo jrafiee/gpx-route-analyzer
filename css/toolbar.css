@@ -14,6 +14,7 @@
     --tb-chart: #0b7a66;
     --tb-map: #2b5c88;
     --tb-location: #b45309;
+    --tb-offline: #6b4fa3;
 }
 
 
@@ -170,7 +171,8 @@ body.dark-mode .user-location-status { color: #aaa; }
     /* the "summit at center" checkbox takes a full row */
     .chart-mode-buttons .chart-option { grid-column: 1 / -1; }
 
-    .map-toolbar { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; padding: 4px 6px 10px; }
+    /* 2D / 3D / navigation / offline download: one row */
+    .map-toolbar { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; padding: 4px 6px 10px; }
 
     .map-view-buttons .map-view-button,
     .map-location-group .map-view-button {
@@ -641,5 +643,26 @@ body.nav-open { overflow: hidden; }
 
 @media (max-width: 900px) {
     .map-extras { padding: 8px 8px 10px; }
-    .map-extra-toggle { flex: 1 1 150px; justify-content: center; }
+    .map-extra-toggle { flex: 1 1 100%; justify-content: flex-start; }
+}
+
+
+/* =========================================================
+   Map toolbar: offline button, short labels, weather bar
+   ========================================================= */
+
+.map-location-group .map-view-button.map-offline-btn { --grp: var(--tb-offline); }
+
+.btn-lbl-short { display: none; }
+
+/* weather layer = full-width bar under the buttons (3D view only) */
+.map-extra-toggle[data-extra="weather"] { flex: 1 1 100%; justify-content: flex-start; min-height: 42px; }
+
+/* no visible tool (2D view) -> no empty strip */
+.map-extras:not(:has(.map-extra-toggle:not([hidden]))) { display: none; }
+
+@media (max-width: 900px) {
+    .btn-lbl-full { display: none; }
+    .btn-lbl-short { display: inline; font-weight: 700; direction: ltr; }
+    .map-offline-btn .offline-badge { display: none; }
 }

@@ -527,6 +527,14 @@
 
             setProgress(done, total, failed);
 
+            /* the navigation map uses this to scale tiles when offline */
+            if (!state.abort) {
+                try {
+                    const prev = Number(localStorage.getItem("offline-max-zoom")) || 0;
+                    localStorage.setItem("offline-max-zoom", String(Math.max(prev, plan.opts.maxZoom)));
+                } catch (e) { /* ignore */ }
+            }
+
             if (state.abort) {
                 setStatus(
                     `متوقف شد. ${fa(fresh)} تایل جدید ذخیره شد؛ با «دانلود» دوباره، ادامه می‌یابد.`,
@@ -593,6 +601,7 @@
 
         try {
             await caches.delete(OFFLINE_CACHE);
+            try { localStorage.removeItem("offline-max-zoom"); } catch (e) { /* ignore */ }
             setStatus("نقشه‌های آفلاین حذف شد.", "ok");
         } catch (error) {
             setStatus("حذف ممکن نشد.", "error");
@@ -712,36 +721,38 @@
 
     function createPanel() {
 
-        const extras = typeof getMapExtras === "function" ? getMapExtras() : null;
+        const group = document.querySelector("#map-container .map-location-group");
 
-        if (!extras || document.getElementById("offline-panel")) {
+        if (!group || document.getElementById("offline-panel")) {
             return;
         }
 
-        /* toggle in the row above the map; the details open under the row */
-        const toggle = document.createElement("label");
+        /* one button in the toolbar (next to 2D / 3D / navigation); the details open in a modal */
+        const button = document.createElement("button");
 
-        toggle.className = "map-extra-toggle";
-        toggle.dataset.extra = "offline";
-        toggle.innerHTML =
-            '<input type="checkbox" id="off-toggle" autocomplete="off">' +
-            '<span>دانلود نقشه آفلاین</span>' +
+        button.type = "button";
+        button.id = "offline-open-btn";
+        button.className = "map-view-button map-offline-btn";
+        button.title = "دانلود نقشه برای استفادهٔ آفلاین";
+        button.innerHTML =
+            '<span aria-hidden="true">⬇</span>' +
+            '<span class="btn-lbl-full">دانلود نقشه آفلاین</span>' +
+            '<span class="btn-lbl-short">آفلاین</span>' +
             '<span id="off-badge" class="offline-badge" hidden></span>';
 
-        extras.querySelector("#map-extras-bar").appendChild(toggle);
+        group.appendChild(button);
 
         const panel = document.createElement("div");
 
         panel.id = "offline-panel";
         panel.className = "offline-panel";
-        panel.hidden = true;
 
         panel.innerHTML = `
             <div class="offline-body">
 
                 <p class="offline-note">
                     نقشهٔ اطراف مسیرهای انتخاب‌شده را یک‌بار با اینترنت دانلود کنید تا
-                    در کوه، بدون اینترنت هم نقشهٔ ۲بعدی و ۳بعدی کار کند.
+                    در کوه، بدون اینترنت هم نقشهٔ ۲بعدی، ۳بعدی و صفحهٔ ناوبری کار کند.
                 </p>
 
                 <div class="offline-group">
@@ -794,10 +805,29 @@
             </div>
         `;
 
-        extras.querySelector("#map-extras-panels").appendChild(panel);
+        const modal = document.createElement("div");
 
+        modal.id = "offline-modal";
+        modal.className = "offline-modal";
+        modal.hidden = true;
+        modal.setAttribute("role", "dialog");
+        modal.setAttribute("aria-modal", "true");
+        modal.setAttribute("aria-labelledby", "offline-modal-title");
+        modal.innerHTML =
+            '<div class="offline-modal-box">' +
+            '<div class="offline-modal-head">' +
+            '<h3 id="offline-modal-title">دانلود نقشه آفلاین</h3>' +
+            '<button type="button" class="offline-modal-close" aria-label="بستن">×</button>' +
+            '</div>' +
+            '<div class="offline-modal-body"></div>' +
+            '</div>';
+
+        modal.querySelector(".offline-modal-body").appendChild(panel);
+        document.body.appendChild(modal);
+
+        dom.modal = modal;
         dom.panel = panel;
-        dom.badge = toggle.querySelector("#off-badge");
+        dom.badge = button.querySelector("#off-badge");
         dom.zoom = panel.querySelector("#off-zoom");
         dom.margin = panel.querySelector("#off-margin");
         dom.estimate = panel.querySelector("#off-estimate");
@@ -822,15 +852,32 @@
             element.addEventListener("change", scheduleEstimate);
         });
 
-        const toggleInput = toggle.querySelector("#off-toggle");
+        function openModal() {
+            modal.hidden = false;
+            document.body.classList.add("offline-modal-open");
+            button.classList.add("active");
+            refreshEstimate();
+            refreshStats();
+        }
 
-        toggleInput.addEventListener("change", () => {
+        function closeModal() {
+            modal.hidden = true;
+            document.body.classList.remove("offline-modal-open");
+            button.classList.remove("active");
+        }
 
-            panel.hidden = !toggleInput.checked;
+        button.addEventListener("click", openModal);
+        modal.querySelector(".offline-modal-close").addEventListener("click", closeModal);
 
-            if (toggleInput.checked) {
-                refreshEstimate();
-                refreshStats();
+        modal.addEventListener("click", event => {
+            if (event.target === modal) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener("keydown", event => {
+            if (event.key === "Escape" && !modal.hidden) {
+                closeModal();
             }
         });
 
@@ -848,7 +895,7 @@
         // routes changed -> the estimate changes
         if (typeof hookFunction === "function") {
             hookFunction("drawRoutesOnMap", () => {
-                if (dom.panel && !dom.panel.hidden && !state.running) {
+                if (dom.modal && !dom.modal.hidden && !state.running) {
                     refreshEstimate();
                 }
             });

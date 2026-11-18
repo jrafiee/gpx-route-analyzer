@@ -1009,6 +1009,17 @@
 
         const baseLayers = createBaseLayers();
 
+        /* offline: zoom levels above the downloaded one are scaled from the last downloaded level */
+        if (!navigator.onLine) {
+            const savedZoom = Number(readNavPref("offline-max-zoom"));
+
+            if (savedZoom > 0) {
+                Object.values(baseLayers).forEach(layer => {
+                    layer.options.maxNativeZoom = Math.min(layer.options.maxZoom, savedZoom);
+                });
+            }
+        }
+
         baseLayers["توپوگرافی"].addTo(navMap);
 
         L.control.layers(baseLayers, null, {

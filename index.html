@@ -91,7 +91,7 @@
     <div class="topbar-actions">
         <button type="button" class="workspace-trigger-btn workspace-trigger" aria-label="مدیریت مسیرها">
             <svg class="ico" aria-hidden="true"><use href="#i-route"/></svg>
-            <span class="route-count-label">مسیرها</span>
+            <span class="route-btn-text">انتخاب مسیر</span>
             <span class="route-count-badge badge-zero">۰</span>
         </button>
 
@@ -489,11 +489,11 @@
             <div class="map-card-wrapper" id="map-container">
                 <div class="map-title-row">
                     <div class="map-view-buttons">
-                        <button type="button" id="map-2d-button" class="map-view-button active" onclick="show2DMap()">
-                            <svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> نقشه دوبعدی
+                        <button type="button" id="map-2d-button" aria-label="نقشه دوبعدی" title="نقشه دوبعدی" class="map-view-button active" onclick="show2DMap()">
+                            <svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> <span class="btn-lbl-full">نقشه دوبعدی</span><span class="btn-lbl-short">2D</span>
                         </button>
-                        <button type="button" id="map-3d-button" class="map-view-button" onclick="show3DMap()">
-                            <svg class="ico" aria-hidden="true"><use href="#i-mountain"/></svg> زمین سه‌بعدی
+                        <button type="button" id="map-3d-button" aria-label="زمین سه‌بعدی" title="زمین سه‌بعدی" class="map-view-button" onclick="show3DMap()">
+                            <svg class="ico" aria-hidden="true"><use href="#i-mountain"/></svg> <span class="btn-lbl-full">زمین سه‌بعدی</span><span class="btn-lbl-short">3D</span>
                         </button>
                     </div>
 
