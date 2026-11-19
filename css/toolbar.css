@@ -15,6 +15,7 @@
     --tb-map: #2b5c88;
     --tb-location: #b45309;
     --tb-offline: #6b4fa3;
+    --tb-weather: #0e7490;
 }
 
 
@@ -96,6 +97,30 @@ body.dark-mode .map-location-group .map-view-button.active {
     border-color: var(--grp);
     color: #fff;
 }
+
+
+/* title row of the elevation chart: title on the right, small checkbox on the left */
+.chart-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.chart-title-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.chart-title-option input { margin: 0; accent-color: var(--tb-chart); cursor: pointer; }
+.chart-title-option.disabled { opacity: .45; cursor: not-allowed; }
 
 
 /* =========================================================
@@ -202,8 +227,6 @@ body.dark-mode .user-location-status { color: #aaa; }
      inside this screen
    ========================================================= */
 
-body.nav-open { overflow: hidden; }
-
 .nav-screen {
     --s: var(--nav-scale, 1);
     --nv-bg: #0a1020;
@@ -220,13 +243,12 @@ body.nav-open { overflow: hidden; }
     --nv-bar: linear-gradient(90deg, #0fc4a3 0%, #a6e22e 100%);
     --nv-num: min(calc(50px * var(--s)), 20vw);
 
-    position: fixed;
-    inset: 0;
-    z-index: 3000;
+    position: relative;
     display: flex;
     flex-direction: column;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow: hidden;
+    border: 1px solid var(--nv-line);
+    border-radius: 18px;
     background: var(--nv-bg);
     color: var(--nv-fg);
     font-weight: 600;
@@ -287,8 +309,10 @@ body.nav-open { overflow: hidden; }
 .nav-pocket-btn { border-color: #7c5cd6; color: #c4b0ff; }
 .nav-light .nav-pocket-btn { color: #5b3fb8; }
 
-.nav-close { border-color: #c0495a; color: #ff9aa8; }
-.nav-light .nav-close { background: #fff0f2; color: #b3202f; }
+.nav-start { border-color: #14925f; color: #1fd18d; }
+.nav-light .nav-start { color: #0a7a4d; }
+.nav-start.active { border-color: #c0495a; color: #ff9aa8; }
+.nav-light .nav-start.active { background: #fff0f2; color: #b3202f; }
 
 .nav-sun.active { background: #f5b041; border-color: #f5b041; color: #1a1200; }
 
@@ -407,8 +431,6 @@ body.nav-open { overflow: hidden; }
     flex-direction: column;
     gap: 12px;
     padding: 12px;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
 }
 
 .nav-info,
@@ -593,57 +615,13 @@ body.nav-open { overflow: hidden; }
 
     .nav-body {
         display: grid;
-        grid-template-columns: 480px 1fr;
+        grid-template-columns: minmax(320px, 440px) 1fr;
         gap: 16px;
         padding: 16px;
-        overflow: hidden;
+        align-items: start;
     }
 
-    .nav-info { overflow-y: auto; }
-    .nav-map-col { min-height: 0; }
-    .nav-map { flex: 1; height: auto; min-height: 400px; }
-}
-
-
-/* =========================================================
-   Row above the map: optional tools (offline download, weather
-   layer). Each tool = one toggle; its details open under the row.
-   ========================================================= */
-
-.map-extras { padding: 10px 12px 12px; border-bottom: 1px solid var(--border-color); }
-
-.map-extras [hidden] { display: none !important; }
-
-.map-extras-bar { display: flex; flex-wrap: wrap; gap: 8px; }
-
-.map-extra-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    min-height: 38px;
-    padding: 4px 14px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--card-bg);
-    color: var(--text-primary);
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    user-select: none;
-}
-
-.map-extra-toggle input { width: 18px; height: 18px; margin: 0; accent-color: var(--accent); cursor: pointer; }
-.map-extra-toggle:has(input:checked) { border-color: var(--accent); background: var(--accent-light); }
-
-.map-extra-toggle[data-extra="offline"] { order: 1; }
-.map-extra-toggle[data-extra="weather"] { order: 2; }
-
-.map-extras-panels > .offline-panel,
-.map-extras-panels > .wx3d-panel { margin: 10px 0 0; }
-
-@media (max-width: 900px) {
-    .map-extras { padding: 8px 8px 10px; }
-    .map-extra-toggle { flex: 1 1 100%; justify-content: flex-start; }
+    .nav-map { height: max(460px, calc(100vh - 340px)); }
 }
 
 
@@ -655,14 +633,59 @@ body.nav-open { overflow: hidden; }
 
 .btn-lbl-short { display: none; }
 
-/* weather layer = full-width bar under the buttons (3D view only) */
-.map-extra-toggle[data-extra="weather"] { flex: 1 1 100%; justify-content: flex-start; min-height: 42px; }
-
-/* no visible tool (2D view) -> no empty strip */
-.map-extras:not(:has(.map-extra-toggle:not([hidden]))) { display: none; }
 
 @media (max-width: 900px) {
     .btn-lbl-full { display: none; }
     .btn-lbl-short { display: inline; font-weight: 700; direction: ltr; }
     .map-offline-btn .offline-badge { display: none; }
+}/* =========================================================
+   Host of the weather-layer panel (under the map toolbar)
+   ========================================================= */
+
+.map-extras { padding: 0 12px 12px; border-bottom: 1px solid var(--border-color); }
+.map-extras [hidden] { display: none !important; }
+.map-extras-panels > .wx3d-panel { margin: 0; }
+
+/* no visible panel -> no empty strip */
+.map-extras:not(:has(.map-extras-panels > :not([hidden]))) { display: none; }
+
+/* =========================================================
+   Map toolbar: 2D / 3D / offline / weather layer = ONE row
+   ========================================================= */
+
+.map-location-group .map-view-button.map-offline-btn { --grp: var(--tb-offline); order: 1; }
+.map-location-group .map-view-button.map-weather-btn { --grp: var(--tb-weather); order: 2; }
+.map-location-group .map-view-button[hidden] { display: none; }
+
+.btn-lbl-short { display: none; }
+
+@media (max-width: 900px) {
+    .map-extras { padding: 0 8px 10px; }
+    .map-toolbar { width: 100%; }
+    .btn-lbl-full { display: none; }
+    .btn-lbl-short { display: inline; font-weight: 700; direction: ltr; }
+    .map-offline-btn .offline-badge { display: none; }
+}
+
+
+/* =========================================================
+   Navigation: touch + pocket mode details
+   ========================================================= */
+
+/* the nav map never traps the page scroll (two fingers move / zoom it) */
+.nav-map.two-finger-map,
+.nav-map.two-finger-map * { touch-action: pan-x pan-y !important; }
+
+/* a double tap must reach the pocket screen as two clicks (no zoom) */
+.pocket-screen { touch-action: manipulation; }
+
+/* the route sheet button exists only on phones (desktop has the sidebar) */
+@media (min-width: 901px) {
+    .nav-routes-btn { display: none; }
+}
+
+/* tablets in landscape (touch, wide): pocket mode stays available */
+@media (min-width: 901px) and (pointer: coarse) {
+    .nav-actions .nav-pocket-btn { display: inline-block !important; }
+    .pocket-screen:not([hidden]) { display: flex !important; }
 }

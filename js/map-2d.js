@@ -3,8 +3,8 @@
    move / zoom the map (so the map does not trap the page).
    ========================================================= */
 
-function enableTwoFingerGestures(leafletMap, message) {
-    if (!leafletMap || !isTouchDevice()) {
+function enableTwoFingerGestures(leafletMap, message, force) {
+    if (!leafletMap || (!force && !isTouchDevice())) {
         return;
     }
 
@@ -12,6 +12,11 @@ function enableTwoFingerGestures(leafletMap, message) {
 
     // pinch (touchZoom) still pans + zooms with two fingers
     leafletMap.dragging.disable();
+    leafletMap.touchZoom.enable();
+
+    if (leafletMap.tap) {
+        leafletMap.tap.disable();
+    }
 
     el.classList.add("two-finger-map");
 

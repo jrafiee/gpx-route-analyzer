@@ -85,6 +85,7 @@
         <button type="button" class="desktop-nav-item" data-target="analysis"><span>تحلیل و مقایسه مسیرها</span></button>
         <button type="button" class="desktop-nav-item" data-target="map"><span>نقشه مسیرها</span></button>
         <button type="button" class="desktop-nav-item" data-target="weather"><span>هواشناسی قله</span></button>
+        <button type="button" class="desktop-nav-item" data-target="navigation"><span>ناوبری</span></button>
         <button type="button" class="desktop-nav-item" data-target="guide"><span>راهنما و درباره ما</span></button>
     </nav>
 
@@ -426,7 +427,13 @@
 
             <div id="analysis-charts-wrapper">
                 <div id="elevation-container" class="chart-container">
-                    <div class="chart-title">پروفایل ارتفاعی مسیرها</div>
+                    <div class="chart-title chart-title-row">
+                        <span>پروفایل ارتفاعی مسیرها</span>
+                        <label class="chart-option chart-title-option">
+                            <input type="checkbox" id="option-summit-center" onchange="setSummitCenter(this.checked)">
+                            <span>قله در مرکز</span>
+                        </label>
+                    </div>
                     <div class="chart-toolbar">
                         <div class="chart-mode-buttons">
                             <button type="button" id="chart-mode-elevation" class="map-view-button active" onclick="setElevationChartMode('elevation')">
@@ -441,10 +448,6 @@
                             <button type="button" id="chart-mode-ordered" class="map-view-button" onclick="setElevationChartMode('ordered')">
                                 پروفایل ترتیبی
                             </button>
-                            <label class="chart-option">
-                                <input type="checkbox" id="option-summit-center" onchange="setSummitCenter(this.checked)">
-                                <span>قله در مرکز</span>
-                            </label>
                         </div>
                     </div>
                     <div id="elevation-chart"></div>
@@ -488,13 +491,16 @@
 
             <div class="map-card-wrapper" id="map-container">
                 <div class="map-title-row">
-                    <div class="map-view-buttons">
+                    <div class="map-toolbar">
+                        <div class="map-view-buttons">
                         <button type="button" id="map-2d-button" aria-label="نقشه دوبعدی" title="نقشه دوبعدی" class="map-view-button active" onclick="show2DMap()">
                             <svg class="ico" aria-hidden="true"><use href="#i-map"/></svg> <span class="btn-lbl-full">نقشه دوبعدی</span><span class="btn-lbl-short">2D</span>
                         </button>
                         <button type="button" id="map-3d-button" aria-label="زمین سه‌بعدی" title="زمین سه‌بعدی" class="map-view-button" onclick="show3DMap()">
                             <svg class="ico" aria-hidden="true"><use href="#i-mountain"/></svg> <span class="btn-lbl-full">زمین سه‌بعدی</span><span class="btn-lbl-short">3D</span>
                         </button>
+                    </div>
+                        <div class="map-location-group"></div>
                     </div>
 
                     <div class="map-direction-options" role="radiogroup" aria-label="جهت مسیر">
@@ -520,26 +526,30 @@
             </div>
         </section>
 
-        <!-- SECTION 4: هواشناسی قله -->
-        <section id="section-weather" class="app-section" aria-labelledby="weather-heading">
+        <!-- SECTION: ناوبری (GPS) -->
+        <section id="section-navigation" class="app-section" aria-labelledby="navigation-heading">
             <div class="section-header-row">
                 <div class="section-title-group">
-                    <span class="section-icon"><svg class="ico" aria-hidden="true"><use href="#i-cloud-sun"/></svg></span>
+                    <span class="section-icon"><svg class="ico" aria-hidden="true"><use href="#i-compass"/></svg></span>
                     <div>
-                        <h2 id="weather-heading" class="section-title">هواشناسی قله</h2>
-                        <p class="section-subtitle">پیش‌بینی نقطه‌ای ۷ روزه و ساعتی در بالاترین ارتفاع هر مسیر</p>
+                        <h2 id="navigation-heading" class="section-title">ناوبری زنده</h2>
+                        <p class="section-subtitle">موقعیت GPS شما روی مسیر، انحراف از مسیر و میزان پیشروی</p>
                     </div>
                 </div>
-                <div class="section-header-actions">
-                    <a href="https://irimo.ir/far/wd/10823-%D8%A8%D9%88%D9%84%D8%AA%D9%86-%DA%A9%D9%88%D9%87%D8%B3%D8%AA%D8%A7%D9%86.html" class="calculations-link" target="_blank" rel="noopener noreferrer">
+            </div>
+            <div id="nav-screen-slot"></div>
+        </section>
+
+        <!-- SECTION 4: هواشناسی قله -->
+        <section id="section-weather" class="app-section" aria-labelledby="weather-heading">
+            <div class="section-header-row weather-header">
+                <span class="section-icon"><svg class="ico" aria-hidden="true"><use href="#i-cloud-sun"/></svg></span>
+                <h2 id="weather-heading" class="section-title">هواشناسی قله</h2>
+                <a href="https://irimo.ir/far/wd/10823-%D8%A8%D9%88%D9%84%D8%AA%D9%86-%DA%A9%D9%88%D9%87%D8%B3%D8%AA%D8%A7%D9%86.html" class="calculations-link weather-bulletin-link" target="_blank" rel="noopener noreferrer">
                         <svg class="ico" aria-hidden="true"><use href="#i-mountain"/></svg>
                         <span>بولتن کوهستان</span>
                     </a>
-                    <button type="button" class="workspace-trigger-btn workspace-trigger">
-                        <span>مدیریت مسیرها</span>
-                        <span class="route-count-badge badge-zero">۰</span>
-                    </button>
-                </div>
+                <p class="section-subtitle">پیش‌بینی نقطه‌ای ۷ روزه و ساعتی در بالاترین ارتفاع هر مسیر</p>
             </div>
 
             <div id="weather-container" class="weather-container">
@@ -614,6 +624,10 @@
         <button type="button" class="bottom-nav-item" data-target="weather">
             <span class="bottom-nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-cloud-sun"/></svg></span>
             <span class="bottom-nav-label">هواشناسی</span>
+        </button>
+        <button type="button" class="bottom-nav-item" data-target="navigation">
+            <span class="bottom-nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-compass"/></svg></span>
+            <span class="bottom-nav-label">ناوبری</span>
         </button>
         <button type="button" class="bottom-nav-item" data-target="guide">
             <span class="bottom-nav-icon"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg></span>

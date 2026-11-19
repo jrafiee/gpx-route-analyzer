@@ -39,7 +39,6 @@
     let navRouteLine = null;
     let navOffLine = null;
     let navTrackedName = null;
-    let navHistoryPushed = false;
     let wakeLock = null;
     let audioCtx = null;
     let lastPocketTap = 0;
@@ -101,12 +100,7 @@
     }
 
     function updateButtons() {
-        const nav = document.getElementById("user-location-button");
-
-        if (nav) {
-            nav.classList.toggle("active", navOpen);
-        }
-
+        syncNavToggle();
         updatePanel();
     }
 
@@ -187,9 +181,10 @@
 
     function onError(error) {
         if (error.code === 1) {
-            stopTracking();
-
-            setStatus("دسترسی به موقعیت داده نشد. اجازه را در تنظیمات مرورگر فعال کنید.");
+            stopNav(
+                "دسترسی به موقعیت داده نشد",
+                "اجازه را در تنظیمات مرورگر فعال کنید."
+            );
 
             return;
         }
@@ -626,7 +621,9 @@
 
 
     function createNavScreen() {
-        if (document.getElementById("nav-screen")) {
+        const slot = document.getElementById("nav-screen-slot");
+
+        if (!slot || document.getElementById("nav-screen")) {
             return;
         }
 
@@ -634,12 +631,11 @@
 
         screen.id = "nav-screen";
         screen.className = "nav-screen";
-        screen.hidden = true;
 
         screen.innerHTML = `
 
             <div class="nav-top">
-                <div class="nav-title">🧭 ناوبری</div>
+                <div class="nav-title">🧭 ناوبری زنده</div>
                 <div class="nav-tools">
                     <button id="nav-font-minus" type="button" class="nav-btn"
                             title="کوچک‌تر کردن نوشته" aria-label="کوچک‌تر کردن نوشته">A−</button>
@@ -649,10 +645,12 @@
                             aria-pressed="false">☀️ آفتاب</button>
                 </div>
                 <div class="nav-actions">
+                    <button id="nav-routes-btn" type="button"
+                            class="nav-btn nav-routes-btn">📂 مسیرها</button>
+                    <button id="nav-toggle-btn" type="button"
+                            class="nav-btn nav-start" aria-pressed="false">▶ شروع ناوبری</button>
                     <button id="nav-pocket-btn" type="button"
                             class="nav-btn nav-pocket-btn">🔒 حالت جیب</button>
-                    <button id="nav-close-btn" type="button"
-                            class="nav-btn nav-close">✕ خروج</button>
                 </div>
             </div>
 
@@ -660,7 +658,7 @@
                 <div id="nav-status-dir" class="nav-dir-badge" hidden></div>
                 <div class="nav-status-row" dir="ltr">
                     <span id="nav-status-arrow" class="nav-status-arrow" aria-hidden="true" hidden></span>
-                    <div id="nav-status-main" class="nav-status-main" dir="rtl">در حال یافتن موقعیت...</div>
+                    <div id="nav-status-main" class="nav-status-main" dir="rtl"></div>
                 </div>
                 <div id="nav-status-sub" class="nav-status-sub"></div>
             </div>
@@ -690,15 +688,30 @@
 
         `;
 
-        document.body.appendChild(screen);
+        slot.appendChild(screen);
 
         createPanel();
 
         const on = (id, handler) =>
             document.getElementById(id).addEventListener("click", handler);
 
-        on("nav-close-btn", () => closeNav(false));
-        on("nav-pocket-btn", openPocket);
+        on("nav-toggle-btn", () => { if (navOpen) { stopNav(); } else { startNav(); } });
+        on("nav-routes-btn", () => {
+            if (typeof openRouteWorkspace === "function") {
+                openRouteWorkspace();
+            }
+        });
+
+        /* pocket mode needs a running navigation: start it first if needed */
+        on("nav-pocket-btn", () => {
+            if (!navOpen) {
+                startNav();
+            }
+
+            if (navOpen) {
+                openPocket();
+            }
+        });
         on("nav-font-minus", () => changeNavFont(-1));
         on("nav-font-plus", () => changeNavFont(1));
         on("nav-sun-btn", toggleNavLight);
@@ -741,12 +754,6 @@
 
         document.body.appendChild(pocket);
 
-        window.addEventListener("popstate", () => {
-            if (navOpen) {
-                closeNav(true);
-            }
-        });
-
         document.addEventListener("visibilitychange", () => {
             if (!document.hidden && navOpen) {
                 requestWakeLock();
@@ -786,62 +793,127 @@
     }
 
 
-    function openNav() {
+    function syncNavToggle() {
+        const button = document.getElementById("nav-toggle-btn");
+
+        if (button) {
+            button.classList.toggle("active", navOpen);
+            button.setAttribute("aria-pressed", navOpen ? "true" : "false");
+            button.textContent = navOpen ? "■ توقف ناوبری" : "▶ شروع ناوبری";
+        }
+    }
+
+
+    /* message shown while the navigation is not running */
+
+    function showIdleStatus(main, sub) {
+        if (main) {
+            setNavStatus("wait", main, sub || "");
+            return;
+        }
+
+        const result = getReferenceResult();
+
+        if (!result) {
+            setNavStatus(
+                "wait",
+                "ابتدا یک مسیر انتخاب کنید",
+                "یک مسیر پیش‌فرض یا فایل GPX/KML خود را اضافه کنید."
+            );
+        } else {
+            setNavStatus(
+                "wait",
+                "ناوبری غیرفعال است",
+                "برای نمایش موقعیت خود روی مسیر «" + result.route +
+                    "» دکمهٔ «شروع ناوبری» را بزنید."
+            );
+        }
+    }
+
+
+    function startNav() {
         if (navOpen) {
             return;
         }
 
         navOpen = true;
 
-        document.getElementById("nav-screen").hidden = false;
-        document.body.classList.add("nav-open");
-
-        try {
-            history.pushState({ navScreen: true }, "");
-            navHistoryPushed = true;
-        } catch (e) {
-            navHistoryPushed = false;
-        }
+        initNavMap();
 
         if (state.watchId === null) {
             startTracking();
         }
 
-        initNavMap();
-
-        requestWakeLock();
-
-        updateButtons();
-    }
-
-
-    function closeNav(fromPopState) {
-        if (!navOpen) {
+        // geolocation not available: startTracking already showed why
+        if (state.watchId === null) {
+            navOpen = false;
+            syncNavToggle();
             return;
         }
 
+        requestWakeLock();
+
+        syncNavToggle();
+
+        updatePanel();
+    }
+
+
+    function stopNav(main, sub) {
         closePocket();
 
         navOpen = false;
 
-        document.getElementById("nav-screen").hidden = true;
-        document.body.classList.remove("nav-open");
-
         stopTracking();
-
-        destroyNavMap();
 
         releaseWakeLock();
 
-        if (navHistoryPushed) {
-            navHistoryPushed = false;
+        syncNavToggle();
 
-            if (!fromPopState) {
-                history.back();
-            }
+        showIdleStatus(main, sub);
+
+        if (navMap) {
+            drawNavRoute(activeSection === "navigation");
+        }
+    }
+
+
+    /* routes changed / section opened */
+
+    function refreshNav() {
+        if (!document.getElementById("nav-screen")) {
+            return;
         }
 
-        updateButtons();
+        const result = getReferenceResult();
+
+        if (navMap && navTrackedName !== (result ? result.id : null)) {
+            drawNavRoute(activeSection === "navigation");
+        }
+
+        if (navOpen) {
+            updatePanel();
+        } else {
+            showIdleStatus();
+        }
+    }
+
+
+    function onSectionChange(sectionId) {
+        if (sectionId !== "navigation") {
+            return;
+        }
+
+        setTimeout(() => {
+            if (!navMap) {
+                initNavMap();
+            } else {
+                navMap.invalidateSize();
+                drawNavRoute(true);
+            }
+
+            refreshNav();
+        }, 60);
     }
 
 
@@ -963,7 +1035,7 @@
     /* ---------- pocket mode ---------- */
 
     function openPocket() {
-        if (!navOpen || window.innerWidth > 900) {
+        if (!navOpen || (window.innerWidth > 900 && !isTouchDevice())) {
             return;
         }
 
@@ -1005,7 +1077,13 @@
             attributionControl: false
         });
 
-        enableTwoFingerGestures(navMap);
+        /* one finger scrolls the page, two fingers move / zoom the map */
+        enableTwoFingerGestures(
+            navMap,
+            null,
+            isTouchDevice() ||
+                (navigator.maxTouchPoints > 0 && window.innerWidth <= 900)
+        );
 
         const baseLayers = createBaseLayers();
 
@@ -1284,59 +1362,18 @@
 
 
     /* =====================================================
-       Toolbar button
+       Init (the navigation is its own section: #section-navigation)
        ===================================================== */
 
-    function createButtons() {
-        const mapButtons = document.querySelector("#map-container .map-view-buttons");
-
-        if (!mapButtons || document.getElementById("user-location-button")) {
-            return;
-        }
-
-        let toolbar = mapButtons.parentElement;
-
-        if (!toolbar.classList.contains("map-toolbar")) {
-            toolbar = document.createElement("div");
-
-            toolbar.className = "map-toolbar";
-
-            mapButtons.parentNode.insertBefore(toolbar, mapButtons);
-
-            toolbar.appendChild(mapButtons);
-        }
-
-        const group = document.createElement("div");
-
-        group.className = "map-location-group";
-
-        const nav = document.createElement("button");
-
-        nav.id = "user-location-button";
-        nav.type = "button";
-        nav.className = "map-view-button";
-        nav.textContent = "🧭 ناوبری";
-        nav.addEventListener("click", openNav);
-
-        const status = document.createElement("span");
-
-        status.id = "user-location-status";
-        status.className = "user-location-status";
-
-        group.appendChild(nav);
-
-        toolbar.appendChild(group);
-        toolbar.appendChild(status);
-
-        createNavScreen();
-    }
-
-
     function initialize() {
-        createButtons();
+        createNavScreen();
 
-        // the panel is only refreshed when routes change
-        hookFunction("drawRoutesOnMap", updatePanel);
+        syncNavToggle();
+
+        showIdleStatus();
+
+        hookFunction("setActiveSection", onSectionChange);
+        hookFunction("redrawAllCharts", refreshNav);
     }
 
 

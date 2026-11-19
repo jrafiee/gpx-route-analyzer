@@ -2173,22 +2173,28 @@
 
         const extras = typeof getMapExtras === "function" ? getMapExtras() : null;
 
-        if (!extras || document.getElementById("wx3d-panel")) {
+        const group = document.querySelector("#map-container .map-location-group");
+
+        if (!extras || !group || document.getElementById("wx3d-panel")) {
             return;
         }
 
-        /* the only always-visible control: one checkbox in the row above the map
-           (shown only in the 3D view) */
-        const toggle = document.createElement("label");
+        /* the weather-layer button sits in the map toolbar next to
+           2D / 3D / offline (shown only in the 3D view) */
+        const toggle = document.createElement("button");
 
-        toggle.className = "map-extra-toggle";
-        toggle.dataset.extra = "weather";
+        toggle.type = "button";
+        toggle.id = "wx3d-enable";
+        toggle.className = "map-view-button map-weather-btn";
         toggle.hidden = true;
+        toggle.title = "نمایش لایهٔ هواشناسی روی نقشهٔ سه‌بعدی";
+        toggle.setAttribute("aria-pressed", "false");
         toggle.innerHTML =
-            '<input type="checkbox" id="wx3d-enable" autocomplete="off">' +
-            '<span>نمایش لایهٔ هواشناسی</span>';
+            '<span aria-hidden="true">🌦️</span>' +
+            '<span class="btn-lbl-full">لایهٔ هواشناسی</span>' +
+            '<span class="btn-lbl-short">هوا</span>';
 
-        extras.querySelector("#map-extras-bar").appendChild(toggle);
+        group.appendChild(toggle);
 
         dom.toggle = toggle;
 
@@ -2266,12 +2272,17 @@
         dom.body = panel.querySelector("#wx3d-body");
         dom.modeButtons = Array.from(panel.querySelectorAll(".wx3d-mode"));
         dom.modes = panel.querySelector("#wx3d-modes");
-        dom.enable = toggle.querySelector("#wx3d-enable");
+        dom.enable = toggle;
 
-        dom.enable.addEventListener("change", () => {
+        dom.enable.addEventListener("click", () => {
 
-            // checking the box shows the temperature layer right away
-            setMode(dom.enable.checked ? (state.lastMode || "temperature") : "off");
+            const on = !dom.enable.classList.contains("active");
+
+            dom.enable.classList.toggle("active", on);
+            dom.enable.setAttribute("aria-pressed", on ? "true" : "false");
+
+            // switching on shows the temperature layer right away
+            setMode(on ? (state.lastMode || "temperature") : "off");
 
             syncModeVisibility();
 
@@ -2338,7 +2349,7 @@
         }
 
         if (dom.panel) {
-            dom.panel.hidden = !(is3D && dom.enable && dom.enable.checked);
+            dom.panel.hidden = !(is3D && dom.enable && dom.enable.classList.contains("active"));
         }
 
     }

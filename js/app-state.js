@@ -12,7 +12,7 @@ const ROUTE_COLORS = [
 let selectedFiles = [];
 let analysisResults = [];
 let draggedItem = null;
-let activeSection = "home"; // "home" | "guide" | "analysis" | "map" | "weather"
+let activeSection = "home"; // "home" | "guide" | "analysis" | "map" | "navigation" | "weather"
 let isWorkspaceOpen = false;
 
 /* Map state */
@@ -86,7 +86,6 @@ function getMapExtras() {
     root.id = "map-extras";
     root.className = "map-extras";
     root.innerHTML =
-        '<div class="map-extras-bar" id="map-extras-bar"></div>' +
         '<div class="map-extras-panels" id="map-extras-panels"></div>';
 
     const anchor = container.querySelector(".map-title-row");
@@ -204,7 +203,7 @@ function setMapDirection(mode) {
    Section navigation
    ========================================================= */
 
-const APP_SECTIONS = ["home", "guide", "analysis", "map", "weather"];
+const APP_SECTIONS = ["home", "guide", "analysis", "map", "navigation", "weather"];
 
 function markActiveNav(selector, sectionId) {
     document.querySelectorAll(selector).forEach(item => {

@@ -1230,3 +1230,29 @@ body .maplibregl-popup-anchor-right .maplibregl-popup-tip { border-left-color: v
     .map3d-base-lbl { display: none; }
     .map3d-base-ico { margin: 0; }
 }
+
+
+/* =========================================================
+   Weather section header:
+   row 1 = icon + title + (left end) bulletin button
+   row 2 = description
+   ========================================================= */
+
+#section-weather .weather-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "icon title link" "icon sub sub";
+    align-items: center;
+    column-gap: 10px;
+    row-gap: 2px;
+}
+
+.weather-header .section-icon { grid-area: icon; }
+.weather-header .section-title { grid-area: title; min-width: 0; }
+.weather-header .weather-bulletin-link { grid-area: link; white-space: nowrap; }
+.weather-header .section-subtitle { grid-area: sub; margin: 0; }
+
+@media (max-width: 900px) {
+    .weather-bulletin-link { gap: 4px; padding: 5px 8px; font-size: 11px; }
+    .weather-bulletin-link .ico { width: 13px; height: 13px; }
+}

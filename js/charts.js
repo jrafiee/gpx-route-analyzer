@@ -60,60 +60,6 @@ function applyTouchChartMode(layout, containerId, zoomable) {
 
 }
 
-function syncChartZoomToggle() {
-
-    const btn = document.getElementById("chart-zoom-toggle");
-
-    if (!btn) {
-        return;
-    }
-
-    const on = chartTouchState.zoom;
-
-    btn.classList.toggle("active", on);
-
-    btn.textContent = on
-        ? "✋ پایان زوم (برگشت به اسکرول)"
-        : "🔍 فعال‌سازی زوم نمودار";
-
-}
-
-function ensureChartZoomToggle() {
-
-    if (!isTouchDevice()) {
-        return;
-    }
-
-    if (document.getElementById("chart-zoom-toggle")) {
-        syncChartZoomToggle();
-        return;
-    }
-
-    const toolbar =
-        document.querySelector("#elevation-container .chart-mode-buttons");
-
-    if (!toolbar) {
-        return;
-    }
-
-    const btn = document.createElement("button");
-
-    btn.type = "button";
-    btn.id = "chart-zoom-toggle";
-    btn.className = "map-view-button";
-
-    btn.addEventListener("click", () => {
-        chartTouchState.zoom = !chartTouchState.zoom;
-        syncChartZoomToggle();
-        redrawElevationChart();
-    });
-
-    toolbar.appendChild(btn);
-
-    syncChartZoomToggle();
-
-}
-
 /* =========================================================
    Shared style helpers
    ========================================================= */
@@ -593,8 +539,6 @@ function redrawElevationChart() {
 
 
 function syncElevationChartControls() {
-
-    ensureChartZoomToggle();
 
     const state = elevationChartState;
 

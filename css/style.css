@@ -893,7 +893,7 @@ body .app-topbar .calculations-link {
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
 }
 
-.bottom-nav-grid { display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; height: 100%; }
+.bottom-nav-grid { display: grid; grid-template-columns: repeat(6, 1fr); align-items: center; height: 100%; }
 
 .bottom-nav-item {
     display: flex;
@@ -943,7 +943,6 @@ body .app-topbar .calculations-link {
 .chart-touch-zoom,
 .chart-touch-zoom * { touch-action: none; }
 
-#chart-zoom-toggle { grid-column: 1 / -1; }
 
 .leaflet-container.two-finger-map { touch-action: pan-x pan-y !important; }
 

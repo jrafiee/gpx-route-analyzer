@@ -192,3 +192,57 @@
 @media (prefers-reduced-motion: reduce) {
     body .app-topbar .workspace-trigger-btn:has(.badge-zero) { animation: none; }
 }
+
+
+/* bottom bar: 5 items on phones, so the icon pill can be wider */
+@media (max-width: 430px) {
+    .bottom-nav-icon { width: 52px !important; }
+}
+
+
+/* =========================================================
+   Phone: the navigation tab is a full-screen page; only the
+   bottom menu stays (top bar and section header are hidden)
+   ========================================================= */
+
+@media (max-width: 900px) {
+
+    body[data-section="navigation"] { overflow: hidden; }
+
+    body[data-section="navigation"] .app-topbar { display: none; }
+    body[data-section="navigation"] .app-layout { min-height: 0; }
+    body[data-section="navigation"] .main-content { padding: 0 !important; }
+
+    #section-navigation { animation: none; }
+    #section-navigation .section-header-row { display: none; }
+
+    #section-navigation .nav-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 60px;                 /* height of the bottom menu */
+        z-index: 1020;               /* below the bottom menu (1030) and the route sheet */
+        padding-top: env(safe-area-inset-top, 0px);
+        border: 0;
+        border-radius: 0;
+    }
+
+    #section-navigation .nav-body {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+
+/* =========================================================
+   Phone: the guide tab is removed from the bottom bar
+   (the guide is still reachable from the home page button)
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .bottom-nav-item[data-target="guide"] { display: none; }
+    .bottom-nav-grid { grid-template-columns: repeat(5, 1fr); }
+}
