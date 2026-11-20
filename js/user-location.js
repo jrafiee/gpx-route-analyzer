@@ -651,6 +651,8 @@
                             class="nav-btn nav-start" aria-pressed="false">▶ شروع ناوبری</button>
                     <button id="nav-pocket-btn" type="button"
                             class="nav-btn nav-pocket-btn">🔒 حالت جیب</button>
+                    <button id="nav-sms-btn" type="button"
+                            class="nav-btn nav-sms-btn">📩 ارسال موقعیت</button>
                 </div>
             </div>
 
@@ -681,6 +683,21 @@
                     <div class="nav-sens">
                         <div class="nav-sens-title">حساسیت هشدار انحراف از مسیر</div>
                         <div id="nav-sens-buttons" class="nav-sens-buttons"></div>
+                    </div>
+                    <div class="nav-sms">
+                        <div class="nav-sms-title">مخاطبین اضطراری (گیرندگان پیامک موقعیت)</div>
+                        <div id="nav-sms-list" class="nav-sms-list"></div>
+                        <div class="nav-sms-row">
+                            <input id="nav-sms-name" class="nav-sms-input nav-sms-name" type="text"
+                                   maxlength="40" autocomplete="off"
+                                   placeholder="نام (اختیاری)" aria-label="نام مخاطب">
+                            <input id="nav-sms-number" class="nav-sms-input" type="tel"
+                                   inputmode="tel" dir="ltr" autocomplete="off"
+                                   placeholder="09123456789" aria-label="شمارهٔ مخاطب">
+                            <button id="nav-sms-add" type="button" class="nav-btn">＋ افزودن</button>
+                        </div>
+                        <button id="nav-sms-pick" type="button" class="nav-btn nav-sms-pick">📒 انتخاب از دفترچه تلفن</button>
+                        <div id="nav-sms-info" class="nav-sms-info"></div>
                     </div>
                 </div>
 
@@ -715,6 +732,29 @@
         on("nav-font-minus", () => changeNavFont(-1));
         on("nav-font-plus", () => changeNavFont(1));
         on("nav-sun-btn", toggleNavLight);
+        on("nav-sms-btn", sendLocationSms);
+        on("nav-sms-add", addContactFromInputs);
+        on("nav-sms-pick", pickContacts);
+
+        ["nav-sms-name", "nav-sms-number"].forEach(id => {
+            document.getElementById(id).addEventListener("keydown", event => {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    addContactFromInputs();
+                }
+            });
+        });
+
+        const toast = document.createElement("div");
+
+        toast.id = "nav-toast";
+        toast.className = "nav-toast";
+        toast.setAttribute("role", "alert");
+        toast.hidden = true;
+
+        screen.appendChild(toast);
+
+        renderContacts();
 
         applyNavAppearance();
 
@@ -1029,6 +1069,311 @@
         } catch (e) { /* fall through to beeps */ }
 
         beep(beepCount);
+    }
+
+
+    /* ---------- emergency SMS (location) ---------- */
+
+    const SMS_CONTACTS_KEY = "emergency-contacts";
+    const SMS_LEGACY_KEY = "emergency-number";
+    const SMS_MAX_CONTACTS = 10;
+
+    let toastTimer = null;
+
+    function showToast(text, kind) {
+        const toast = document.getElementById("nav-toast");
+
+        if (!toast) {
+            return;
+        }
+
+        toast.textContent = text;
+        toast.className = "nav-toast" + (kind ? " " + kind : "");
+        toast.hidden = false;
+
+        clearTimeout(toastTimer);
+
+        toastTimer = setTimeout(() => { toast.hidden = true; }, 5000);
+    }
+
+    /* Persian / Arabic digits -> Latin, spaces and separators removed */
+    function normalizePhone(value) {
+        return String(value || "")
+            .replace(/[\u06F0-\u06F9]/g, d => String(d.charCodeAt(0) - 0x06F0))
+            .replace(/[\u0660-\u0669]/g, d => String(d.charCodeAt(0) - 0x0660))
+            .replace(/[\s\-().]/g, "");
+    }
+
+    function isValidPhone(value) {
+        return /^\+?\d{5,15}$/.test(value);
+    }
+
+    /* contacts: [{ name, number }] (the old single number is migrated) */
+
+    function getContacts() {
+        let list = [];
+
+        try {
+            list = JSON.parse(readNavPref(SMS_CONTACTS_KEY));
+        } catch (e) { /* ignore */ }
+
+        if (!Array.isArray(list)) {
+            list = [];
+        }
+
+        const legacy = readNavPref(SMS_LEGACY_KEY);
+
+        if (list.length === 0 && legacy) {
+            list = [{ name: "", number: legacy }];
+
+            writeNavPref(SMS_CONTACTS_KEY, JSON.stringify(list));
+
+            try { localStorage.removeItem(SMS_LEGACY_KEY); } catch (e) { /* ignore */ }
+        }
+
+        return list.filter(item => item && isValidPhone(String(item.number || "")));
+    }
+
+    function saveContacts(list) {
+        writeNavPref(SMS_CONTACTS_KEY, JSON.stringify(list));
+
+        renderContacts();
+    }
+
+    /* returns: "added" | "duplicate" | "invalid" | "full" */
+
+    function addContact(name, rawNumber) {
+        const number = normalizePhone(rawNumber);
+
+        if (!isValidPhone(number)) {
+            return "invalid";
+        }
+
+        const list = getContacts();
+
+        if (list.some(item => item.number === number)) {
+            return "duplicate";
+        }
+
+        if (list.length >= SMS_MAX_CONTACTS) {
+            return "full";
+        }
+
+        list.push({ name: String(name || "").trim(), number });
+
+        saveContacts(list);
+
+        return "added";
+    }
+
+    function removeContact(number) {
+        saveContacts(getContacts().filter(item => item.number !== number));
+    }
+
+    function renderContacts() {
+        const holder = document.getElementById("nav-sms-list");
+        const info = document.getElementById("nav-sms-info");
+
+        if (!holder) {
+            return;
+        }
+
+        const list = getContacts();
+
+        holder.innerHTML = "";
+
+        list.forEach(item => {
+            const row = document.createElement("div");
+
+            row.className = "nav-sms-item";
+
+            const text = document.createElement("div");
+
+            text.className = "nav-sms-item-text";
+
+            if (item.name) {
+                const name = document.createElement("span");
+
+                name.className = "nav-sms-item-name";
+                name.textContent = item.name;
+
+                text.appendChild(name);
+            }
+
+            const number = document.createElement("span");
+
+            number.className = "nav-sms-item-number";
+            number.dir = "ltr";
+            number.textContent = item.number;
+
+            text.appendChild(number);
+
+            const remove = document.createElement("button");
+
+            remove.type = "button";
+            remove.className = "nav-sms-remove";
+            remove.title = "حذف";
+            remove.setAttribute("aria-label", "حذف " + (item.name || item.number));
+            remove.textContent = "×";
+
+            remove.addEventListener("click", () => removeContact(item.number));
+
+            row.appendChild(text);
+            row.appendChild(remove);
+
+            holder.appendChild(row);
+        });
+
+        if (info) {
+            info.textContent = list.length > 0
+                ? list.length + " شمارهٔ ثبت‌شده"
+                : "هنوز شماره‌ای ثبت نشده است.";
+
+            info.classList.toggle("warn", list.length === 0);
+        }
+    }
+
+    function reportAddResult(result) {
+        if (result === "added") {
+            showToast("شماره اضافه شد.", "ok");
+        } else if (result === "duplicate") {
+            showToast("این شماره قبلاً ثبت شده است.", "warn");
+        } else if (result === "full") {
+            showToast("حداکثر " + SMS_MAX_CONTACTS + " شماره قابل ثبت است.", "warn");
+        } else {
+            showToast("شمارهٔ واردشده معتبر نیست.", "warn");
+        }
+    }
+
+    function addContactFromInputs() {
+        const nameInput = document.getElementById("nav-sms-name");
+        const numberInput = document.getElementById("nav-sms-number");
+
+        if (!normalizePhone(numberInput.value)) {
+            showToast("شماره‌ای وارد نشده است.", "warn");
+            numberInput.focus();
+            return;
+        }
+
+        const result = addContact(nameInput.value, numberInput.value);
+
+        reportAddResult(result);
+
+        if (result === "added") {
+            nameInput.value = "";
+            numberInput.value = "";
+        } else if (result === "invalid") {
+            numberInput.focus();
+        }
+    }
+
+    /*
+     * Phone book: Contact Picker API (Chrome on Android, HTTPS).
+     * iPhone / desktop browsers do not support it: numbers are typed.
+     */
+
+    async function pickContacts() {
+        if (!("contacts" in navigator) || !navigator.contacts.select) {
+            showToast(
+                "انتخاب از دفترچه تلفن فقط در Chrome اندروید پشتیبانی می‌شود؛ شماره را دستی وارد کنید.",
+                "warn"
+            );
+            return;
+        }
+
+        try {
+            const picked = await navigator.contacts.select(["name", "tel"], { multiple: true });
+
+            let added = 0;
+            let skipped = 0;
+
+            picked.forEach(contact => {
+                const name = contact.name && contact.name[0] ? contact.name[0] : "";
+                const tel = contact.tel && contact.tel[0] ? contact.tel[0] : "";
+
+                if (addContact(name, tel) === "added") {
+                    added++;
+                } else {
+                    skipped++;
+                }
+            });
+
+            if (picked.length === 0) {
+                return;
+            }
+
+            showToast(
+                added + " شماره اضافه شد" +
+                    (skipped > 0 ? " (" + skipped + " مورد تکراری یا نامعتبر)" : "."),
+                added > 0 ? "ok" : "warn"
+            );
+        } catch (e) {
+            if (e && e.name !== "AbortError") {
+                showToast("دسترسی به دفترچه تلفن ممکن نشد.", "warn");
+            }
+        }
+    }
+
+    /*
+     * Opens the SMS app with the numbers and the text filled in
+     * (browsers cannot send an SMS silently: the user taps "send").
+     * The raw coordinates are in the text because a map link does
+     * not open without internet.
+     */
+
+    function sendLocationSms() {
+        const contacts = getContacts();
+
+        if (contacts.length === 0) {
+            showToast("شماره‌ای ثبت نشده است. ابتدا یک مخاطب اضطراری اضافه کنید.", "warn");
+
+            const input = document.getElementById("nav-sms-number");
+
+            if (input) {
+                input.scrollIntoView({ block: "center", behavior: "smooth" });
+                input.focus();
+            }
+
+            return;
+        }
+
+        const p = state.position;
+
+        if (!p) {
+            showToast(
+                state.watchId === null
+                    ? "ابتدا «شروع ناوبری» را بزنید تا موقعیت دریافت شود."
+                    : "هنوز موقعیت GPS دریافت نشده است؛ کمی صبر کنید.",
+                "warn"
+            );
+
+            return;
+        }
+
+        const lat = p.lat.toFixed(6);
+        const lon = p.lon.toFixed(6);
+
+        const parts = [
+            "موقعیت من (پاکوب)",
+            `${lat}, ${lon}`
+        ];
+
+        if (Number.isFinite(p.altitude)) {
+            parts.push("ارتفاع: " + Math.round(p.altitude) + " m");
+        }
+
+        parts.push("دقت: " + Math.round(p.accuracy) + " m");
+        parts.push(`https://maps.google.com/?q=${lat},${lon}`);
+
+        const body = parts.join("\n");
+
+        const numbers = contacts.map(item => item.number).join(",");
+
+        // Android: sms:N1,N2?body=...   iOS: sms:N1,N2&body=...
+        const separator = /iPhone|iPad|iPod/i.test(navigator.userAgent) ? "&" : "?";
+
+        window.location.href =
+            "sms:" + numbers + separator + "body=" + encodeURIComponent(body);
     }
 
 

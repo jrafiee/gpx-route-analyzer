@@ -2181,15 +2181,14 @@
 
         /* the weather-layer button sits in the map toolbar next to
            2D / 3D / offline (shown only in the 3D view) */
-        const toggle = document.createElement("button");
+        const toggle = document.createElement("label");
 
-        toggle.type = "button";
-        toggle.id = "wx3d-enable";
-        toggle.className = "map-view-button map-weather-btn";
+        toggle.id = "wx3d-enable-label";
+        toggle.className = "map-view-button map-weather-btn map-check-btn";
         toggle.hidden = true;
         toggle.title = "نمایش لایهٔ هواشناسی روی نقشهٔ سه‌بعدی";
-        toggle.setAttribute("aria-pressed", "false");
         toggle.innerHTML =
+            '<input type="checkbox" id="wx3d-enable" aria-label="لایهٔ هواشناسی">' +
             '<span aria-hidden="true">🌦️</span>' +
             '<span class="btn-lbl-full">لایهٔ هواشناسی</span>' +
             '<span class="btn-lbl-short">هوا</span>';
@@ -2272,14 +2271,13 @@
         dom.body = panel.querySelector("#wx3d-body");
         dom.modeButtons = Array.from(panel.querySelectorAll(".wx3d-mode"));
         dom.modes = panel.querySelector("#wx3d-modes");
-        dom.enable = toggle;
+        dom.enable = toggle.querySelector("#wx3d-enable");
 
-        dom.enable.addEventListener("click", () => {
+        dom.enable.addEventListener("change", () => {
 
-            const on = !dom.enable.classList.contains("active");
+            const on = dom.enable.checked;
 
-            dom.enable.classList.toggle("active", on);
-            dom.enable.setAttribute("aria-pressed", on ? "true" : "false");
+            toggle.classList.toggle("active", on);
 
             // switching on shows the temperature layer right away
             setMode(on ? (state.lastMode || "temperature") : "off");
@@ -2349,7 +2347,7 @@
         }
 
         if (dom.panel) {
-            dom.panel.hidden = !(is3D && dom.enable && dom.enable.classList.contains("active"));
+            dom.panel.hidden = !(is3D && dom.enable && dom.enable.checked);
         }
 
     }

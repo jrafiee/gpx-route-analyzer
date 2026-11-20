@@ -689,3 +689,108 @@ body.dark-mode .user-location-status { color: #aaa; }
     .nav-actions .nav-pocket-btn { display: inline-block !important; }
     .pocket-screen:not([hidden]) { display: flex !important; }
 }
+
+
+/* =========================================================
+   Navigation: emergency SMS (location) button, number card, toast
+   ========================================================= */
+
+.nav-sms-btn { border-color: #c0495a; color: #ff9aa8; }
+.nav-light .nav-sms-btn { color: #b3202f; }
+
+.nav-sms {
+    padding: 12px;
+    border: 1px solid var(--nv-line);
+    border-radius: 22px;
+    background: var(--nv-card);
+}
+
+.nav-sms-title { margin-bottom: 10px; font-size: calc(18px * var(--s)); font-weight: 600; color: var(--nv-muted); }
+.nav-sms-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.nav-sms-input {
+    flex: 1 1 160px;
+    min-width: 0;
+    min-height: 44px;
+    padding: 4px 12px;
+    border: 1px solid var(--nv-btn-line);
+    border-radius: 12px;
+    background: var(--nv-card2);
+    color: var(--nv-fg);
+    font-family: Consolas, "Courier New", monospace;
+    font-size: calc(18px * var(--s));
+    font-weight: 700;
+}
+
+.nav-sms-row .nav-btn { min-height: 44px; }
+
+.nav-sms-info { margin-top: 8px; font-size: calc(16px * var(--s)); font-weight: 600; color: var(--nv-muted); }
+.nav-sms-info.warn { color: var(--nv-warn); }
+
+.nav-toast {
+    position: absolute;
+    inset-inline: 12px;
+    bottom: 14px;
+    z-index: 30;
+    padding: 12px 16px;
+    border: 1px solid var(--nv-btn-line);
+    border-radius: 14px;
+    background: var(--nv-card2);
+    color: var(--nv-fg);
+    font-size: calc(17px * var(--s));
+    font-weight: 700;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.nav-toast[hidden] { display: none; }
+.nav-toast.warn { background: #3a2406; border-color: #f59e0b; color: #ffc25a; }
+.nav-toast.ok { background: #0c3d31; border-color: #14925f; color: #1fd18d; }
+.nav-light .nav-toast.warn { background: #fff1d6; color: #9a4f00; }
+.nav-light .nav-toast.ok { background: #e3f8ee; color: #0a7a4d; }
+
+
+/* =========================================================
+   Emergency contacts list + phone-book button
+   ========================================================= */
+
+.nav-sms-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.nav-sms-list:empty { display: none; }
+
+.nav-sms-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 12px;
+    border: 1px solid var(--nv-btn-line);
+    border-radius: 12px;
+    background: var(--nv-card2);
+}
+
+.nav-sms-item-text { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; min-width: 0; }
+.nav-sms-item-name { font-size: calc(18px * var(--s)); font-weight: 700; color: var(--nv-fg); }
+.nav-sms-item-number { font-family: Consolas, "Courier New", monospace; font-size: calc(17px * var(--s)); font-weight: 700; color: var(--nv-accent); }
+
+.nav-sms-remove {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--nv-muted);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.nav-sms-remove:hover { background: rgba(229, 57, 53, 0.18); color: #ff6b6b; }
+
+.nav-sms-name { flex: 1 1 110px; font-family: inherit; }
+.nav-sms-pick { width: 100%; margin-top: 8px; min-height: 44px; }
+
+/* weather layer toggle on the 3D map = checkbox button */
+.map-location-group .map-view-button.map-check-btn { cursor: pointer; user-select: none; }
+.map-check-btn input { width: 18px; height: 18px; margin: 0; accent-color: #fff; cursor: pointer; }
+.map-check-btn:not(.active) input { accent-color: var(--grp); }
