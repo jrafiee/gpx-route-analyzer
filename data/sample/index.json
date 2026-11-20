@@ -1,5 +1,10 @@
 {
   "routes": [
+     {
+      "name": "کلاه قاضی",
+      "file": "data/sample/کلاه قاضی.gpx",
+      "label": "کلاه قاضی(اصفهان)"
+    },
     {
       "name": "بل",
       "file": "data/sample/قله بل.gpx",
