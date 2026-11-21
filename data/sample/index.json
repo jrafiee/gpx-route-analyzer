@@ -1,19 +1,24 @@
 {
   "routes": [
-     {
+    {
+      "name": "کلار چیرو",
+      "file": "data/sample/کلار چیرو.gpx",
+      "label": "کلار چیرو (۳۶۲۰م)"
+    },
+    {
       "name": "کلاه قاضی",
       "file": "data/sample/کلاه قاضی.gpx",
       "label": "کلاه قاضی(اصفهان)"
     },
     {
-      "name": "بل",
-      "file": "data/sample/قله بل.gpx",
-      "label": "بل (فارس)"
+      "name": "کلونچیین",
+      "file": "data/sample/کلونچیین.gpx",
+      "label": "کلونچیین"
     },
     {
-      "name": "شیرکوه",
-      "file": "data/sample/شیرکوه یزد.gpx",
-      "label": "شیر کوه (یزد)"
+      "name": "گاوکشان (گلستان)",
+      "file": "data/sample/گاوکشان (گلستان).gpx",
+      "label": "گاوکشان (گلستان)"
     },
     {
       "name": "گرگش",
@@ -21,54 +26,29 @@
       "label": "گرگش (اصفهان)"
     },
     {
-      "name": "قبله افوس",
-      "file": "data/sample/قبله افوس.gpx",
-      "label": "قله قبله (اصفهان - ۳۶۶۳م)"
+      "name": "هزار (کرمان)",
+      "file": "data/sample/هزار (کرمان).gpx",
+      "label": "هزار (کرمان)"
     },
     {
-      "name": "صفه",
-      "file": "data/sample/صفه.gpx",
-      "label": "صفه (اصفهان - ۲۲۴۰م)"
+      "name": "یخچال (همدان)",
+      "file": "data/sample/یخچال (همدان).gpx",
+      "label": "یخچال (همدان)"
     },
     {
-      "name": "کرکس",
-      "file": "data/sample/کرکس.gpx",
-      "label": "کرکس (نطنز - ۳۸۹۵م)"
+      "name": "برف انبار (قم)",
+      "file": "data/sample/برف انبار (قم).gpx",
+      "label": "برف انبار (قم)"
     },
     {
-      "name": "دالان کوه",
-      "file": "data/sample/دالان کوه.gpx",
-      "label": "دالان کوه (اصفهان - ۳۹۱۵م)"
+      "name": "بلقیس (زنجان)",
+      "file": "data/sample/بلقیس (زنجان).gpx",
+      "label": "بلقیس (زنجان)"
     },
     {
-      "name": "دماوند",
-      "file": "data/sample/دماوند.gpx",
-      "label": "دماوند - جبهه جنوبی (۵۶۱۰م)"
-    },
-    {
-      "name": "دماوند از بارگاه سوم",
-      "file": "data/sample/دماوند از بارگاه سوم.gpx",
-      "label": "دماوند از بارگاه سوم (۵۶۱۰م)"
-    },
-    {
-      "name": "سبلان",
-      "file": "data/sample/سبلان.gpx",
-      "label": "سبلان - شمال‌شرقی (۴۸۱۱م)"
-    },
-    {
-      "name": "علم کوه",
-      "file": "data/sample/علم کوه.gpx",
-      "label": "علم کوه - حصارچال (۴۸۵۰م)"
-    },
-    {
-      "name": "سنبران",
-      "file": "data/sample/سنبران.gpx",
-      "label": "سنبران اشترانکوه (۴۱۵۰م)"
-    },
-    {
-      "name": "شاهانکوه",
-      "file": "data/sample/شاهانکوه.gpx",
-      "label": "شاهانکوه فریدونشهر (۴۰۴۰م)"
+      "name": "تفتان",
+      "file": "data/sample/تفتان.gpx",
+      "label": "تفتان"
     },
     {
       "name": "حوض دال دنا",
@@ -76,14 +56,124 @@
       "label": "حوض دال دنا (۴۳۵۰م)"
     },
     {
+      "name": "خلنو (تهران)",
+      "file": "data/sample/خلنو (تهران).gpx",
+      "label": "خلنو (تهران)"
+    },
+	   {
+      "name": "توچال (تهران)",
+      "file": "data/sample/توچال.gpx",
+      "label": "توچال (تهران)"
+    },
+    {
+      "name": "دالان کوه",
+      "file": "data/sample/دالان کوه.gpx",
+      "label": "دالان کوه (اصفهان - ۳۹۱۵م)"
+    },
+    {
+      "name": "دماوند از بارگاه سوم",
+      "file": "data/sample/دماوند از بارگاه سوم.gpx",
+      "label": "دماوند از بارگاه سوم (۵۶۱۰م)"
+    },
+    {
+      "name": "دماوند",
+      "file": "data/sample/دماوند.gpx",
+      "label": "دماوند - جبهه جنوبی (۵۶۱۰م)"
+    },
+    {
+      "name": "دومیر (مرکزی)",
+      "file": "data/sample/دومیر (مرکزی).gpx",
+      "label": "دومیر (مرکزی)"
+    },
+    {
+      "name": "زلیخا (کردستان)",
+      "file": "data/sample/زلیخا (کردستان).gpx",
+      "label": "زلیخا (کردستان)"
+    },
+    {
+      "name": "سبلان",
+      "file": "data/sample/سبلان.gpx",
+      "label": "سبلان - شمال‌شرقی (۴۸۱۱م)"
+    },
+    {
+      "name": "سماموس (گیلان)",
+      "file": "data/sample/سماموس (گیلان).gpx",
+      "label": "سماموس (گیلان)"
+    },
+    {
+      "name": "سنبران گهر",
+      "file": "data/sample/سنبران گهر.gpx",
+      "label": "سنبران گهر"
+    },
+    {
+      "name": "سنبران",
+      "file": "data/sample/سنبران.gpx",
+      "label": "سنبران اشترانکوه (۴۱۵۰م)"
+    },
+    {
+      "name": "سیالان (قزوین)",
+      "file": "data/sample/سیالان (قزوین).gpx",
+      "label": "سیالان (قزوین)"
+    },
+    {
+      "name": "شاه البرز",
+      "file": "data/sample/شاه البرز.gpx",
+      "label": "شاه البرز"
+    },
+    {
       "name": "شاه کوه",
       "file": "data/sample/شاه کوه.gpx",
       "label": "شاه کوه اصفهان (۲۴۱۰م)"
     },
     {
-      "name": "کلار چیرو",
-      "file": "data/sample/کلار چیرو.gpx",
-      "label": "کلار چیرو (۳۶۲۰م)"
+      "name": "شاهانکوه",
+      "file": "data/sample/شاهانکوه.gpx",
+      "label": "شاهانکوه فریدونشهر (۴۰۴۰م)"
+    },
+    {
+      "name": "شیرکوه",
+      "file": "data/sample/شیرکوه یزد.gpx",
+      "label": "شیر کوه (یزد)"
+    },
+    {
+      "name": "صفه",
+      "file": "data/sample/صفه.gpx",
+      "label": "صفه (اصفهان - ۲۲۴۰م)"
+    },
+    {
+      "name": "علم کوه",
+      "file": "data/sample/علم کوه.gpx",
+      "label": "علم کوه - حصارچال (۴۸۵۰م)"
+    },
+    {
+      "name": "قاش مستان",
+      "file": "data/sample/قاش مستان.gpx",
+      "label": "قاش مستان"
+    },
+    {
+      "name": "قبله افوس",
+      "file": "data/sample/قبله افوس.gpx",
+      "label": "قله قبله (اصفهان - ۳۶۶۳م)"
+    },
+    {
+      "name": "بل",
+      "file": "data/sample/قله بل.gpx",
+      "label": "بل (فارس)"
+    },
+    {
+      "name": "قله سلا",
+      "file": "data/sample/قله سلا.gpx",
+      "label": "قله سلا"
+    },
+    {
+      "name": "قله کینو",
+      "file": "data/sample/قله کینو.gpx",
+      "label": "قله کینو"
+    },
+    {
+      "name": "کرکس",
+      "file": "data/sample/کرکس.gpx",
+      "label": "کرکس (نطنز - ۳۸۹۵م)"
     }
   ],
   "quick": [
