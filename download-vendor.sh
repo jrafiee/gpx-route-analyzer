@@ -21,4 +21,8 @@ M=https://unpkg.com/maplibre-gl@6.9.0/dist
 curl -fL -o vendor/maplibre/maplibre-gl.mjs $M/maplibre-gl.mjs
 curl -fL -o vendor/maplibre/maplibre-gl.css $M/maplibre-gl.css
 
+mkdir -p fonts
+curl -fL -o fonts/Vazirmatn-variable.woff2 \
+  "https://unpkg.com/vazirmatn@33.0.3/fonts/webfonts/Vazirmatn%5Bwght%5D.woff2"
+
 echo "Done. Bump VERSION in sw.js so the new files are cached."

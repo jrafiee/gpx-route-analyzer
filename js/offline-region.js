@@ -35,7 +35,7 @@
 
     /* same glyph file the 3D map uses for the route numbers */
     const GLYPH_URLS = [
-        "https://demotiles.maplibre.org/font/Open%20Sans%20Bold/0-255.pbf"
+        "https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer/resources/fonts/Arial%20Unicode%20MS%20Bold/0-255.pbf"
     ];
 
     /* the URLs must be identical to the ones in map-2d.js / map-3d.js
@@ -62,6 +62,18 @@
     };
 
     const DEM_KB = 60;
+
+    /*
+     * PMTiles: instead of thousands of tile requests, the needed byte ranges
+     * of ONE archive are fetched (HTTP Range, see js/pmtiles.js) and every tile
+     * is stored in OFFLINE_CACHE under its normal XYZ URL, so the maps and the
+     * service worker need no change.
+     * A layer uses it when it has a "pmtiles" URL (LAYERS.x.pmtiles); the
+     * server must allow CORS + Range. If the archive cannot be read, the
+     * download falls back to per-tile requests automatically.
+     * The DEM URL below must be checked; "" turns the DEM PMTiles path off.
+     */
+    const DEM_PMTILES_URL = "https://download.mapterhorn.com/planet.pmtiles";
 
     const state = {
         running: false,
@@ -302,7 +314,7 @@
 
         const tasks = [];
 
-        function add(template, z, set, n) {
+        function add(template, z, set, n, pm) {
             set.forEach(key => {
                 const x = Math.floor(key / n);
                 const y = key % n;
@@ -312,7 +324,7 @@
                     .replace(/\{x\}/g, x)
                     .replace(/\{y\}/g, y);
 
-                tasks.push({ url, key: tileKey(url), dem: false });
+                tasks.push({ url, key: tileKey(url), pm: pm || null, z, x, y });
             });
         }
 
@@ -323,13 +335,13 @@
             const top = Math.min(plan.opts.maxZoom, layer.maxZoom);
 
             for (let z = RASTER_MIN_Z; z <= top; z++) {
-                add(layer.url, z, plan.sets.get(z), Math.pow(2, z));
+                add(layer.url, z, plan.sets.get(z), Math.pow(2, z), layer.pmtiles);
             }
         });
 
         if (plan.opts.dem) {
             for (let z = DEM_MIN_Z; z <= DEM_MAX_Z; z++) {
-                add(demTemplate, z, plan.sets.get(z), Math.pow(2, z));
+                add(demTemplate, z, plan.sets.get(z), Math.pow(2, z), DEM_PMTILES_URL);
             }
         }
 
@@ -375,8 +387,116 @@
 
         for (const url of GLYPH_URLS) {
             try {
-                await fetch(url, { mode: "cors" });
+                const response = await fetch(url, { mode: "cors" });
+
+                if (response.ok) {
+                    await (await caches.open(OFFLINE_CACHE)).put(tileKey(url), response);
+                }
             } catch (e) { /* ignore */ }
+        }
+    }
+
+    /*
+     * Tasks that have a PMTiles archive: locate the tiles in the archive
+     * directories, merge neighbours into a few big Range requests, cut the
+     * tiles out and store them. Tasks that are handled get task.handled = true;
+     * anything that fails stays unhandled and is fetched tile by tile later.
+     * tick(kind): "new" = stored, "skip" = already there / not in the archive.
+     */
+    async function downloadViaPmtiles(tasks, offline, existing, tick) {
+
+        const groups = new Map();
+
+        tasks.forEach(task => {
+            if (task.pm && typeof PMTilesArchive === "function") {
+                if (!groups.has(task.pm)) {
+                    groups.set(task.pm, []);
+                }
+                groups.get(task.pm).push(task);
+            }
+        });
+
+        for (const [url, list] of groups) {
+
+            if (state.abort) {
+                return;
+            }
+
+            const pending = [];
+
+            list.forEach(task => {
+                if (existing.has(task.key)) {
+                    task.handled = true;
+                    tick("skip");
+                } else {
+                    pending.push(task);
+                }
+            });
+
+            if (pending.length === 0) {
+                continue;
+            }
+
+            try {
+
+                setStatus("در حال خواندن فهرست PMTiles…", "busy");
+
+                const archive = new PMTilesArchive(url);
+
+                await archive.open();
+
+                const { found, missing } = await archive.locateAll(pending);
+
+                missing.forEach(task => {
+                    task.handled = true;
+                    tick("skip");
+                });
+
+                const ranges = archive.planRanges(found);
+
+                setStatus("");
+
+                let next = 0;
+
+                async function worker() {
+
+                    while (!state.abort) {
+
+                        const range = ranges[next++];
+
+                        if (!range) {
+                            return;
+                        }
+
+                        try {
+
+                            const buffer = await archive.fetchRange(range.start, range.end - range.start);
+
+                            for (const item of range.items) {
+
+                                const body = await archive.tileBody(buffer, range, item);
+
+                                await offline.put(
+                                    item.task.key,
+                                    new Response(body, { headers: { "Content-Type": archive.contentType } })
+                                );
+
+                                item.task.handled = true;
+                                tick("new");
+                            }
+
+                        } catch (error) {
+                            console.warn("PMTiles range failed (per-tile fallback):", error);
+                        }
+                    }
+                }
+
+                await Promise.all(Array.from({ length: 3 }, worker));
+
+            } catch (error) {
+                console.warn("PMTiles unavailable (per-tile fallback):", url, error);
+                setStatus("");
+            }
         }
     }
 
@@ -498,6 +618,10 @@
 
                     const i = index++;
 
+                    if (i < total && tasks[i].handled) {
+                        continue;
+                    }
+
                     if (i >= total) {
                         return;
                     }
@@ -520,6 +644,19 @@
 
             setStatus("");
             setProgress(0, total, 0);
+
+            await downloadViaPmtiles(tasks, offline, existing, kind => {
+
+                done++;
+
+                if (kind === "new") {
+                    fresh++;
+                }
+
+                if (done % 8 === 0 || done === total) {
+                    setProgress(done, total, failed);
+                }
+            });
 
             await Promise.all(
                 Array.from({ length: CONCURRENCY }, () => worker())

@@ -1,5 +1,5 @@
 /* Service Worker - Mountain Route Compare */
-const VERSION = "v25";
+const VERSION = "v26";
 const SHELL_CACHE = "mrc-shell-" + VERSION;
 const RUNTIME_CACHE = "mrc-runtime-" + VERSION;
 
@@ -25,12 +25,13 @@ self.addEventListener("message", event => {
 
 const SHELL_FILES = [
   "./", "index.html", "manifest.webmanifest",
-  "css/style.css", "css/toolbar.css", "css/responsive.css", "css/weather.css", "css/offline.css",
+  "css/fonts.css", "css/style.css", "css/toolbar.css", "css/responsive.css", "css/weather.css", "css/offline.css",
   "js/app-state.js", "js/gpx-reader.js", "js/route-analysis.js", "js/charts.js",
   "js/ui.js", "js/route-selection.js", "js/speed.js", "js/map-2d.js",
   "js/map-3d.js", "js/track-geometry.js", "js/user-location.js",
-  "js/weather.js", "js/map-3d-weather.js", "js/offline-region.js", "js/app.js", "js/pwa.js",
+  "js/weather.js", "js/map-3d-weather.js", "js/pmtiles.js", "js/offline-region.js", "js/app.js", "js/pwa.js",
   "partials/calculations.html", "data/sample/index.json",
+  "fonts/Vazirmatn-variable.woff2",
   "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-maskable-512.png", "icons/favicon.svg", "icons/favicon-32.png", "icons/apple-touch-icon.png",
   // own copies of the libraries (missing files are simply skipped)
@@ -46,7 +47,7 @@ const CACHEABLE_HOSTS = ["cdn.plot.ly", "unpkg.com"];
 
 /* map tile servers */
 const TILE_HOST_RE =
-  /(^|\.)(tile\.openstreetmap\.org|tile\.opentopomap\.org|server\.arcgisonline\.com|mapterhorn\.com|demotiles\.maplibre\.org)$/;
+  /(^|\.)(tile\.openstreetmap\.org|tile\.opentopomap\.org|server\.arcgisonline\.com|mapterhorn\.com|basemaps\.arcgis\.com)$/;
 
 /* pathnames of the shell files (used to pick the right cache) */
 const SHELL_PATHS = new Set(
@@ -147,6 +148,9 @@ async function tileResponse(event, req, url) {
 self.addEventListener("fetch", event => {
   const req = event.request;
   if (req.method !== "GET") return;
+
+  // PMTiles Range requests (offline download) always go straight to the network
+  if (req.headers.has("range")) return;
 
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;

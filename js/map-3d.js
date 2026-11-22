@@ -226,7 +226,7 @@ function createMap3D() {
             version: 8,
 
             /* glyphs are required for the route-number symbol layer */
-            glyphs: "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+            glyphs: "https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer/resources/fonts/{fontstack}/{range}.pbf",
 
             sources: {
                 satellite: rasterSource(
@@ -531,7 +531,7 @@ function drawRoutesOn3DMap(results) {
             layout: {
                 "text-field": ["to-string", ["get", "number"]],
                 "text-size": 12,
-                "text-font": ["Open Sans Bold"],
+                "text-font": ["Arial Unicode MS Bold"],
                 "text-anchor": "center",
                 "text-allow-overlap": true,
                 "text-ignore-placement": true

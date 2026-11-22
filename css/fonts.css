@@ -1,0 +1,9 @@
+/* Vazirmatn (self-hosted variable font). File: fonts/Vazirmatn-variable.woff2
+   (downloaded by download-vendor.sh). Load BEFORE style.css. */
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("../fonts/Vazirmatn-variable.woff2") format("woff2");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
