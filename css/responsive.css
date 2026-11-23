@@ -246,3 +246,61 @@
     .bottom-nav-item[data-target="guide"] { display: none; }
     .bottom-nav-grid { grid-template-columns: repeat(5, 1fr); }
 }
+
+
+/* =========================================================
+   Phone header (<= 480px): nothing may sit on top of the logo.
+   The install button is not in the header on phones
+   (it appears in the guide page).
+   ========================================================= */
+
+@media (max-width: 480px) {
+    .app-topbar { gap: 8px; }
+    .brand-zone { flex: 1 1 auto; min-width: 0; gap: 8px; }
+    .brand-mark { flex: 0 0 auto; }
+    .brand-text { min-width: 0; }
+    .topbar-actions { flex: 0 0 auto; gap: 6px; }
+    .header-install-slot { display: none !important; }
+}
+
+@media (max-width: 340px) {
+    .app-topbar .route-btn-text { display: none; }
+}
+
+
+/* =========================================================
+   Touch targets: at least 44 x 44 px on phones / touch screens
+   ========================================================= */
+
+@media (max-width: 900px), (pointer: coarse) {
+    .app-topbar { padding-top: 6px; padding-bottom: 6px; }
+
+    .icon-btn,
+    .workspace-close-btn { width: 44px; height: 44px; }
+
+    .workspace-trigger-btn { min-height: 44px; }
+
+    .selected-route { gap: 4px; padding: 4px 6px; }
+
+    .selected-route .route-action,
+    .remove-route { width: 44px; height: 44px; }
+
+    .route-download-all { min-width: 44px; min-height: 44px; padding: 0 12px; }
+
+    #default-routes label { min-height: 44px; }
+    #default-routes input { width: 20px; height: 20px; }
+
+    .route-search-input { min-height: 44px; }
+
+    .map-view-buttons .map-view-button,
+    .map-location-group .map-view-button,
+    .chart-mode-buttons .map-view-button,
+    .chart-mode-buttons .chart-option { min-height: 44px; }
+
+    .nav-btn,
+    .nav-dir-opt { min-height: 44px; }
+
+    .weather-route-filter-btn,
+    .hourly-jump-btn,
+    .weather-hourly-button { min-height: 44px; }
+}

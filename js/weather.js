@@ -432,10 +432,10 @@ function createWeatherCard(weatherResult) {
     if (Number.isFinite(summitElevation) && Number.isFinite(apiElevation)) {
         const difference = apiElevation - summitElevation;
         if (difference === 0) {
-            elevationDifferenceText = "0 متر";
+            elevationDifferenceText = "0 m";
         } else {
             const sign = difference > 0 ? "+" : "";
-            elevationDifferenceText = `${sign}${Math.round(difference)} متر`;
+            elevationDifferenceText = `${sign}${Math.round(difference)} m`;
         }
     }
 
@@ -448,11 +448,11 @@ function createWeatherCard(weatherResult) {
                 🏔️ قله ${routeName}
             </div>
             <div class="weather-summit-info">
-                <span>ارتفاع قله: <strong>${elevationText}</strong> m</span>
-                <span>ارتفاع مدل: <strong>${apiElevationText}</strong> m</span>
-                <span>اختلاف: <strong>${elevationDifferenceText}</strong></span>
+                <span>ارتفاع قله: <bdi dir="ltr"><strong>${elevationText}</strong> m</bdi></span>
+                <span>ارتفاع مدل: <bdi dir="ltr"><strong>${apiElevationText}</strong> m</bdi></span>
+                <span>اختلاف: <bdi dir="ltr"><strong>${elevationDifferenceText}</strong></bdi></span>
                 <span>مدل: <strong>${escapeHtml(getSelectedWeatherModelName())}</strong></span>
-                <span>مختصات: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}</span>
+                <span>مختصات: <bdi dir="ltr">${latitude.toFixed(4)}, ${longitude.toFixed(4)}</bdi></span>
             </div>
         </div>
         <div class="weather-daily-row"></div>

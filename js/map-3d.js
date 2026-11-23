@@ -431,11 +431,11 @@ function bindRouteEvents() {
         const distance3D = Number(properties.distance3D);
 
         html += Number.isFinite(speed) && properties.speed !== null
-            ? `<br>سرعت: <b>${speed.toFixed(1)}</b> km/h`
+            ? `<br>سرعت: <bdi dir="ltr"><b>${speed.toFixed(1)}</b> km/h</bdi>`
             : "<br>سرعت: بدون اطلاعات زمانی";
 
         if (Number.isFinite(distance3D) && properties.distance3D !== null) {
-            html += `<br>فاصله 3D: ${distance3D.toFixed(1)} m`;
+            html += `<br>فاصله 3D: <bdi dir="ltr">${distance3D.toFixed(1)} m</bdi>`;
         }
 
         return html;

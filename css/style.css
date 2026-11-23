@@ -1389,3 +1389,70 @@ body.dark-mode .step-num { background: #12302c; }
 @media (prefers-reduced-motion: reduce) {
     .home-section *, .btn-primary, .btn-ghost { transition: none !important; }
 }
+
+
+/* =========================================================
+   Accessibility, stacking and colour scheme
+   ========================================================= */
+
+body.dark-mode { color-scheme: dark; }
+
+.skip-link {
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    z-index: 3000;
+    padding: 10px 16px;
+    border-radius: 8px;
+    background: var(--teal);
+    color: #06261f;
+    font-weight: 700;
+    text-decoration: none;
+    transform: translateY(-250%);
+    transition: transform 0.15s ease;
+}
+
+.skip-link:focus,
+.skip-link:focus-visible { transform: translateY(0); }
+
+/* programmatic focus on the content container: no ring */
+[tabindex="-1"]:focus { outline: none; }
+
+/* inputs that removed the default outline get a clear :focus-visible ring */
+.route-search-input:focus-visible,
+.route-rename-input:focus-visible {
+    outline: 2px solid var(--primary-blue);
+    outline-offset: 2px;
+}
+
+/* map controls (z-index up to 1000) must stay below the sticky top bar */
+.map-card-wrapper,
+.nav-map { isolation: isolate; }
+
+/* Plotly toolbar: visible and focusable with the keyboard */
+.modebar--hover:focus-within > :not(.watermark) { opacity: 1 !important; }
+.modebar-btn:focus-visible { outline: 2px solid var(--primary-blue); outline-offset: 1px; }
+
+.guide-install-slot { margin-bottom: 20px; }
+.guide-install-slot:empty { display: none; }
+
+/* message on top of a map (tile errors) */
+.map-tile-notice {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 28px;
+    z-index: 1100;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: rgba(7, 32, 44, 0.92);
+    color: #fff;
+    font-size: 13px;
+    line-height: 1.7;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.map-tile-notice.visible { opacity: 1; }

@@ -85,6 +85,101 @@ function createBaseLayers() {
 }
 
 
+/*
+ * Tile errors: after a burst of failed tiles the map switches to the next
+ * base layer (or explains the problem when the device is offline).
+ * Tiles that were seen once are served from the service-worker cache (sw.js).
+ */
+
+function attachTileFallback(leafletMap, layers, activeName, order) {
+    if (!leafletMap || !layers) {
+        return;
+    }
+
+    const container = leafletMap.getContainer();
+    const tried = new Set();
+
+    let current = activeName;
+    let errors = 0;
+    let windowStart = 0;
+    let switching = false;
+    let notice = null;
+    let noticeTimer = null;
+
+    function showNotice(text) {
+        if (!notice) {
+            notice = document.createElement("div");
+            notice.className = "map-tile-notice";
+            notice.setAttribute("role", "status");
+            container.appendChild(notice);
+        }
+
+        notice.textContent = text;
+        notice.classList.add("visible");
+
+        clearTimeout(noticeTimer);
+        noticeTimer = setTimeout(() => notice.classList.remove("visible"), 7000);
+    }
+
+    leafletMap.on("baselayerchange", event => {
+        current = event.name;
+        errors = 0;
+
+        if (!switching) {
+            tried.clear();
+        }
+    });
+
+    Object.values(layers).forEach(layer => {
+        layer.on("tileerror", () => {
+            if (!leafletMap.hasLayer(layer)) {
+                return;
+            }
+
+            const now = Date.now();
+
+            if (now - windowStart > 8000) {
+                windowStart = now;
+                errors = 0;
+            }
+
+            if (++errors < 6) {
+                return;
+            }
+
+            errors = 0;
+
+            if (!navigator.onLine) {
+                showNotice("اتصال اینترنت برقرار نیست؛ فقط بخش‌هایی از نقشه که قبلاً دیده یا دانلود شده‌اند نمایش داده می‌شود.");
+                return;
+            }
+
+            tried.add(current);
+
+            const next = (order || Object.keys(layers)).find(
+                name => layers[name] && !tried.has(name)
+            );
+
+            if (!next) {
+                showNotice("بارگذاری نقشه ممکن نشد؛ کمی بعد دوباره تلاش کنید یا لایهٔ دیگری را انتخاب کنید.");
+                return;
+            }
+
+            const from = current;
+
+            switching = true;
+
+            leafletMap.removeLayer(layers[from]);
+            layers[next].addTo(leafletMap);
+
+            switching = false;
+
+            showNotice("لایهٔ «" + from + "» در دسترس نیست؛ به «" + next + "» تغییر کرد.");
+        });
+    });
+}
+
+
 /* =========================================================
    2D map
    ========================================================= */
@@ -139,15 +234,15 @@ function buildRunTooltip(label, run) {
     let text = label;
 
     if (run.speedCount > 0) {
-        text += `<br>سرعت (میانگین): <b>${(run.speedSum / run.speedCount).toFixed(1)}</b> km/h`;
+        text += `<br>سرعت (میانگین): <bdi dir="ltr"><b>${(run.speedSum / run.speedCount).toFixed(1)}</b> km/h</bdi>`;
     } else {
         text += "<br>سرعت: بدون اطلاعات زمانی";
     }
 
     if (run.distance3D > 0) {
         text += run.distance3D >= 1000
-            ? `<br>طول بخش (3D): ${(run.distance3D / 1000).toFixed(2)} km`
-            : `<br>طول بخش (3D): ${run.distance3D.toFixed(0)} m`;
+            ? `<br>طول بخش (3D): <bdi dir="ltr">${(run.distance3D / 1000).toFixed(2)} km</bdi>`
+            : `<br>طول بخش (3D): <bdi dir="ltr">${run.distance3D.toFixed(0)} m</bdi>`;
     }
 
     return text;

@@ -97,22 +97,31 @@ async function initializeApplication() {
      * analysis, everyone else sees the home page.
      */
 
+    // a direct link (#/map ...) or a refresh keeps the requested section
+    const hashSection = getSectionFromHash();
+
+    hashRoutePinned = hashSection !== null;
+
     const hasSavedRoutes =
         typeof readRouteOrderLocal === "function" &&
         readRouteOrderLocal().length > 0;
 
-    setActiveSection(hasSavedRoutes ? "analysis" : "home");
+    setActiveSection(hashSection || (hasSavedRoutes ? "analysis" : "home"));
 
     // empty state first (hides the charts until a route exists)
     redrawAllCharts();
 
     await restoreSavedRoutes();
 
-    if (selectedFiles.length === 0) {
-        setActiveSection("home");
-    } else if (activeSection === "home") {
-        setActiveSection("analysis");
+    if (!hashSection) {
+        if (selectedFiles.length === 0) {
+            setActiveSection("home");
+        } else if (activeSection === "home") {
+            setActiveSection("analysis");
+        }
     }
+
+    hashRoutePinned = false;
 
 }
 

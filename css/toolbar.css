@@ -615,7 +615,7 @@ body.dark-mode .user-location-status { color: #aaa; }
 
     .nav-body {
         display: grid;
-        grid-template-columns: minmax(320px, 440px) 1fr;
+        grid-template-columns: minmax(320px, 440px) minmax(0, 1fr);
         gap: 16px;
         padding: 16px;
         align-items: start;
@@ -794,3 +794,15 @@ body.dark-mode .user-location-status { color: #aaa; }
 .map-location-group .map-view-button.map-check-btn { cursor: pointer; user-select: none; }
 .map-check-btn input { width: 18px; height: 18px; margin: 0; accent-color: #fff; cursor: pointer; }
 .map-check-btn:not(.active) input { accent-color: var(--grp); }
+
+/* =========================================================
+   Navigation map: grid / flex children may shrink, so the map always
+   takes the full width of its column (Leaflet is re-measured in JS)
+   ========================================================= */
+
+.nav-screen,
+.nav-info,
+.nav-map-col,
+.nav-map { min-width: 0; }
+
+.nav-map-col { width: 100%; }

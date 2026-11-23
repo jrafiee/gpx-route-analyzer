@@ -2,7 +2,7 @@
 
 A browser-based app for analysing and comparing hiking / mountaineering routes
 from GPX or KML files. Everything runs in the browser: no backend, no database,
-route files are never uploaded.
+route files are never uploaded. The site uses privacy-friendly analytics (Plausible, no route data); the forecast sends the summit coordinates to Open-Meteo and map tiles come from third-party tile servers.
 
 ## Features
 
@@ -24,6 +24,7 @@ route files are never uploaded.
 ```text
 index.html
 sw.js                       service worker (bump VERSION on every release)
+_headers                    security headers (Cloudflare static assets)
 manifest.webmanifest
 robots.txt, sitemap.xml     replace YOUR-DOMAIN.com (see set-domain.sh)
 download-vendor.sh          downloads Plotly / Leaflet / MapLibre into vendor/

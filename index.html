@@ -15,6 +15,21 @@
 <title>پاکوب | تحلیل و مقایسه مسیرهای کوهستانی</title>
 
 <meta name="description" content="پاکوب: مسیرهای صعود و پیمایش را از نظر مسافت، ارتفاع، شیب و سرعت تحلیل و مقایسه کنید. بارگذاری فایل GPX، پروفایل ارتفاعی، امتیاز سختی، زمان تخمینی صعود، نقشه دوبعدی و سه‌بعدی و هواشناسی قله.">
+<link rel="canonical" href="https://YOUR-DOMAIN.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="پاکوب">
+<meta property="og:locale" content="fa_IR">
+<meta property="og:title" content="پاکوب | تحلیل و مقایسه مسیرهای کوهستانی">
+<meta property="og:description" content="مسیرهای صعود و پیمایش را از نظر مسافت، ارتفاع، شیب و سختی تحلیل و مقایسه کنید؛ با نقشه دوبعدی و سه‌بعدی و هواشناسی قله.">
+<meta property="og:url" content="https://YOUR-DOMAIN.com/">
+<meta property="og:image" content="https://YOUR-DOMAIN.com/images/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="پاکوب، تحلیل مسیرهای کوهستانی">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="پاکوب | تحلیل و مقایسه مسیرهای کوهستانی">
+<meta name="twitter:description" content="مسیرهای صعود و پیمایش را از نظر مسافت، ارتفاع، شیب و سختی تحلیل و مقایسه کنید؛ با نقشه دوبعدی و سه‌بعدی و هواشناسی قله.">
+<meta name="twitter:image" content="https://YOUR-DOMAIN.com/images/og-image.jpg">
 <meta name="theme-color" content="#0b2230">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -39,6 +54,8 @@
 </head>
 
 <body data-section="home">
+
+<a class="skip-link" href="#main-content">پرش به محتوا</a>
 
 <!-- SVG icon sprite (stroke icons, 24x24) -->
 <svg class="svg-sprite" width="0" height="0" aria-hidden="true" focusable="false">
@@ -68,7 +85,7 @@
 
 <!-- Top Bar -->
 <header class="app-topbar">
-    <a class="brand-zone brand-link" href="#" data-goto="home" aria-label="پاکوب، بازگشت به صفحهٔ خانه">
+    <a class="brand-zone brand-link" href="#/home" data-goto="home" aria-label="پاکوب، بازگشت به صفحهٔ خانه">
         <span class="brand-mark" aria-hidden="true">
             <svg class="logo-mark" viewBox="0 0 64 64"><use href="#logo-mark"/></svg>
         </span>
@@ -251,8 +268,8 @@
             <div class="privacy-band">
                 <span class="privacy-icon"><svg class="ico"><use href="#i-shield"/></svg></span>
                 <div class="privacy-text">
-                    <strong>پردازش کاملاً محلی</strong>
-                    <p>فایل‌های GPX فقط در مرورگر شما تحلیل می‌شوند و به هیچ سروری ارسال نمی‌شوند.</p>
+                    <strong>پردازش محلی فایل‌ها</strong>
+                    <p>فایل‌های GPX شما فقط در مرورگر پردازش می‌شوند و ارسال نمی‌شوند. سایت از آمار بازدید ناشناس (Plausible) استفاده می‌کند. برای هواشناسی، مختصات قله به Open-Meteo و برای نقشه، درخواست کاشی‌ها به سرورهای نقشه فرستاده می‌شود.</p>
                 </div>
                 <button type="button" class="btn-primary" data-goto="analysis" data-open-routes>
                     <span>شروع تحلیل</span>
@@ -295,9 +312,11 @@
                 <h2>پاکوب؛ تحلیل و مقایسه مسیرهای کوهستانی</h2>
                 <p>
                     این ابزار رایگان، فایل‌های خام GPX صعودها و پیمایش‌ها را به شاخص‌های دقیق، بصری و قابل‌مقایسه تبدیل می‌کند.
-                    تمام پردازش‌ها به صورت کاملاً محلی در مرورگر شما انجام شده و هیچ فایلی به سرور ارسال نمی‌شود.
+                    فایل‌های GPX شما فقط در مرورگر پردازش می‌شوند و ارسال نمی‌شوند. سایت از آمار بازدید ناشناس (Plausible) استفاده می‌کند.
                 </p>
             </div>
+
+            <div class="guide-install-slot"></div>
 
             <div class="guide-grid">
                 <div class="guide-feature-card">
@@ -372,7 +391,7 @@
                     <div class="guide-accordion-content">
                         <p>
                             تمام پردازش‌های محاسباتی فایل GPX در داخل حافظه مرورگر شما انجام می‌شود.
-                            فایل‌های انتخابی شما در پایگاه‌داده داخلی مرورگر (IndexedDB) ذخیره می‌شوند تا با بستن یا رفرش مرورگر مسیرهای شما پاک نشوند.
+                            فایل‌های انتخابی شما در پایگاه‌داده داخلی مرورگر (IndexedDB) ذخیره می‌شوند تا با بستن یا رفرش مرورگر مسیرهای شما پاک نشوند. فایل‌های GPX شما فقط در مرورگر پردازش می‌شوند و ارسال نمی‌شوند. سایت از آمار بازدید ناشناس (Plausible) استفاده می‌کند. برای هواشناسی، مختصات قله به Open-Meteo و برای نقشه، درخواست کاشی‌ها به سرورهای نقشه فرستاده می‌شود.
                         </p>
                     </div>
                 </details>

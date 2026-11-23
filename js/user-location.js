@@ -34,6 +34,7 @@
     let navOpen = false;
     let pocketOpen = false;
     let navMap = null;
+    let navMapObserver = null;
     let navUserMarker = null;
     let navAccuracy = null;
     let navRouteLine = null;
@@ -395,7 +396,7 @@
         } else if (!p) {
             meta = "در حال یافتن موقعیت...";
         } else {
-            meta = `دقت ±${Math.round(p.accuracy)} m`;
+            meta = `دقت \u2066±${Math.round(p.accuracy)} m\u2069`;
         }
 
         panelText("ulp-meta", meta);
@@ -492,7 +493,7 @@
 
             if (offTrack) {
                 note.textContent =
-                    `خارج از مسیر · ${formatDistance(projection.distance)} تا مسیر`;
+                    `خارج از مسیر · \u2066${formatDistance(projection.distance)}\u2069 تا مسیر`;
             }
         }
     }
@@ -1452,13 +1453,52 @@
 
         navMap.setView([32.0, 51.5], 7);
 
+        attachTileFallback(
+            navMap,
+            baseLayers,
+            "توپوگرافی",
+            ["خیابانی", "ماهواره‌ای", "توپوگرافی"]
+        );
+
         drawNavRoute(true);
+
+        /*
+         * Leaflet measures its container once. When the section becomes
+         * visible or the layout changes the size is stale (tiles cover only
+         * part of the box), so every size change calls invalidateSize.
+         */
+        if ("ResizeObserver" in window) {
+            let sizeFrame = 0;
+
+            navMapObserver = new ResizeObserver(() => {
+                cancelAnimationFrame(sizeFrame);
+
+                sizeFrame = requestAnimationFrame(() => {
+                    if (navMap) {
+                        navMap.invalidateSize();
+                    }
+                });
+            });
+
+            navMapObserver.observe(document.getElementById("nav-map"));
+        }
 
         setTimeout(() => {
             if (navMap) {
                 navMap.invalidateSize();
             }
         }, 150);
+
+        // after the section fade-in: measure again and fit the route
+        setTimeout(() => {
+            if (navMap) {
+                navMap.invalidateSize();
+
+                if (navRouteLine && !navUserMarker) {
+                    navMap.fitBounds(navRouteLine.getBounds(), { padding: [20, 20] });
+                }
+            }
+        }, 600);
     }
 
 
@@ -1573,6 +1613,11 @@
 
 
     function destroyNavMap() {
+        if (navMapObserver) {
+            navMapObserver.disconnect();
+            navMapObserver = null;
+        }
+
         if (navMap) {
             navMap.remove();
         }

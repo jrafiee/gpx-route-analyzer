@@ -15,6 +15,8 @@ function initializeMobileMenu() {
     document.querySelectorAll(".workspace-trigger").forEach(btn => {
         btn.addEventListener("click", openRouteWorkspace);
     });
+
+    syncSidebarInert();
 }
 
 let analysisChartsShown = false;
@@ -66,6 +68,11 @@ function handleDesktopSectionSwitch() {
     const count = analysisResults.length;
     const previous = lastRouteCount;
     lastRouteCount = count;
+
+    // explicit #/section link: do not jump to another section while restoring
+    if (hashRoutePinned) {
+        return;
+    }
 
     if (window.innerWidth <= 900) {
         return;
@@ -270,6 +277,7 @@ function initializeHomeActions() {
 
 function initializeUIEvents() {
     initializeHomeActions();
+    initializeSkipLink();
 
     document.querySelectorAll(".bottom-nav-item, .desktop-nav-item").forEach(item => {
         item.addEventListener("click", () => {
@@ -307,7 +315,34 @@ function initializeUIEvents() {
             document.body.classList.remove("drawer-open");
             isWorkspaceOpen = false;
         }
+
+        syncSidebarInert();
     });
 
     initializeCalculationsGuide();
+}
+
+/*
+ * Skip link: a plain #hash link would replace the route hash, so the
+ * target is focused with JavaScript instead.
+ */
+function initializeSkipLink() {
+    const link = document.querySelector(".skip-link");
+
+    if (!link) {
+        return;
+    }
+
+    link.addEventListener("click", event => {
+        event.preventDefault();
+
+        const target = document.getElementById(
+            activeSection === "home" ? "section-home" : "main-content"
+        );
+
+        if (target) {
+            target.setAttribute("tabindex", "-1");
+            target.focus();
+        }
+    });
 }

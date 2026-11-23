@@ -168,7 +168,11 @@ function getChartConfig(interactive) {
             "lasso2d",
             "select2d",
             "autoScale2d",
-            "toggleSpikelines"
+            "toggleSpikelines",
+            "zoomIn2d",
+            "zoomOut2d",
+            "hoverClosestCartesian",
+            "hoverCompareCartesian"
         ]
 
     };
@@ -684,12 +688,35 @@ function buildPlotLayout(
     const isMobile =
         window.innerWidth <= 900;
 
+    chartsDrawnWidth = window.innerWidth;
+
     const legendItems =
         opts.legendItems || 0;
 
-    const perRow =
+    /* opts.legendBottom: legend under the plot (never over the bars / labels) */
+    const bottomLegend =
+        !!opts.legendBottom && legendItems > 0;
+
+    let perRow =
         opts.perRow ||
         (isMobile ? 2 : 5);
+
+    if (bottomLegend) {
+
+        const el =
+            opts.containerId
+                ? document.getElementById(opts.containerId)
+                : null;
+
+        const width =
+            (el && el.clientWidth) || estimateChartWidth();
+
+        perRow = Math.max(
+            1,
+            Math.floor((width - 40) / (opts.itemWidth || 125))
+        );
+
+    }
 
     const legendRows =
         legendItems > 0
@@ -698,7 +725,15 @@ function buildPlotLayout(
 
     const topMargin =
         (title ? 44 : 26) +
-        legendRows * 24;
+        (bottomLegend ? 0 : legendRows * 24);
+
+    const bottomMargin =
+        52 +
+        (bottomLegend
+            ? legendRows * 24 +
+              16 +
+              (!isMobile && opts.hasCaption ? 30 : 0)
+            : 0);
 
     const layout = {
 
@@ -752,7 +787,7 @@ function buildPlotLayout(
 
             title: {
                 text: yTitle,
-                standoff: 10,
+                standoff: 16,
                 font: {
                     size: 13,
                     color: palette.muted
@@ -784,8 +819,8 @@ function buildPlotLayout(
         margin: {
             t: topMargin,
             r: isMobile ? 14 : 22,
-            b: 52,
-            l: isMobile ? 52 : 60
+            b: bottomMargin,
+            l: isMobile ? 56 : 66
         },
 
         hovermode: "x unified",
@@ -829,6 +864,23 @@ function buildPlotLayout(
         barcornerradius: 2
 
     };
+
+    if (bottomLegend) {
+
+        layout.legend = {
+            ...layout.legend,
+            y: 0,
+            yanchor: "bottom",
+            yref: "container"
+        };
+
+        // the x axis keeps the room reserved by margin.b (the legend sits below it)
+        layout.xaxis = {
+            ...layout.xaxis,
+            automargin: false
+        };
+
+    }
 
     if (title) {
         layout.title = {
@@ -1319,7 +1371,7 @@ function drawElevationProfile(
         traces,
         layout,
         getChartConfig(true)
-    );
+    ).then(() => bindModebarA11y(containerId));
 
 }
 
@@ -1556,7 +1608,7 @@ function drawOrderedElevationProfile(
         traces,
         layout,
         getChartConfig(true)
-    );
+    ).then(() => bindModebarA11y(containerId));
 
 }
 
@@ -1772,7 +1824,10 @@ function drawSlopeDistribution(
             "",
             {
                 legendItems: labels.length,
-                perRow: window.innerWidth <= 900 ? 3 : 6
+                legendBottom: true,
+                containerId: containerId,
+                hasCaption: true,
+                itemWidth: 125
             }
         );
 
@@ -1952,7 +2007,10 @@ function drawGroupedBarChart(
             "",
             {
                 legendItems: series.length,
-                perRow: window.innerWidth <= 900 ? 2 : 4
+                legendBottom: true,
+                containerId: containerId,
+                hasCaption: !!formula,
+                itemWidth: 170
             }
         );
 
@@ -2205,5 +2263,138 @@ function drawDifficultyScoreChart(
         layout,
         getChartConfig(false)
     );
+
+}
+
+
+/* =========================================================
+   Resize, modebar accessibility
+   ========================================================= */
+
+let chartsDrawnWidth = 0;
+
+const PLOTLY_CHART_IDS = [
+    "elevation-chart",
+    "slope-chart",
+    "difficulty-score-chart",
+    "estimated-ascent-time-chart",
+    "route-metrics-comparison-chart"
+];
+
+/* rough width of a chart card (used when the container is hidden) */
+function estimateChartWidth() {
+
+    const w = window.innerWidth;
+
+    return w <= 900
+        ? w - 52
+        : (w - 320 - 48 - 18) / 2 - 40;
+
+}
+
+function resizeAllCharts() {
+
+    if (typeof Plotly === "undefined" || !Plotly.Plots) {
+        return;
+    }
+
+    PLOTLY_CHART_IDS.forEach(id => {
+
+        const el = document.getElementById(id);
+
+        if (el && el.data && el.offsetParent !== null) {
+            try {
+                Plotly.Plots.resize(el);
+            } catch (e) { /* ignore */ }
+        }
+
+    });
+
+}
+
+let chartResizeTimer = null;
+
+window.addEventListener("resize", () => {
+
+    clearTimeout(chartResizeTimer);
+
+    chartResizeTimer = setTimeout(() => {
+
+        // legend rows depend on the width: redraw when it really changed
+        if (
+            window.innerWidth !== chartsDrawnWidth &&
+            typeof analysisResults !== "undefined" &&
+            analysisResults.length > 0 &&
+            typeof requestChartsRedraw === "function"
+        ) {
+            requestChartsRedraw();
+            setTimeout(resizeAllCharts, 120);
+        } else {
+            resizeAllCharts();
+        }
+
+    }, 200);
+
+});
+
+const MODEBAR_LABELS_FA = {
+    "Download plot as a png": "دانلود تصویر نمودار",
+    "Zoom": "بزرگ‌نمایی (انتخاب ناحیه)",
+    "Pan": "جابه‌جایی نمودار",
+    "Reset axes": "بازنشانی محورها"
+};
+
+function localizeModebar(gd) {
+
+    gd.querySelectorAll(".modebar").forEach(bar => {
+        bar.setAttribute("role", "toolbar");
+        bar.setAttribute("aria-label", "ابزار نمودار");
+    });
+
+    gd.querySelectorAll(".modebar-btn").forEach(btn => {
+
+        if (!btn.hasAttribute("data-title-en")) {
+            btn.setAttribute("data-title-en", btn.getAttribute("data-title") || "");
+        }
+
+        const original = btn.getAttribute("data-title-en");
+        const label = MODEBAR_LABELS_FA[original] || original;
+
+        btn.setAttribute("data-title", label);
+        btn.setAttribute("aria-label", label);
+        btn.setAttribute("role", "button");
+        btn.setAttribute("tabindex", "0");
+
+        if (!btn._kbBound) {
+
+            btn._kbBound = true;
+
+            btn.addEventListener("keydown", event => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    btn.click();
+                }
+            });
+
+        }
+
+    });
+
+}
+
+function bindModebarA11y(containerId) {
+
+    const gd = document.getElementById(containerId);
+
+    if (!gd) {
+        return;
+    }
+
+    localizeModebar(gd);
+
+    if (!gd._modebarBound && typeof gd.on === "function") {
+        gd._modebarBound = true;
+        gd.on("plotly_afterplot", () => localizeModebar(gd));
+    }
 
 }

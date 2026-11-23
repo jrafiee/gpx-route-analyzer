@@ -11,19 +11,13 @@ if ("serviceWorker" in navigator) {
 }
 
 /* ---------- دکمه نصب ---------- */
+/* (not in the phone header: it is offered in the guide page; desktop keeps the header slot) */
 let deferredInstallPrompt = null;
 
-window.addEventListener("beforeinstallprompt", event => {
-    event.preventDefault();
-    deferredInstallPrompt = event;
-
-    const actions = document.querySelector(".header-install-slot");
-    if (!actions || document.getElementById("install-button")) return;
-
+function createInstallButton() {
     const btn = document.createElement("button");
-    btn.id = "install-button";
     btn.type = "button";
-    btn.className = "calculations-link";
+    btn.className = "calculations-link install-button";
     btn.innerHTML = "📲 <span>نصب برنامه</span>";
     btn.style.cursor = "pointer";
     btn.addEventListener("click", async () => {
@@ -31,14 +25,26 @@ window.addEventListener("beforeinstallprompt", event => {
         deferredInstallPrompt.prompt();
         await deferredInstallPrompt.userChoice;
         deferredInstallPrompt = null;
-        btn.remove();
+        document.querySelectorAll(".install-button").forEach(b => b.remove());
     });
-    actions.prepend(btn);
+    return btn;
+}
+
+window.addEventListener("beforeinstallprompt", event => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+
+    document
+        .querySelectorAll(".header-install-slot, .guide-install-slot")
+        .forEach(slot => {
+            if (!slot.querySelector(".install-button")) {
+                slot.prepend(createInstallButton());
+            }
+        });
 });
 
 window.addEventListener("appinstalled", () => {
-    const btn = document.getElementById("install-button");
-    if (btn) btn.remove();
+    document.querySelectorAll(".install-button").forEach(b => b.remove());
 });
 
 /* ---------- IndexedDB ---------- */

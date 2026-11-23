@@ -118,6 +118,9 @@ function applyTheme() {
         );
     });
 
+    // scrollbars and form controls follow the theme
+    document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+
     try {
         localStorage.setItem("theme", isDark ? "dark" : "light");
     } catch (e) { /* ignore */ }
@@ -125,6 +128,13 @@ function applyTheme() {
     // only the charts depend on the theme (maps / weather are CSS driven)
     if (analysisResults.length > 0 && typeof requestChartsRedraw === "function") {
         requestChartsRedraw();
+
+        // the new theme can change label widths: measure the charts again
+        setTimeout(() => {
+            if (typeof resizeAllCharts === "function") {
+                resizeAllCharts();
+            }
+        }, 150);
     }
 }
 
@@ -205,6 +215,75 @@ function setMapDirection(mode) {
 
 const APP_SECTIONS = ["home", "guide", "analysis", "map", "navigation", "weather"];
 
+/*
+ * URL hash routes. Only a plain hash is used (no pushState paths,
+ * no query string): #/home #/analysis #/map #/weather #/navigation #/help
+ */
+const SECTION_HASHES = {
+    home: "#/home",
+    analysis: "#/analysis",
+    map: "#/map",
+    weather: "#/weather",
+    navigation: "#/navigation",
+    guide: "#/help"
+};
+
+const SECTION_TITLES = {
+    home: "پاکوب | تحلیل و مقایسه مسیرهای کوهستانی",
+    analysis: "تحلیل و مقایسه مسیرها | پاکوب",
+    map: "نقشه مسیرها | پاکوب",
+    weather: "هواشناسی قله | پاکوب",
+    navigation: "ناوبری زنده | پاکوب",
+    guide: "راهنما و درباره ما | پاکوب"
+};
+
+// first call: replace the current history entry instead of adding one
+let hashReplaceNext = true;
+
+// true while start-up restores saved routes for an explicit #/section link
+let hashRoutePinned = false;
+
+function getSectionFromHash() {
+    let raw = location.hash || "";
+
+    try {
+        raw = decodeURIComponent(raw);
+    } catch (e) { /* keep the raw value */ }
+
+    const key = raw.replace(/^#\/?/, "").replace(/\/+$/, "").toLowerCase();
+
+    if (key === "guide") {
+        return "guide";
+    }
+
+    return APP_SECTIONS.find(id => SECTION_HASHES[id] === "#/" + key) || null;
+}
+
+function writeSectionHash(sectionId) {
+    const target = SECTION_HASHES[sectionId];
+    const replace = hashReplaceNext;
+
+    hashReplaceNext = false;
+
+    if (!target || location.hash === target) {
+        return;
+    }
+
+    if (replace) {
+        location.replace(target);
+    } else {
+        location.hash = target;
+    }
+}
+
+function updateRouteMeta(sectionId) {
+    writeSectionHash(sectionId);
+
+    if (SECTION_TITLES[sectionId]) {
+        document.title = SECTION_TITLES[sectionId];
+    }
+}
+
 function markActiveNav(selector, sectionId) {
     document.querySelectorAll(selector).forEach(item => {
         const active = item.dataset.target === sectionId;
@@ -240,6 +319,7 @@ function setActiveSection(sectionId) {
 
     markActiveNav(".bottom-nav-item", sectionId);
     markActiveNav(".desktop-nav-item", sectionId);
+    updateRouteMeta(sectionId);
 
     // draw whatever was postponed while this section was hidden
     if (typeof flushPendingSectionWork === "function") {
@@ -312,6 +392,8 @@ function openRouteWorkspace() {
 
     document.body.classList.add("drawer-open");
 
+    syncSidebarInert();
+
     if (window.innerWidth <= 900 && !workspaceHistoryPushed) {
         try {
             history.pushState({ routeWorkspace: true }, "");
@@ -339,6 +421,17 @@ function hideRouteWorkspaceUI() {
     }
 
     document.body.classList.remove("drawer-open");
+
+    syncSidebarInert();
+}
+
+/* the closed bottom sheet (phones) must not be reachable with Tab */
+function syncSidebarInert() {
+    const sidebar = document.getElementById("sidebar");
+
+    if (sidebar) {
+        sidebar.inert = window.innerWidth <= 900 && !isWorkspaceOpen;
+    }
 }
 
 function closeRouteWorkspace() {
@@ -357,5 +450,14 @@ window.addEventListener("popstate", function () {
 
     if (isWorkspaceOpen) {
         hideRouteWorkspaceUI();
+    }
+});
+
+/* Back / Forward / manual hash edits */
+window.addEventListener("hashchange", function () {
+    const id = getSectionFromHash();
+
+    if (id && id !== activeSection) {
+        setActiveSection(id);
     }
 });
