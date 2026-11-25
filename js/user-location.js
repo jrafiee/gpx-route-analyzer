@@ -22,7 +22,11 @@
         matchAlong: null,
         dir: 1,           // 1 = outbound (along grows), -1 = return
         dirKnown: false,  // true after real movement (or a manual choice)
-        dirMode: "auto"   // "auto" | "out" | "back"  (manual choice)
+        dirMode: "auto",  // "auto" | "out" | "back"  (manual choice)
+        heading: null,    // user's real walking direction (deg, 0 = north)
+        lastFix: null,    // last position used to compute the heading
+        distHistory: [],  // recent distances to the track (trend)
+        relKey: null      // last relative direction (hysteresis)
     };
 
     // track chosen by the user when several routes are loaded
@@ -150,6 +154,10 @@
         state.dir = 1;
         state.dirKnown = false;
         state.dirMode = "auto";
+        state.heading = null;
+        state.lastFix = null;
+        state.distHistory = [];
+        state.relKey = null;
 
         renderDirButtons();
 
@@ -173,10 +181,106 @@
             altitude: Number.isFinite(c.altitude) ? c.altitude : null
         };
 
+        updateHeading(c);
+
         state.signalLost = false;
 
         setStatus("");
         updateButtons();
+    }
+
+
+    /* =====================================================
+       Heading / relative direction / trend
+       ===================================================== */
+
+    function bearingDeg(lat1, lon1, lat2, lon2) {
+        const r = Math.PI / 180;
+        const y = Math.sin((lon2 - lon1) * r) * Math.cos(lat2 * r);
+        const x = Math.cos(lat1 * r) * Math.sin(lat2 * r) -
+            Math.sin(lat1 * r) * Math.cos(lat2 * r) * Math.cos((lon2 - lon1) * r);
+
+        return (Math.atan2(y, x) / r + 360) % 360;
+    }
+
+    const ARROWS = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"];
+
+    const COMPASS = [
+        "شمال", "شمال‌شرق", "شرق", "جنوب‌شرق",
+        "جنوب", "جنوب‌غرب", "غرب", "شمال‌غرب"
+    ];
+
+    function octant(deg) {
+        return Math.round((((deg % 360) + 360) % 360) / 45) % 8;
+    }
+
+    /* the user's walking direction: GPS heading, else the last >8 m movement */
+    function updateHeading(c) {
+        const fix = { lat: c.latitude, lon: c.longitude };
+        const prev = state.lastFix;
+
+        if (Number.isFinite(c.heading) && (c.speed || 0) > 0.7) {
+            state.heading = c.heading;
+            state.lastFix = fix;
+        } else if (!prev) {
+            state.lastFix = fix;
+        } else {
+            const moved = distance2D(
+                { latitude: prev.lat, longitude: prev.lon },
+                { latitude: fix.lat, longitude: fix.lon }
+            );
+
+            if (moved !== null && moved > 8) {
+                state.heading = bearingDeg(prev.lat, prev.lon, fix.lat, fix.lon);
+                state.lastFix = fix;
+            }
+        }
+    }
+
+    /* "closer" | "farther" | "same" (compared with ~5-15 s ago) */
+    function trackTrend(distance) {
+        const now = Date.now();
+
+        state.distHistory.push({ t: now, d: distance });
+        state.distHistory = state.distHistory.filter(h => now - h.t < 15000);
+
+        const old = state.distHistory[0];
+
+        if (!old || now - old.t < 5000) {
+            return "same";
+        }
+
+        const diff = old.d - distance;
+
+        if (diff > 4) { return "closer"; }
+        if (diff < -4) { return "farther"; }
+
+        return "same";
+    }
+
+    /* where the track is, relative to the walking direction (with hysteresis) */
+    function relativeDirection(rel) {
+        const a = Math.abs(rel);
+        const prev = state.relKey;
+
+        let key;
+
+        if (prev === "front") {
+            key = a < 40 ? "front" : (a > 140 ? "back" : (rel > 0 ? "right" : "left"));
+        } else if (prev === "back") {
+            key = a > 125 ? "back" : (a < 25 ? "front" : (rel > 0 ? "right" : "left"));
+        } else {
+            key = a < 25 ? "front" : (a > 140 ? "back" : (rel > 0 ? "right" : "left"));
+        }
+
+        state.relKey = key;
+
+        return {
+            front: { text: "جلوی شماست", en: "straight", beeps: 1 },
+            back:  { text: "پشت سر شماست", en: "behind", beeps: 3 },
+            right: { text: "سمت راست شماست", en: "raast", beeps: 2 },
+            left:  { text: "سمت چپ شماست", en: "chap", beeps: 1 }
+        }[key];
     }
 
 
@@ -1678,16 +1782,6 @@
             ? distance > limit * 0.85
             : distance > limit;
 
-        /* side relative to the walking direction */
-
-        const userSide = projection.lateral * state.dir > 0 ? "چپ" : "راست";
-
-        const trackSide = userSide === "چپ" ? "راست" : "چپ";
-
-        /* the arrow points to where the track is */
-
-        const arrow = trackSide === "چپ" ? "←" : "→";
-
         const dirInfo = !state.dirKnown
             ? { kind: "unk", text: "جهت حرکت: نامشخص (کمی حرکت کنید)" }
             : state.dir === 1
@@ -1696,14 +1790,10 @@
 
         const weak = state.signalLost ? "⚠ سیگنال GPS ضعیف" : "";
 
-        if (off) {
-            setNavStatus(
-                "off",
-                `${Math.round(distance)} متر انحراف`,
-                `به سمت ${trackSide} بروید` + (weak ? " · " + weak : ""),
-                { arrow: arrow, dir: dirInfo }
-            );
-        } else {
+        if (!off) {
+            state.distHistory = [];
+            state.relKey = null;
+
             setNavStatus(
                 "ok",
                 "✓ در مسیر درست",
@@ -1711,15 +1801,71 @@
                     (weak ? " · " + weak : ""),
                 { dir: dirInfo }
             );
+
+            renderNavMap(p, projection, off);
+            handleAlert(false, null, "same");
+
+            return;
         }
+
+        /*
+         * Off track: direction is relative to where the USER is heading
+         * (not to the GPX direction). Without a known heading only the
+         * compass direction is given.
+         */
+
+        const trend = trackTrend(distance);
+
+        const toTrack = bearingDeg(
+            p.lat, p.lon,
+            projection.point.lat, projection.point.lon
+        );
+
+        let arrow;
+        let main;
+        let sub;
+        let hint;
+
+        if (state.heading !== null) {
+            const rel = ((toTrack - state.heading + 540) % 360) - 180;
+
+            hint = relativeDirection(rel);
+
+            arrow = ARROWS[octant(rel)];
+
+            if (trend === "closer") {
+                main = "دارید به مسیر نزدیک می‌شوید";
+                sub = `${Math.round(distance)} متر تا مسیر · مسیر ${hint.text}`;
+            } else {
+                main = `${Math.round(distance)} متر انحراف`;
+                sub = `مسیر ${hint.text}` +
+                    (trend === "farther" ? " · دارید دور می‌شوید" : "");
+            }
+        } else {
+            const name = COMPASS[octant(toTrack)];
+
+            hint = { text: `در سمت ${name} است`, en: name, beeps: 1 };
+
+            arrow = ARROWS[octant(toTrack)];
+
+            main = `${Math.round(distance)} متر انحراف`;
+            sub = `مسیر در سمت ${name} است (فلش نسبت به شمال)`;
+        }
+
+        setNavStatus(
+            trend === "closer" ? "wait" : "off",
+            main,
+            sub + (weak ? " · " + weak : ""),
+            { arrow: arrow, dir: dirInfo }
+        );
 
         renderNavMap(p, projection, off);
 
-        handleAlert(off, trackSide);
+        handleAlert(true, hint, trend);
     }
 
 
-    function handleAlert(off, trackSide) {
+    function handleAlert(off, hint, trend) {
         const now = Date.now();
 
         if (off) {
@@ -1728,13 +1874,18 @@
                 navAlert.last = 0;
             }
 
+            // approaching the track: no repeated warning
+            if (trend === "closer") {
+                return;
+            }
+
             if (pocketOpen && now - navAlert.last > 12000) {
                 navAlert.last = now;
 
                 speakAlert(
-                    `از مسیر خارج شدید. مسیر سمت ${trackSide} شماست`,
-                    trackSide === "چپ" ? 1 : 2,
-                    trackSide === "چپ" ? "chap" : "raast"
+                    `از مسیر خارج شدید. مسیر ${hint.text}`,
+                    hint.beeps,
+                    hint.en
                 );
 
                 if (navigator.vibrate) {
