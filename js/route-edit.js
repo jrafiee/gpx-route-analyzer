@@ -945,7 +945,7 @@
             return;
         }
 
-        stops = findStops(c.points, +$("ed-stopsec").value || 120, +$("ed-stoprad").value || 30);
+        stops = findStops(c.points, (+$("ed-stopsec").value || 2) * 60, +$("ed-stoprad").value || 30);
 
         const f = t => new Date(t).toLocaleString("fa-IR");
 
@@ -1247,8 +1247,8 @@
         time:
             '<div class="ed-help" hidden>' +
             '<p>«توقف» جایی است که مدتی (مثلاً برای استراحت یا غذا) تقریباً یک‌جا مانده‌اید. فقط در فایل‌هایی که زمان دارند محاسبه می‌شود.</p>' + FIG_STOP +
-            '<div class="ed-help-item"><b>حداقل مدت توقف (ثانیه)</b>' +
-            '<p>اگر حداقل این‌قدر ثانیه در یک محل بمانید، توقف حساب می‌شود (۱۲۰ = ۲ دقیقه). عدد را کمتر کنید توقف‌های کوتاه هم پیدا می‌شود؛ بیشتر کنید فقط توقف‌های طولانی می‌ماند.</p></div>' +
+            '<div class="ed-help-item"><b>حداقل مدت توقف (دقیقه)</b>' +
+            '<p>اگر حداقل این‌قدر دقیقه در یک محل بمانید، توقف حساب می‌شود (با اسلایدر از ۱ تا ۳۰ دقیقه). اسلایدر را کمتر کنید توقف‌های کوتاه هم پیدا می‌شود؛ بیشتر کنید فقط توقف‌های طولانی می‌ماند.</p></div>' +
             '<div class="ed-help-item"><b>شعاع توقف (متر)</b>' +
             '<p>یک دایرهٔ فرضی به این شعاع دور اولین نقطهٔ توقف در نظر گرفته می‌شود. تا وقتی نقطه‌های بعدی داخل این دایره‌اند، یعنی از جایتان تکان نخورده‌اید. چون GPS حتی در حالت ایستاده ۱۰ تا ۳۰ متر لرزش دارد، شعاع خیلی کوچک توقف‌ها را از دست می‌دهد و شعاع خیلی بزرگ راه رفتن آهسته را هم توقف حساب می‌کند. مقدار پیشنهادی: ۳۰.</p></div>' +
             '<p>با تغییر هر دو عدد، فهرست توقف‌ها و علامت‌های ⏸ روی نقشه (۲بعدی و ۳بعدی) هم بلافاصله به‌روز می‌شود؛ توقفی که در فهرست نیست روی نقشه هم دیده نمی‌شود. با تیک «نمایش توقف‌ها روی نقشه» می‌توانید همه را پنهان کنید.</p>' +
@@ -1314,7 +1314,7 @@
     </details>
     <details class="ed-card"><summary>مشخصات زمانی و توقف‌ها ${HELP_BTN}</summary>
       ${HELP.time}
-      <div class="ed-row"><label>حداقل مدت توقف (ثانیه) <input type="number" id="ed-stopsec" value="120" min="10"></label><label>شعاع توقف (متر) <input type="number" id="ed-stoprad" value="30" min="5"></label></div>
+      <div class="ed-row"><label class="ed-slide">حداقل مدت توقف: <b id="ed-stopsec-out">۲ دقیقه</b><input type="range" id="ed-stopsec" value="2" min="1" max="30" step="1" dir="ltr"></label><label>شعاع توقف (متر) <input type="number" id="ed-stoprad" value="30" min="5"></label></div>
       <div class="ed-row"><label><input type="checkbox" id="ed-showstops" checked> نمایش توقف‌ها روی نقشه</label></div>
       <div id="ed-time" class="ed-info"></div>
     </details>
@@ -1408,6 +1408,9 @@
 
         const refreshStops = () => {
             clearTimeout(stopTimer);
+
+            $("ed-stopsec-out").textContent =
+                Number($("ed-stopsec").value).toLocaleString("fa-IR") + " دقیقه";
 
             stopTimer = setTimeout(() => {
                 if (!E) { return; }

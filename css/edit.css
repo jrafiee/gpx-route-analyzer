@@ -118,3 +118,8 @@ body.dark-mode .ed-help-btn:hover, body.dark-mode .ed-help-btn.active { color: #
 /* stop / radius drawing */
 .ed-fig .rg { fill: rgba(255, 152, 0, .15); stroke: #ff9800; stroke-width: 1.5; stroke-dasharray: 4 3; }
 .ed-fig .sp circle { fill: #ff9800; }
+
+/* minimum stop duration slider */
+.ed-row label.ed-slide { flex: 1 1 100%; flex-wrap: wrap; }
+.ed-row label.ed-slide b { color: var(--text-primary); }
+.ed-row label.ed-slide input[type="range"] { flex: 1 1 100%; width: 100%; }
