@@ -213,7 +213,7 @@ function setMapDirection(mode) {
    Section navigation
    ========================================================= */
 
-const APP_SECTIONS = ["home", "guide", "analysis", "map", "navigation", "weather"];
+const APP_SECTIONS = ["home", "guide", "analysis", "map", "navigation", "weather", "edit"];
 
 /*
  * URL hash routes. Only a plain hash is used (no pushState paths,
@@ -225,7 +225,8 @@ const SECTION_HASHES = {
     map: "#/map",
     weather: "#/weather",
     navigation: "#/navigation",
-    guide: "#/help"
+    guide: "#/help",
+    edit: "#/edit"
 };
 
 const SECTION_TITLES = {
@@ -234,7 +235,8 @@ const SECTION_TITLES = {
     map: "نقشه مسیرها | پاکوب",
     weather: "هواشناسی قله | پاکوب",
     navigation: "ناوبری زنده | پاکوب",
-    guide: "راهنما و درباره ما | پاکوب"
+    guide: "راهنما و درباره ما | پاکوب",
+    edit: "ویرایش مسیر | پاکوب"
 };
 
 // first call: replace the current history entry instead of adding one
@@ -256,7 +258,10 @@ function getSectionFromHash() {
         return "guide";
     }
 
-    return APP_SECTIONS.find(id => SECTION_HASHES[id] === "#/" + key) || null;
+    const found = APP_SECTIONS.find(id => SECTION_HASHES[id] === "#/" + key) || null;
+
+    // the route editor is desktop only
+    return found === "edit" && window.innerWidth <= 900 ? null : found;
 }
 
 function writeSectionHash(sectionId) {

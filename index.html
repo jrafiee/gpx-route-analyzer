@@ -51,6 +51,7 @@
 <link rel="stylesheet" href="css/responsive.css">
 <link rel="stylesheet" href="css/weather.css">
 <link rel="stylesheet" href="css/offline.css">
+<link rel="stylesheet" href="css/edit.css">
 </head>
 
 <body data-section="home">
@@ -102,6 +103,7 @@
         <button type="button" class="desktop-nav-item" data-target="map"><span>نقشه مسیرها</span></button>
         <button type="button" class="desktop-nav-item" data-target="weather"><span>هواشناسی قله</span></button>
         <button type="button" class="desktop-nav-item" data-target="navigation"><span>ناوبری</span></button>
+        <button type="button" class="desktop-nav-item" data-target="edit"><span>ویرایش مسیر</span></button>
         <button type="button" class="desktop-nav-item" data-target="guide"><span>راهنما و درباره ما</span></button>
     </nav>
 
@@ -558,6 +560,25 @@
             <div id="nav-screen-slot"></div>
         </section>
 
+        <!-- SECTION: ویرایش مسیر (فقط دسکتاپ) -->
+        <section id="section-edit" class="app-section" aria-labelledby="edit-heading">
+            <div class="section-header-row">
+                <div class="section-title-group">
+                    <span class="section-icon"><svg class="ico" aria-hidden="true"><use href="#i-slope"/></svg></span>
+                    <div>
+                        <h2 id="edit-heading" class="section-title">ویرایش مسیر</h2>
+                        <p class="section-subtitle">برش، پاک‌سازی، نقاط راهنما و ذخیرهٔ نسخهٔ جدید؛ فایل اصلی تغییر نمی‌کند</p>
+                    </div>
+                </div>
+            </div>
+            <div id="ed-empty" class="empty-state-card">
+                <div class="empty-state-icon"><svg class="ico" aria-hidden="true"><use href="#i-mountain"/></svg></div>
+                <h3 class="empty-state-title">مسیری برای ویرایش انتخاب نشده است</h3>
+                <p class="empty-state-desc">از ستون «مدیریت مسیرها» یک مسیر پیش‌فرض را تیک بزنید یا فایل GPX/KML خود را اضافه کنید.</p>
+            </div>
+            <div id="ed-root" hidden></div>
+        </section>
+
         <!-- SECTION 4: هواشناسی قله -->
         <section id="section-weather" class="app-section" aria-labelledby="weather-heading">
             <div class="section-header-row weather-header">
@@ -670,6 +691,7 @@
 <script defer src="js/weather.js"></script>
 <script defer src="js/pmtiles.js"></script>
 <script defer src="js/offline-region.js"></script>
+<script defer src="js/route-edit.js"></script>
 <script defer src="js/pwa.js"></script>
 <script defer src="js/app.js"></script>
 
