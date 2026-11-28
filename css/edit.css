@@ -74,3 +74,47 @@ body.dark-mode .ed-msg.error { color: #fca5a5; }
     border-radius: 50%; background: #fff; font-size: 14px; box-shadow: 0 1px 4px rgba(0, 0, 0, .4);
 }
 .ed-stop { border-color: #fff; background: #ff9800; font-size: 11px; }
+
+
+/* ---------- 2D / 3D switch above the editor map ---------- */
+.ed-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+body.dark-mode .ed-btn.active { color: #06261f; }
+.ed-viewbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px 12px; border-bottom: 1px solid var(--border-color); }
+#ed-map3d { position: relative; height: max(460px, calc(100vh - 380px)); }
+#ed-map[hidden], #ed-map3d[hidden], #ed-base3d[hidden] { display: none; }
+
+/* ---------- ؟ help buttons and help boxes ---------- */
+.ed-help-btn {
+    display: inline-grid; place-items: center; width: 22px; height: 22px; margin-inline-start: 8px; padding: 0;
+    border: 1.5px solid var(--primary-blue); border-radius: 50%; background: transparent; color: var(--primary-blue);
+    font-family: inherit; font-size: 13px; font-weight: 800; line-height: 1; vertical-align: middle; cursor: pointer;
+}
+.ed-help-btn:hover, .ed-help-btn.active { background: var(--primary-blue); color: #fff; }
+body.dark-mode .ed-help-btn:hover, body.dark-mode .ed-help-btn.active { color: #06261f; }
+
+.ed-help {
+    padding: 8px 12px; border: 1px solid var(--chip-border); border-radius: 10px;
+    background: var(--accent-light); color: var(--text-primary); font-size: 12.5px; line-height: 1.9;
+}
+.ed-help[hidden] { display: none; }
+.ed-help p { margin: 4px 0; }
+.ed-help-item { padding: 6px 0 4px; border-top: 1px dashed var(--chip-border); }
+.ed-help-item:first-of-type { margin-top: 4px; }
+.c-orange { color: #e68a00; } .c-red { color: #e53935; } .c-purple { color: #ab47bc; }
+
+/* before / after drawings */
+.ed-fig { display: block; width: 100%; max-width: 260px; margin: 4px 0 2px; direction: ltr; }
+.ed-fig .bx { fill: var(--card-bg); stroke: var(--border-color); }
+.ed-fig .ln { fill: none; stroke: #1e88e5; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ed-fig .dt { fill: #1e88e5; }
+.ed-fig .kp { fill: #ff9800; }
+.ed-fig .bad { fill: #ff5252; }
+.ed-fig .vio { fill: #ab47bc; }
+.ed-fig .ok { fill: #2e9e6b; }
+.ed-fig .wp { fill: #0b7a66; }
+.ed-fig .ar { fill: none; stroke: var(--text-secondary); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ed-fig .tx { fill: var(--text-secondary); font-size: 9.5px; text-anchor: middle; font-family: inherit; }
+
+/* stop / radius drawing */
+.ed-fig .rg { fill: rgba(255, 152, 0, .15); stroke: #ff9800; stroke-width: 1.5; stroke-dasharray: 4 3; }
+.ed-fig .sp circle { fill: #ff9800; }
